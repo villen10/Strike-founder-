@@ -1,0 +1,145 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile storing account information",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique user identifier matching auth UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Creator display name",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when profile was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when profile was last updated"
+        }
+      },
+      "required": ["userId", "email", "createdAt", "updatedAt"]
+    },
+    "AuditReport": {
+      "title": "AuditReport",
+      "description": "Video policy audit report document",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner UID who initiated the audit",
+          "maxLength": 128
+        },
+        "videoTitle": {
+          "type": "string",
+          "description": "Title of the audited video",
+          "maxLength": 200
+        },
+        "overallRiskScore": {
+          "type": "number",
+          "description": "Risk score from 0 to 100"
+        },
+        "safetyGrade": {
+          "type": "string",
+          "description": "Safety verdict grade",
+          "enum": ["SAFE_TO_UPLOAD", "MONETIZATION_AT_RISK", "HIGH_STRIKE_RISK"]
+        },
+        "strictnessMode": {
+          "type": "string",
+          "description": "Audit policy strictness level",
+          "enum": ["STANDARD", "PARANOID_ZERO_RISK"]
+        },
+        "totalIssuesCount": {
+          "type": "number",
+          "description": "Total detected policy issues"
+        },
+        "summaryVerdictEn": {
+          "type": "string",
+          "description": "Audit summary verdict in English",
+          "maxLength": 1500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of update"
+        }
+      },
+      "required": ["userId", "videoTitle", "overallRiskScore", "safetyGrade", "strictnessMode", "totalIssuesCount", "summaryVerdictEn", "createdAt", "updatedAt"]
+    },
+    "SavedAppeal": {
+      "title": "SavedAppeal",
+      "description": "Generated or customized YouTube strike appeal",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Author UID who created the appeal",
+          "maxLength": 128
+        },
+        "videoTitle": {
+          "type": "string",
+          "description": "Audited video title",
+          "maxLength": 200
+        },
+        "policyType": {
+          "type": "string",
+          "description": "Type of YouTube policy strike being appealed",
+          "maxLength": 100
+        },
+        "appealLetter": {
+          "type": "string",
+          "description": "Full formal appeal text",
+          "maxLength": 10000
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the appeal draft",
+          "enum": ["draft", "submitted", "approved", "rejected"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["userId", "videoTitle", "policyType", "appealLetter", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection isolated per user"
+    },
+    "/audit_reports/{reportId}": {
+      "schema": "AuditReport",
+      "description": "Saved video audits owned by creators"
+    },
+    "/saved_appeals/{appealId}": {
+      "schema": "SavedAppeal",
+      "description": "Saved strike appeals authored by creators"
+    }
+  }
+}

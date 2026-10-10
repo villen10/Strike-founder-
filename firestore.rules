@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Primitives
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+        request.auth.token.email == 'blendagent.online@gmail.com' && 
+        request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity Validators
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'email', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'email', 'displayName', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+        data.email is string && data.email.size() > 0 && data.email.size() <= 256 &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidAuditReport(data) {
+      return data.keys().hasAll(['userId', 'videoTitle', 'overallRiskScore', 'safetyGrade', 'strictnessMode', 'totalIssuesCount', 'summaryVerdictEn', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'videoTitle', 'overallRiskScore', 'safetyGrade', 'strictnessMode', 'totalIssuesCount', 'summaryVerdictEn', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+        data.videoTitle is string && data.videoTitle.size() > 0 && data.videoTitle.size() <= 200 &&
+        data.overallRiskScore is number && data.overallRiskScore >= 0 && data.overallRiskScore <= 100 &&
+        data.safetyGrade in ['SAFE_TO_UPLOAD', 'MONETIZATION_AT_RISK', 'HIGH_STRIKE_RISK'] &&
+        data.strictnessMode in ['STANDARD', 'PARANOID_ZERO_RISK'] &&
+        data.totalIssuesCount is number && data.totalIssuesCount >= 0 &&
+        data.summaryVerdictEn is string && data.summaryVerdictEn.size() <= 1500 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSavedAppeal(data) {
+      return data.keys().hasAll(['userId', 'videoTitle', 'policyType', 'appealLetter', 'status', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'videoTitle', 'policyType', 'appealLetter', 'status', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+        data.videoTitle is string && data.videoTitle.size() > 0 && data.videoTitle.size() <= 200 &&
+        data.policyType is string && data.policyType.size() > 0 && data.policyType.size() <= 100 &&
+        data.appealLetter is string && data.appealLetter.size() > 0 && data.appealLetter.size() <= 10000 &&
+        data.status in ['draft', 'submitted', 'approved', 'rejected'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // 1. Users Profile Collection
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if false; // Blanket listing forbidden to protect PII
+      allow create: if isValidId(userId) && 
+        isOwner(userId) && 
+        incoming().userId == request.auth.uid &&
+        isValidUserProfile(incoming()) && 
+        incoming().createdAt == request.time && 
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && 
+        (isOwner(userId) || isAdmin()) && 
+        isValidUserProfile(incoming()) && 
+        incoming().userId == existing().userId && 
+        incoming().createdAt == existing().createdAt && 
+        incoming().updatedAt == request.time && 
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'updatedAt']);
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+    }
+
+    // 2. Audit Reports Collection
+    match /audit_reports/{reportId} {
+      allow get: if isValidId(reportId) && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isValidId(reportId) && 
+        isSignedIn() && 
+        incoming().userId == request.auth.uid && 
+        isValidAuditReport(incoming()) && 
+        incoming().createdAt == request.time && 
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(reportId) && 
+        (isOwner(existing().userId) || isAdmin()) && 
+        isValidAuditReport(incoming()) && 
+        incoming().userId == existing().userId && 
+        incoming().createdAt == existing().createdAt && 
+        incoming().updatedAt == request.time && 
+        incoming().diff(existing()).affectedKeys().hasOnly(['videoTitle', 'overallRiskScore', 'safetyGrade', 'strictnessMode', 'totalIssuesCount', 'summaryVerdictEn', 'updatedAt']);
+      allow delete: if isValidId(reportId) && (isOwner(existing().userId) || isAdmin());
+    }
+
+    // 3. Saved Appeals Collection
+    match /saved_appeals/{appealId} {
+      allow get: if isValidId(appealId) && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isValidId(appealId) && 
+        isSignedIn() && 
+        incoming().userId == request.auth.uid && 
+        isValidSavedAppeal(incoming()) && 
+        incoming().createdAt == request.time && 
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(appealId) && 
+        (isOwner(existing().userId) || isAdmin()) && 
+        (existing().status in ['draft', 'submitted'] || isAdmin()) && 
+        isValidSavedAppeal(incoming()) && 
+        incoming().userId == existing().userId && 
+        incoming().createdAt == existing().createdAt && 
+        incoming().updatedAt == request.time && 
+        (incoming().diff(existing()).affectedKeys().hasOnly(['appealLetter', 'status', 'updatedAt']) || isAdmin());
+      allow delete: if isValidId(appealId) && (isOwner(existing().userId) || isAdmin());
+    }
+  }
+}
