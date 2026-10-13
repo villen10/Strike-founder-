@@ -101,3 +101,30 @@ export interface SampleVideoOption {
   mockReport: AuditReport;
 }
 
+export type QueueTaskStatus = 'QUEUED' | 'EXTRACTING' | 'AUDITING' | 'COMPLETED' | 'ERROR';
+
+export interface QueuedVideoTask {
+  id: string;
+  file?: File;
+  sampleId?: string;
+  title: string;
+  fileSizeFormatted?: string;
+  videoUrl: string | null;
+  durationSec: number;
+  durationFormatted: string;
+  status: QueueTaskStatus;
+  progressPercent: number;
+  progressStatus: string;
+  extractedFrames: Array<{
+    timestamp: string;
+    seconds: number;
+    dataUrl: string;
+    clipIndex: number;
+  }>;
+  report?: AuditReport;
+  error?: string;
+  addedAt: number;
+  completedAt?: number;
+}
+
+

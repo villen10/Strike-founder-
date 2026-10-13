@@ -32,7 +32,7 @@ export async function runGeminiVideoAudit(params: {
   ).join('\n\n');
 
   const promptText = `
-You are the world's most sophisticated YouTube Algorithmic Content Moderation & Strike Prevention Auditor.
+You are the world's most advanced YouTube Algorithmic Content Moderation & Nudity/Strike Prevention Auditor.
 You analyze video content 10x deeper than YouTube's internal automated classifier bot.
 
 COMPREHENSIVE AUDIT POLICY REPOSITORY:
@@ -47,14 +47,14 @@ Strictness Setting: ${
       : 'STANDARD YOUTUBE INGESTION MODERATION'
   }
 
-EVALUATION RULES:
+EVALUATION & MODERATION RULES:
 1. Ingestion Protocol: YouTube algorithms inspect 100% of uploaded files instantly, even in draft, Unlisted, or Private modes.
-2. Child Safety: Zero tolerance for minors near sharp cutlery, flame, high-elevation drops, or distress pranks.
-3. First 7-Second Rule: Opening hook (00:00 - 00:07) must be completely free of vulgar profanity, intense blood, or shock value to maintain advertiser monetization (Green Dollar).
-4. Dangerous Acts & Stunts: Detect reckless vehicular operations, high fall risks, or hazardous physical interactions.
+2. Sexual Content & Nudity Inspection: Zero tolerance for explicit sexual content, nudity, unclothed bodies (boys or girls showing private parts like breasts, genitalia, or explicit exposure). Any frame showing bare private areas without educational/artistic context must be marked as CRITICAL_STRIKE under YouTube's Nudity and Sexual Content Policy.
+3. Child Safety: Zero tolerance for minors near sharp cutlery, flame, high-elevation drops, or distress pranks.
+4. First 7-Second Rule: Opening hook (00:00 - 00:07) must be completely free of vulgar profanity, intense blood, or shock value to maintain advertiser monetization (Green Dollar).
 5. Provide EXACT timeline cut/blur recommendations for video editing suites (CapCut, Premiere Pro, DaVinci Resolve).
 
-Sequential Frames Analyzed:
+Sequential Overlapping 2-5s Clip Frames Analyzed:
 ${params.frames.map((f, i) => `Frame ${i + 1} at timestamp ${f.timestamp}`).join(', ')}
 
 Return a strict JSON response adhering EXACTLY to this schema:
@@ -77,15 +77,15 @@ Return a strict JSON response adhering EXACTLY to this schema:
       "secondsStart": <number>,
       "secondsEnd": <number>,
       "severity": "<CRITICAL_STRIKE" | "DEMONETIZATION_WARNING" | "MILD_CAUTION">,
-      "category": "<CHILD_SAFETY" | "DANGEROUS_CONTENT" | "VIOLENCE_GRAPHIC" | "HATE_SPEECH_HARASSMENT" | "ADVERTISER_FRIENDLY">,
-      "categoryLabel": "<Category display title, e.g. Child Safety & Minor Protection>",
-      "title": "<Concise issue title, e.g. Unattended Minor with Dangerous Blade>",
+      "category": "<CHILD_SAFETY" | "SEXUAL_CONTENT" | "DANGEROUS_CONTENT" | "VIOLENCE_GRAPHIC" | "HATE_SPEECH_HARASSMENT" | "ADVERTISER_FRIENDLY">,
+      "categoryLabel": "<Category display title, e.g. Sexual Content & Nudity Policy>",
+      "title": "<Concise issue title, e.g. Unclothed Exposure / Private Parts Violation>",
       "youtubePolicyRef": "<Official YouTube guideline policy name>",
       "descriptionEn": "<Detailed explanation of why YouTube automated bots flag this scene>",
       "descriptionUrdu": "<Same detailed explanation in English>",
       "actionableFix": {
         "actionType": "<TRIM_CLIP" | "BLUR_AREA" | "MUTE_AUDIO" | "ADD_DISCLAIMER" | "AGE_GATE">,
-        "instructionsEn": "<Exact steps to remediate in video editor, e.g. Trim 00:04 to 00:08>",
+        "instructionsEn": "<Exact steps to remediate in video editor, e.g. Blur or trim 00:04 to 00:08>",
         "instructionsUrdu": "<Same exact steps in English>",
         "suggestedCut": "<e.g. Cut 00:04 - 00:08 (4 seconds)>"
       }

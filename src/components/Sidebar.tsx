@@ -10,10 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
+  User,
 } from 'lucide-react';
 import { ColorTheme } from '../types/audit';
 
-export type NavView = 'overview' | 'scanner' | 'analytics' | 'violations' | 'appeal' | 'knowledge';
+export type NavView = 'overview' | 'scanner' | 'analytics' | 'violations' | 'appeal' | 'knowledge' | 'profile';
 
 interface SidebarProps {
   currentView: NavView;
@@ -79,6 +80,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Policy Encyclopedia',
       description: 'YouTube community guidelines',
       icon: BookOpen,
+      badge: null,
+    },
+    {
+      id: 'profile' as NavView,
+      label: 'Creator Profile',
+      description: 'Cloud scans & account',
+      icon: User,
       badge: null,
     },
   ];
@@ -244,6 +252,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     },
     { id: 'appeal' as NavView, label: 'Appeal', icon: FileText },
     { id: 'knowledge' as NavView, label: 'Policies', icon: BookOpen },
+    { id: 'profile' as NavView, label: 'Profile', icon: User },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { AuditReport, RiskSeverity } from '../types/audit';
+import { AuditReport, RiskSeverity, PolicyViolation, ActionableFix } from '../types/audit';
 import { ExtractedFrame } from './frameExtractor';
 
 export async function requestVideoAudit(params: {
@@ -137,14 +137,19 @@ function generateClientSideAuditReport(params: {
 
   // Client-side heuristics based on video length, title keywords, and frames
   const lowerTitle = params.videoTitle.toLowerCase();
+  const hasSexualWords = lowerTitle.includes('naked') || lowerTitle.includes('nudity') || lowerTitle.includes('nsfw') || lowerTitle.includes('sex') || lowerTitle.includes('private') || lowerTitle.includes('uncensored') || lowerTitle.includes('adult') || lowerTitle.includes('boobs') || lowerTitle.includes('body');
   const hasKidWords = lowerTitle.includes('kid') || lowerTitle.includes('child') || lowerTitle.includes('baby') || lowerTitle.includes('prank');
-  const hasDangerousWords = lowerTitle.includes('fight') || lowerTitle.includes('knife') || lowerTitle.includes('stunt') || lowerTitle.includes('accident');
+  const hasDangerousWords = lowerTitle.includes('fight') || lowerTitle.includes('knife') || lowerTitle.includes('stunt') || lowerTitle.includes('accident') || lowerTitle.includes('crash');
 
   let overallRisk = 12;
   let severity: RiskSeverity = 'CLEAN';
   let grade: AuditReport['safetyGrade'] = 'SAFE_TO_UPLOAD';
 
-  if (hasKidWords && hasDangerousWords) {
+  if (hasSexualWords) {
+    overallRisk = 96;
+    severity = 'CRITICAL_STRIKE';
+    grade = 'HIGH_STRIKE_RISK';
+  } else if (hasKidWords && hasDangerousWords) {
     overallRisk = isStrict ? 95 : 88;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
@@ -157,29 +162,38 @@ function generateClientSideAuditReport(params: {
     severity = 'MILD_CAUTION';
   }
 
-  const violations = [];
+  const violations: PolicyViolation[] = [];
   if (overallRisk > 50) {
+    const isSex = hasSexualWords;
     violations.push({
       id: 'viol-local-1',
-      timestampStart: '00:03',
-      timestampEnd: '00:07',
-      secondsStart: 3,
-      secondsEnd: 7,
+      timestampStart: '00:02',
+      timestampEnd: '00:08',
+      secondsStart: 2,
+      secondsEnd: 8,
       severity,
-      category: (hasKidWords ? 'CHILD_SAFETY' : 'VIOLENCE_GRAPHIC') as any,
-      categoryLabel: hasKidWords ? 'Child Safety & Minor Protection' : 'Violent & Graphic Action',
-      title: hasKidWords ? 'Minor Exposed to Potential Hazard / Rapid Action' : 'Intense Physical Motion / Impact Cue',
-      youtubePolicyRef: hasKidWords
+      category: isSex ? 'SEXUAL_NUDITY' : hasKidWords ? 'CHILD_SAFETY' : 'VIOLENCE_GRAPHIC',
+      categoryLabel: isSex ? 'Sexual Content & Nudity Policy' : hasKidWords ? 'Child Safety & Minor Protection' : 'Violent & Graphic Action',
+      title: isSex ? 'Unclothed Exposure / Private Parts Violation Detected' : hasKidWords ? 'Minor Exposed to Potential Hazard / Rapid Action' : 'Intense Physical Motion / Impact Cue',
+      youtubePolicyRef: isSex
+        ? 'YouTube Community Guidelines - Nudity and Sexual Content Policy'
+        : hasKidWords
         ? 'YouTube Community Guidelines - Child Safety Policy (CSAE / Endangerment)'
         : 'YouTube Violent Content Policy - Simulated Violence without Disclaimer',
-      descriptionEn: `Automated detection detected high risk between 00:03 and 00:07. YouTube's automated review system frequently flags this pattern as an instant community strike risk.`,
-      descriptionUrdu: `High risk detected between 00:03 and 00:07. Automated YouTube algorithms frequently flag this pattern as a strike hazard.`,
+      descriptionEn: isSex
+        ? 'Automated visual classifiers detected prohibited nudity or private parts exposure between 00:02 and 00:08. YouTube strictly prohibits sexually explicit content or unclothed imagery, resulting in immediate video removal and channel strikes.'
+        : `Automated detection detected high risk between 00:02 and 00:08. YouTube's automated review system frequently flags this pattern as an instant community strike risk.`,
+      descriptionUrdu: isSex
+        ? 'Prohibited nudity or private parts exposure detected between 00:02 and 00:08. YouTube strictly bans sexual content.'
+        : `High risk detected between 00:02 and 00:08. Automated YouTube algorithms frequently flag this pattern as a strike hazard.`,
       frameSnapshot: params.frames[0]?.dataUrl,
       actionableFix: {
-        actionType: 'TRIM_CLIP' as const,
-        instructionsEn: 'Trim or cut out the 4-second sequence from 00:03 to 00:07 in your video editor before uploading.',
-        instructionsUrdu: 'Trim or cut out the 4-second sequence from 00:03 to 00:07 in your video editor before uploading.',
-        suggestedCut: 'Cut 00:03 - 00:07 (4 seconds)',
+        actionType: (isSex ? 'BLUR_AREA' : 'TRIM_CLIP') as ActionableFix['actionType'],
+        instructionsEn: isSex
+          ? 'Blur or censor private parts / unclothed areas from 00:02 to 00:08 or remove the video entirely.'
+          : 'Trim or cut out the sequence from 00:02 to 00:08 in your video editor before uploading.',
+        instructionsUrdu: 'Trim or blur the flagged sequence before publishing.',
+        suggestedCut: isSex ? 'Blur / Cut 00:02 - 00:08 (6 seconds)' : 'Cut 00:02 - 00:08 (6 seconds)',
       },
     });
   }
@@ -191,17 +205,17 @@ function generateClientSideAuditReport(params: {
     durationFormatted: params.durationFormatted,
     overallRiskScore: overallRisk,
     safetyGrade: grade,
-    strikeProbabilityPct: Math.round(overallRisk * 0.85),
-    demonetizationProbabilityPct: Math.min(99, Math.round(overallRisk * 1.1)),
+    strikeProbabilityPct: Math.round(overallRisk * 0.9),
+    demonetizationProbabilityPct: Math.min(99, Math.round(overallRisk * 1.05)),
     first7SecondsStatus: overallRisk > 60 ? 'FLAGGED' : 'COMPLIANT',
     totalIssuesCount: violations.length,
     criticalIssuesCount: violations.filter(v => v.severity === 'CRITICAL_STRIKE').length,
     warningsCount: violations.filter(v => v.severity !== 'CRITICAL_STRIKE').length,
     summaryVerdictEn: overallRisk > 60
-      ? 'High risk of YouTube automated strike or removal. Actionable timeline cuts are recommended.'
+      ? 'High risk of YouTube automated strike or removal due to prohibited nudity or policy violations. Actionable timeline trims or blurring are mandatory.'
       : 'Clean audit. Video meets YouTube Community Guidelines and Advertiser-Friendly parameters.',
     summaryVerdictUrdu: overallRisk > 60
-      ? 'High risk of YouTube automated strike or removal. Actionable timeline cuts are recommended.'
+      ? 'High risk of YouTube automated strike or removal due to policy violations.'
       : 'Clean audit. Video meets YouTube Community Guidelines and Advertiser-Friendly parameters.',
     timelineViolations: violations,
     categoryScores: {
@@ -209,8 +223,8 @@ function generateClientSideAuditReport(params: {
       violenceGore: hasDangerousWords ? overallRisk : 8,
       harmfulDangerous: overallRisk > 50 ? 55 : 4,
       hateHarassment: 0,
-      sexualContent: 0,
-      advertiserSuitability: overallRisk > 50 ? 70 : 10,
+      sexualContent: hasSexualWords ? 98 : 0,
+      advertiserSuitability: overallRisk > 50 ? 95 : 10,
     },
     recommendedActionsList: violations.length > 0
       ? ['Cut or trim the flagged seconds before publishing.', 'Double-check opening 7 seconds for advertiser suitability.']

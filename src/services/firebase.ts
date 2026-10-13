@@ -3,6 +3,9 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
   signOut,
   onAuthStateChanged,
   User,
@@ -104,6 +107,35 @@ export async function signInWithGoogle(): Promise<User | null> {
   }
 }
 
+// Email/Password Registration
+export async function signUpWithEmail(email: string, pass: string, displayName: string): Promise<User | null> {
+  try {
+    const credential = await createUserWithEmailAndPassword(auth, email, pass);
+    if (credential.user) {
+      await updateProfile(credential.user, { displayName });
+      await syncUserProfile(credential.user);
+    }
+    return credential.user;
+  } catch (error) {
+    console.error('Sign-up error:', error);
+    throw error;
+  }
+}
+
+// Email/Password Login
+export async function signInWithEmail(email: string, pass: string): Promise<User | null> {
+  try {
+    const credential = await signInWithEmailAndPassword(auth, email, pass);
+    if (credential.user) {
+      await syncUserProfile(credential.user);
+    }
+    return credential.user;
+  } catch (error) {
+    console.error('Sign-in error:', error);
+    throw error;
+  }
+}
+
 export async function logOut(): Promise<void> {
   await signOut(auth);
 }
@@ -163,12 +195,14 @@ export async function saveAuditReportToCloud(report: AuditReport, user: User): P
 export interface CloudAuditRecord {
   id: string;
   userId: string;
+  userEmail?: string;
   videoTitle: string;
   overallRiskScore: number;
   safetyGrade: 'SAFE_TO_UPLOAD' | 'MONETIZATION_AT_RISK' | 'HIGH_STRIKE_RISK';
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
   totalIssuesCount: number;
   summaryVerdictEn: string;
+  scannedAt?: string;
   createdAt?: Timestamp | Date;
 }
 

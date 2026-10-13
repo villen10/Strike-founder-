@@ -12,7 +12,12 @@ import {
 } from 'lucide-react';
 import { ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
-import type { User } from '../services/firebase';
+export interface HeaderUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL?: string | null;
+}
 
 interface HeaderProps {
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
@@ -20,8 +25,10 @@ interface HeaderProps {
   onOpenKnowledgeBase?: () => void;
   currentTheme: ColorThemeId;
   onSelectTheme: (theme: ColorThemeId) => void;
-  currentUser?: User | null;
+  currentUser?: HeaderUser | null;
   onSignIn?: () => void;
+  onRegister?: () => void;
+  onNavigateProfile?: () => void;
   onSignOut?: () => void;
 }
 
@@ -32,6 +39,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTheme,
   currentUser,
   onSignIn,
+  onRegister,
+  onNavigateProfile,
   onSignOut,
 }) => {
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
@@ -55,8 +64,8 @@ export const Header: React.FC<HeaderProps> = ({
           : 'border-b border-slate-800/90 bg-slate-950/95 backdrop-blur-md text-slate-100 shadow-sm'
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2 sm:px-6">
-        {/* Brand Identity (Responsive, No Overflow) */}
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6">
+        {/* Brand Identity */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <div
             className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl p-0.5 shadow-xs transition-transform hover:scale-105 shrink-0 ${
@@ -99,11 +108,26 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right side controls (Clean, Minimalist, No Crowding) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Right side controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Quick Profile button on desktop if logged in */}
+          {currentUser && onNavigateProfile && (
+            <button
+              onClick={onNavigateProfile}
+              className={`hidden sm:flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                isLight
+                  ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
+              }`}
+            >
+              <UserIcon className="h-3.5 w-3.5 text-red-600" />
+              <span>Profile</span>
+            </button>
+          )}
+
           {/* Strictness Mode Segmented Control */}
           <div
-            className={`flex items-center rounded-xl border p-0.5 text-xs ${
+            className={`hidden sm:flex items-center rounded-xl border p-0.5 text-xs ${
               isLight
                 ? 'border-slate-200 bg-slate-100/80'
                 : 'border-slate-800 bg-slate-900/90'
@@ -111,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <button
               onClick={() => onToggleStrictness('STANDARD')}
-              className={`rounded-lg px-2 sm:px-2.5 py-1 font-sans text-[11px] sm:text-xs transition ${
+              className={`rounded-lg px-2 sm:px-2.5 py-1 font-sans text-[11px] transition cursor-pointer ${
                 strictnessMode === 'STANDARD'
                   ? isLight
                     ? 'bg-white text-slate-950 shadow-xs font-bold'
@@ -120,80 +144,60 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'text-slate-600 hover:text-slate-900 font-medium'
                   : 'text-slate-400 hover:text-slate-200 font-medium'
               }`}
-              title="Standard YouTube algorithm threshold"
             >
               Standard
             </button>
             <button
               onClick={() => onToggleStrictness('PARANOID_ZERO_RISK')}
-              className={`flex items-center gap-1 rounded-lg px-2 sm:px-2.5 py-1 font-sans text-[11px] sm:text-xs transition ${
+              className={`flex items-center gap-1 rounded-lg px-2 sm:px-2.5 py-1 font-sans text-[11px] transition cursor-pointer ${
                 strictnessMode === 'PARANOID_ZERO_RISK'
-                  ? isLight
-                    ? 'bg-red-50 text-red-700 shadow-xs font-bold ring-1 ring-red-200'
-                    : 'bg-rose-950 text-rose-200 shadow-xs ring-1 ring-rose-800/40 font-bold'
-                  : isLight
-                  ? 'text-slate-600 hover:text-slate-900 font-medium'
-                  : 'text-slate-400 hover:text-slate-200 font-medium'
+                  ? 'bg-red-600 text-white shadow-xs font-bold'
+                  : 'text-slate-500 hover:text-red-500 font-medium'
               }`}
-              title="Paranoid Zero-Risk: 20% strict buffer for guaranteed safety"
             >
-              <ShieldAlert className="h-3 w-3 text-red-500" />
+              <ShieldAlert className="h-3 w-3" />
               <span>Zero-Risk</span>
             </button>
           </div>
 
-          {/* Quick Light / Dark Mode Toggle */}
+          {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleLightDark}
-            className={`flex h-8 w-8 sm:w-auto items-center justify-center gap-1.5 rounded-xl border sm:px-2.5 font-sans text-xs font-semibold transition ${
+            className={`flex h-8 w-8 items-center justify-center rounded-xl border transition cursor-pointer ${
               isLight
-                ? 'border-slate-200 bg-slate-100 hover:bg-slate-200/80 text-slate-800'
-                : 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300'
+                ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
             }`}
             title={isLight ? 'Switch to Dark Mode' : 'Switch to Studio White'}
           >
-            {isLight ? (
-              <>
-                <Moon className="h-3.5 w-3.5 text-slate-600" />
-                <span className="hidden md:inline text-[11px]">Dark</span>
-              </>
-            ) : (
-              <>
-                <Sun className="h-3.5 w-3.5 text-amber-400" />
-                <span className="hidden md:inline text-[11px]">White</span>
-              </>
-            )}
+            {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-400" />}
           </button>
 
-          {/* Theme Palette Picker Dropdown */}
+          {/* Color Theme Selector Dropdown */}
           <div className="relative">
             <button
               onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-              className={`flex h-8 w-8 sm:w-auto items-center justify-center gap-1.5 rounded-xl border sm:px-2.5 font-sans text-xs font-semibold transition ${
+              className={`flex h-8 items-center justify-center gap-1.5 rounded-xl border px-2 font-sans text-xs font-semibold transition cursor-pointer ${
                 isLight
                   ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                  : 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300'
+                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
               }`}
-              title="Select UI Palette"
+              title="Select studio accent theme"
             >
               <Palette className="h-3.5 w-3.5 text-red-500" />
-              <span className="hidden md:inline font-mono text-[11px]">Palette</span>
+              <span className="hidden lg:inline text-[11px]">{theme.nameEn}</span>
             </button>
 
             {isThemeMenuOpen && (
               <div
-                className={`absolute right-0 mt-2 w-60 rounded-2xl border p-2 shadow-xl z-50 backdrop-blur-md ${
+                className={`absolute right-0 mt-2 w-52 rounded-2xl border p-2 shadow-xl z-50 backdrop-blur-md ${
                   isLight
-                    ? 'border-slate-200 bg-white text-slate-900'
-                    : 'border-slate-800 bg-slate-900 text-slate-100'
+                    ? 'border-slate-200 bg-white/95 text-slate-900'
+                    : 'border-slate-800 bg-slate-900/95 text-slate-100'
                 }`}
               >
-                <div
-                  className={`px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider border-b mb-1 ${
-                    isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800 text-slate-400'
-                  }`}
-                >
-                  Select Color Theme
+                <div className="px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Select Theme
                 </div>
                 {Object.values(COLOR_THEMES).map((t) => (
                   <button
@@ -202,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectTheme(t.id);
                       setIsThemeMenuOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left font-sans text-xs transition ${
+                    className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left font-sans text-xs transition cursor-pointer ${
                       currentTheme === t.id
                         ? isLight
                           ? 'bg-slate-100 text-slate-950 font-bold'
@@ -225,12 +229,12 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Firebase Authentication & Cloud Sync */}
+          {/* Authentication & Profile Status */}
           {currentUser ? (
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className={`flex h-8 items-center gap-2 rounded-xl border px-2 font-sans text-xs font-semibold transition ${
+                className={`flex h-8 items-center gap-2 rounded-xl border px-2 font-sans text-xs font-semibold transition cursor-pointer ${
                   isLight
                     ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800'
                     : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200'
@@ -285,7 +289,22 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
 
                   <div className="py-2 space-y-1">
-                    <div className="flex items-center justify-between text-[11px] font-sans text-slate-500">
+                    {onNavigateProfile && (
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onNavigateProfile();
+                        }}
+                        className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left font-sans text-xs font-semibold transition cursor-pointer ${
+                          isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'
+                        }`}
+                      >
+                        <UserIcon className="h-3.5 w-3.5 text-red-600" />
+                        <span>View Creator Profile</span>
+                      </button>
+                    )}
+
+                    <div className="flex items-center justify-between text-[11px] font-sans text-slate-500 px-2.5 py-1">
                       <span className="flex items-center gap-1">
                         <Cloud className="h-3 w-3 text-emerald-500" />
                         Firebase Cloud
@@ -301,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
                       setIsUserMenuOpen(false);
                       onSignOut?.();
                     }}
-                    className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left font-sans text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition mt-1 font-semibold"
+                    className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left font-sans text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition mt-1 font-semibold cursor-pointer"
                   >
                     <LogOut className="h-3.5 w-3.5" />
                     Sign Out
@@ -310,35 +329,28 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
           ) : (
-            <button
-              onClick={onSignIn}
-              className={`flex h-8 items-center gap-1.5 rounded-xl border px-2.5 font-sans text-xs font-semibold shadow-xs transition ${
-                isLight
-                  ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-slate-100'
-                  : 'border-slate-700 bg-slate-800/90 hover:bg-slate-700 text-slate-100'
-              }`}
-              title="Sign in with Google to sync scans to Firebase"
-            >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                />
-              </svg>
-              <span className="hidden sm:inline text-xs">Sign In</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={onSignIn}
+                className={`flex h-8 items-center gap-1.5 rounded-xl border px-2.5 font-sans text-xs font-semibold shadow-xs transition cursor-pointer ${
+                  isLight
+                    ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-slate-100'
+                    : 'border-slate-700 bg-slate-800/90 hover:bg-slate-700 text-slate-100'
+                }`}
+                title="Sign in to your account"
+              >
+                <UserIcon className="h-3.5 w-3.5 text-slate-500" />
+                <span>Sign In</span>
+              </button>
+
+              <button
+                onClick={onRegister}
+                className="flex h-8 items-center gap-1 rounded-xl bg-red-600 hover:bg-red-700 text-white px-2.5 font-sans text-xs font-bold shadow-xs transition cursor-pointer"
+                title="Register a free creator account"
+              >
+                <span>Register</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

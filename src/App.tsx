@@ -4,15 +4,19 @@ import { Header } from './components/Header';
 import { Sidebar, MobileBottomNav, NavView } from './components/Sidebar';
 import { VideoScanner } from './components/VideoScanner';
 import { AuditSummaryCard } from './components/AuditSummaryCard';
+import { AuditResultsDashboard } from './components/AuditResultsDashboard';
 import { TimelineViolations } from './components/TimelineViolations';
 import { ChannelHealthTrend, HistoricalUploadRecord } from './components/ChannelHealthTrend';
 import { AppealGeneratorModal } from './components/AppealGeneratorModal';
 import { SafeCutGuideModal } from './components/SafeCutGuideModal';
 import { PolicyKnowledgeBase } from './components/PolicyKnowledgeBase';
+import { AuthModal } from './components/AuthModal';
+import { ProfileView, AppUserProfile } from './components/ProfileView';
+import { FullScreenAnalysisModal } from './components/FullScreenAnalysisModal';
 import { COLOR_THEMES } from './services/themeConfig';
 import { SAMPLE_VIDEOS } from './services/sampleData';
-import { AuditReport, ColorThemeId, SampleVideoOption } from './types/audit';
-import { ExtractedFrame } from './services/frameExtractor';
+import { AuditReport, ColorThemeId, SampleVideoOption, QueuedVideoTask } from './types/audit';
+import { ExtractedFrame, extractVideoMetadataAndFrames } from './services/frameExtractor';
 import { requestVideoAudit } from './services/auditClient';
 import {
   auth,
@@ -22,7 +26,7 @@ import {
   fetchUserAuditReports,
   CloudAuditRecord,
   onAuthStateChanged,
-  User,
+  User as FirebaseUser,
 } from './services/firebase';
 import {
   LayoutDashboard,
@@ -42,6 +46,8 @@ import {
   Info,
   Cloud,
   CheckCircle2,
+  User,
+  Lock,
 } from 'lucide-react';
 
 // Seed historical upload compliance records (Last 10 Uploads)
@@ -66,16 +72,32 @@ export default function App() {
   const theme = COLOR_THEMES[currentTheme];
   const isLight = theme.isLight;
 
-  // Firebase Authentication & Cloud State
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // Creator Account & Cloud State
+  const [currentUser, setCurrentUser] = useState<AppUserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('sg_creator_user');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
   const [cloudReports, setCloudReports] = useState<CloudAuditRecord[]>([]);
   const [isSavingToCloud, setIsSavingToCloud] = useState(false);
   const [cloudSaveMessage, setCloudSaveMessage] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [isFullScreenAnalysisOpen, setIsFullScreenAnalysisOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
       if (user) {
+        const profile: AppUserProfile = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || 'YouTube Creator',
+          photoURL: user.photoURL,
+          tier: 'Pro Shield',
+        };
+        setCurrentUser(profile);
         try {
           const records = await fetchUserAuditReports(user.uid);
           setCloudReports(records);
@@ -83,40 +105,113 @@ export default function App() {
           console.error('Failed to load cloud audits:', err);
         }
       } else {
+        // Fall back to saved demo profile if exists
+        try {
+          const saved = localStorage.getItem('sg_creator_user');
+          if (saved) {
+            setCurrentUser(JSON.parse(saved));
+            return;
+          }
+        } catch (e) {}
+        setCurrentUser(null);
         setCloudReports([]);
       }
     });
     return () => unsubscribe();
   }, []);
 
-  const handleSignIn = async () => {
+  const handleOpenAuth = (mode: 'login' | 'register') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleSignIn = () => {
+    handleOpenAuth('login');
+  };
+
+  const handleDemoLogin = (name?: string, email?: string) => {
+    const demoProfile: AppUserProfile = {
+      uid: 'creator-demo-01',
+      email: email || 'blendagent.online@gmail.com',
+      displayName: name || 'YouTube Creator',
+      photoURL: null,
+      tier: 'Pro Shield',
+      isDemo: true,
+    };
     try {
-      await signInWithGoogle();
-    } catch (e) {
-      console.error('Sign-in failed:', e);
-    }
+      localStorage.setItem('sg_creator_user', JSON.stringify(demoProfile));
+    } catch (e) {}
+    setCurrentUser(demoProfile);
+    setIsAuthModalOpen(false);
+
+    // Populate initial cloud report if empty
+    setCloudReports((prev) => {
+      if (prev.length > 0) return prev;
+      return [
+        {
+          id: 'cloud-demo-audit-01',
+          userId: 'creator-demo-01',
+          userEmail: demoProfile.email || 'blendagent.online@gmail.com',
+          videoTitle: 'Kitchen Prank with Toddler & Sharp Cutlery',
+          safetyGrade: 'HIGH_STRIKE_RISK',
+          overallRiskScore: 92,
+          strictnessMode: 'STANDARD',
+          totalIssuesCount: 3,
+          summaryVerdictEn: 'Critical 3-Strikes danger: Minor child handling real knife in high-risk scenario.',
+          scannedAt: new Date().toISOString(),
+        },
+      ];
+    });
   };
 
   const handleSignOut = async () => {
     try {
       await logOut();
-      setCloudReports([]);
     } catch (e) {
       console.error('Sign-out failed:', e);
     }
+    try {
+      localStorage.removeItem('sg_creator_user');
+    } catch (e) {}
+    setCurrentUser(null);
+    setCloudReports([]);
   };
 
   const handleSaveToCloud = async () => {
     try {
       setIsSavingToCloud(true);
-      let user = currentUser;
-      if (!user) {
-        user = await signInWithGoogle();
+      if (!currentUser) {
+        handleOpenAuth('login');
+        return;
       }
-      if (user && report) {
-        await saveAuditReportToCloud(report, user);
-        const records = await fetchUserAuditReports(user.uid);
-        setCloudReports(records);
+      if (report) {
+        // If demo user or firebase user
+        const newRecord: CloudAuditRecord = {
+          id: 'cloud-' + Date.now().toString(36),
+          userId: currentUser.uid,
+          userEmail: currentUser.email || 'creator@youtube.studio',
+          videoTitle: report.videoTitle,
+          safetyGrade: report.safetyGrade,
+          overallRiskScore: report.overallRiskScore,
+          strictnessMode: report.strictnessMode,
+          totalIssuesCount: report.totalIssuesCount,
+          summaryVerdictEn: report.summaryVerdictEn,
+          scannedAt: new Date().toISOString(),
+        };
+
+        if (!currentUser.isDemo && auth.currentUser) {
+          try {
+            await saveAuditReportToCloud(report, auth.currentUser);
+            const records = await fetchUserAuditReports(auth.currentUser.uid);
+            setCloudReports(records);
+          } catch (e) {
+            // fallback to local list
+            setCloudReports((prev) => [newRecord, ...prev]);
+          }
+        } else {
+          setCloudReports((prev) => [newRecord, ...prev.filter((r) => r.id !== newRecord.id)]);
+        }
+
         setCloudSaveMessage('Audit report successfully saved to Firebase Firestore!');
         setTimeout(() => setCloudSaveMessage(null), 4000);
       }
@@ -135,6 +230,41 @@ export default function App() {
   const [extractedFrames, setExtractedFrames] = useState<ExtractedFrame[]>([]);
   const [report, setReport] = useState<AuditReport>(defaultSample.mockReport);
   const [currentTime, setCurrentTime] = useState(0);
+
+  // Multi-Video Task Queue State
+  const initialTask: QueuedVideoTask = {
+    id: 'sample-' + defaultSample.id,
+    sampleId: defaultSample.id,
+    title: defaultSample.title,
+    fileSizeFormatted: '18.4 MB',
+    videoUrl: null,
+    durationSec: defaultSample.durationSec,
+    durationFormatted: defaultSample.durationFormatted,
+    status: 'COMPLETED',
+    progressPercent: 100,
+    progressStatus: 'Audit complete',
+    extractedFrames: [],
+    report: defaultSample.mockReport,
+    addedAt: Date.now(),
+    completedAt: Date.now(),
+  };
+
+  const [queuedTasks, setQueuedTasks] = useState<QueuedVideoTask[]>([initialTask]);
+  const [activeTaskId, setActiveTaskId] = useState<string>(initialTask.id);
+  const [isQueueRunning, setIsQueueRunning] = useState<boolean>(false);
+
+  // Refs to avoid stale closures in background async loop
+  const activeTaskIdRef = useRef<string>(initialTask.id);
+  const strictnessModeRef = useRef(strictnessMode);
+  const isProcessingQueueRef = useRef(false);
+
+  useEffect(() => {
+    activeTaskIdRef.current = activeTaskId;
+  }, [activeTaskId]);
+
+  useEffect(() => {
+    strictnessModeRef.current = strictnessMode;
+  }, [strictnessMode]);
 
   // Channel Historical uploads (Last 10 uploads tracking compliance score)
   const [uploadHistory, setUploadHistory] = useState<HistoricalUploadRecord[]>(() => {
@@ -176,7 +306,7 @@ export default function App() {
     });
   };
 
-  // Scanning progress state
+  // Scanning progress state for active video
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState<{ percent: number; status: string }>({
     percent: 0,
@@ -190,7 +320,265 @@ export default function App() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // When user selects a sample scenario
+  // Select a task from the queue to view / interact with
+  const handleSelectTask = (taskId: string) => {
+    setActiveTaskId(taskId);
+    activeTaskIdRef.current = taskId;
+    const task = queuedTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    setVideoTitle(task.title);
+    setVideoDurationSec(task.durationSec);
+    setCurrentVideoUrl(task.videoUrl);
+    setCurrentTime(0);
+    setExtractedFrames(task.extractedFrames || []);
+
+    if (task.report) {
+      setReport(task.report);
+    }
+
+    if (task.status === 'EXTRACTING' || task.status === 'AUDITING') {
+      setIsScanning(true);
+      setScanProgress({ percent: task.progressPercent, status: task.progressStatus });
+    } else {
+      setIsScanning(false);
+    }
+  };
+
+  // Remove task from queue
+  const handleRemoveTask = (taskId: string) => {
+    setQueuedTasks((prev) => {
+      const filtered = prev.filter((t) => t.id !== taskId);
+      if (activeTaskId === taskId && filtered.length > 0) {
+        setTimeout(() => handleSelectTask(filtered[0].id), 50);
+      }
+      return filtered;
+    });
+  };
+
+  // Clear completed tasks
+  const handleClearCompletedTasks = () => {
+    setQueuedTasks((prev) => prev.filter((t) => t.status !== 'COMPLETED' || t.id === activeTaskId));
+  };
+
+  // Automated Async Queue Worker
+  const processQueue = async () => {
+    if (isProcessingQueueRef.current) return;
+    isProcessingQueueRef.current = true;
+    setIsQueueRunning(true);
+
+    try {
+      while (true) {
+        // Query next task that is QUEUED
+        let nextTask: QueuedVideoTask | undefined;
+        setQueuedTasks((prev) => {
+          nextTask = prev.find((t) => t.status === 'QUEUED');
+          return prev;
+        });
+
+        if (!nextTask) break;
+
+        const targetId = nextTask.id;
+        const targetFile = nextTask.file;
+        const targetSampleId = nextTask.sampleId;
+        const targetTitle = nextTask.title;
+
+        // Mark EXTRACTING
+        setQueuedTasks((prev) =>
+          prev.map((t) =>
+            t.id === targetId
+              ? { ...t, status: 'EXTRACTING', progressPercent: 12, progressStatus: 'Extracting frame windows...' }
+              : t
+          )
+        );
+
+        if (activeTaskIdRef.current === targetId) {
+          setIsScanning(true);
+          setScanProgress({ percent: 12, status: `Ingesting "${targetTitle}" & extracting keyframes...` });
+        }
+
+        let frames: ExtractedFrame[] = [];
+        let durationSec = nextTask.durationSec || 15;
+        let durationFormatted = nextTask.durationFormatted || '00:15';
+
+        try {
+          if (targetFile) {
+            const result = await extractVideoMetadataAndFrames(targetFile, (pct, statusMsg) => {
+              const mappedPct = Math.round(pct * 0.7);
+              setQueuedTasks((prev) =>
+                prev.map((t) =>
+                  t.id === targetId
+                    ? { ...t, progressPercent: mappedPct, progressStatus: statusMsg }
+                    : t
+                )
+              );
+              if (activeTaskIdRef.current === targetId) {
+                setScanProgress({ percent: mappedPct, status: statusMsg });
+              }
+            });
+            frames = result.frames;
+            durationSec = Math.round(result.metadata.duration);
+            durationFormatted = result.metadata.durationFormatted;
+          } else if (targetSampleId) {
+            const sample = SAMPLE_VIDEOS.find((s) => s.id === targetSampleId);
+            durationSec = sample?.durationSec || 15;
+            durationFormatted = sample?.durationFormatted || '00:15';
+          }
+
+          // Mark AUDITING
+          setQueuedTasks((prev) =>
+            prev.map((t) =>
+              t.id === targetId
+                ? {
+                    ...t,
+                    durationSec,
+                    durationFormatted,
+                    extractedFrames: frames,
+                    status: 'AUDITING',
+                    progressPercent: 78,
+                    progressStatus: 'Gemini Vision AI: Auditing policies & audio cues...',
+                  }
+                : t
+            )
+          );
+
+          if (activeTaskIdRef.current === targetId) {
+            setVideoDurationSec(durationSec);
+            setExtractedFrames(frames);
+            setIsScanning(true);
+            setScanProgress({ percent: 78, status: 'Gemini Vision AI: Auditing policies & audio cues...' });
+          }
+
+          const audit = await requestVideoAudit({
+            videoTitle: targetTitle,
+            durationSec,
+            durationFormatted,
+            strictnessMode: strictnessModeRef.current,
+            frames,
+          });
+
+          // Mark COMPLETED
+          setQueuedTasks((prev) =>
+            prev.map((t) =>
+              t.id === targetId
+                ? {
+                    ...t,
+                    status: 'COMPLETED',
+                    progressPercent: 100,
+                    progressStatus: 'Audit complete',
+                    report: audit,
+                    completedAt: Date.now(),
+                  }
+                : t
+            )
+          );
+
+          updateHistoryWithReport(audit, targetTitle);
+
+          if (activeTaskIdRef.current === targetId) {
+            setReport(audit);
+            setIsScanning(false);
+            setScanProgress({ percent: 100, status: 'Audit complete!' });
+          }
+        } catch (taskErr: any) {
+          console.error('Task audit error:', taskErr);
+          setQueuedTasks((prev) =>
+            prev.map((t) =>
+              t.id === targetId
+                ? {
+                    ...t,
+                    status: 'ERROR',
+                    error: taskErr?.message || 'Verification error',
+                    progressStatus: 'Error during audit',
+                  }
+                : t
+            )
+          );
+          if (activeTaskIdRef.current === targetId) {
+            setIsScanning(false);
+          }
+        }
+      }
+    } finally {
+      isProcessingQueueRef.current = false;
+      setIsQueueRunning(false);
+    }
+  };
+
+  // Upload & Queue Multiple Files (Simultaneous Drag-and-Drop)
+  const handleUploadFiles = (files: File[]) => {
+    if (!files || files.length === 0) return;
+
+    const newTasks: QueuedVideoTask[] = files.map((file, idx) => {
+      const objectUrl = URL.createObjectURL(file);
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      return {
+        id: `task-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
+        file,
+        title: file.name,
+        fileSizeFormatted: `${sizeMb} MB`,
+        videoUrl: objectUrl,
+        durationSec: 0,
+        durationFormatted: 'Queued',
+        status: 'QUEUED',
+        progressPercent: 0,
+        progressStatus: 'Waiting in queue...',
+        extractedFrames: [],
+        addedAt: Date.now(),
+      };
+    });
+
+    setQueuedTasks((prev) => [...prev, ...newTasks]);
+
+    // If current video was sample, activate the first dropped file immediately
+    if (activeTaskId.startsWith('sample-') || !currentVideoUrl) {
+      const first = newTasks[0];
+      setActiveTaskId(first.id);
+      activeTaskIdRef.current = first.id;
+      setCurrentVideoUrl(first.videoUrl);
+      setVideoTitle(first.title);
+      setVideoDurationSec(0);
+      setCurrentTime(0);
+    }
+
+    // Open full screen video analysis loading popup
+    setIsFullScreenAnalysisOpen(true);
+
+    // Launch background queue worker
+    setTimeout(() => {
+      processQueue();
+    }, 120);
+  };
+
+  const handleUploadFile = (file: File) => {
+    handleUploadFiles([file]);
+  };
+
+  // Queue a test preset into the task queue
+  const handleQueueSample = (sample: SampleVideoOption) => {
+    const newTask: QueuedVideoTask = {
+      id: `sample-${sample.id}-${Date.now()}`,
+      sampleId: sample.id,
+      title: sample.title,
+      fileSizeFormatted: '14.2 MB',
+      videoUrl: null,
+      durationSec: sample.durationSec,
+      durationFormatted: sample.durationFormatted,
+      status: 'QUEUED',
+      progressPercent: 0,
+      progressStatus: 'Queued test preset',
+      extractedFrames: [],
+      addedAt: Date.now(),
+    };
+
+    setQueuedTasks((prev) => [...prev, newTask]);
+    setIsFullScreenAnalysisOpen(true);
+    setTimeout(() => {
+      processQueue();
+    }, 100);
+  };
+
+  // Instant 1-Click Load Scenario
   const handleSelectSample = (sample: SampleVideoOption) => {
     setVideoTitle(sample.title);
     setVideoDurationSec(sample.durationSec);
@@ -208,65 +596,80 @@ export default function App() {
 
     setReport(adjustedReport);
     updateHistoryWithReport(adjustedReport, sample.title);
+    setScanProgress({ percent: 100, status: 'Audit complete!' });
+    setIsFullScreenAnalysisOpen(true);
+
+    // Also update / add task to queue as active
+    const sampleTaskId = 'sample-' + sample.id;
+    setActiveTaskId(sampleTaskId);
+    activeTaskIdRef.current = sampleTaskId;
+    setQueuedTasks((prev) => {
+      const exists = prev.find((t) => t.id === sampleTaskId);
+      if (exists) {
+        return prev.map((t) =>
+          t.id === sampleTaskId ? { ...t, report: adjustedReport, status: 'COMPLETED' } : t
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: sampleTaskId,
+          sampleId: sample.id,
+          title: sample.title,
+          fileSizeFormatted: '18.4 MB',
+          videoUrl: null,
+          durationSec: sample.durationSec,
+          durationFormatted: sample.durationFormatted,
+          status: 'COMPLETED',
+          progressPercent: 100,
+          progressStatus: 'Audit complete',
+          extractedFrames: [],
+          report: adjustedReport,
+          addedAt: Date.now(),
+          completedAt: Date.now(),
+        },
+      ];
+    });
   };
 
-  // When user drops / uploads their own video file
-  const handleUploadFile = (file: File) => {
-    const objectUrl = URL.createObjectURL(file);
-    setCurrentVideoUrl(objectUrl);
-    setVideoTitle(file.name);
-    setCurrentTime(0);
+  // Trigger full frame extraction & AI audit manually on current item
+  const handleTriggerAudit = async () => {
+    setIsFullScreenAnalysisOpen(true);
+    const activeTask = queuedTasks.find((t) => t.id === activeTaskId);
+    if (activeTask && activeTask.status === 'QUEUED') {
+      processQueue();
+      return;
+    }
 
-    const tempVideo = document.createElement('video');
-    tempVideo.preload = 'metadata';
-    tempVideo.src = objectUrl;
-    tempVideo.onloadedmetadata = () => {
-      const dur = Math.round(tempVideo.duration) || 30;
-      setVideoDurationSec(dur);
-      handleTriggerAudit(file, dur, objectUrl);
-    };
-  };
-
-  // Trigger full frame extraction & AI audit
-  const handleTriggerAudit = async (uploadedFile?: File, durationOverride?: number, url?: string) => {
     setIsScanning(true);
     setScanProgress({ percent: 15, status: 'Initializing algorithmic ingest analyzer...' });
 
-    const dur = durationOverride || videoDurationSec;
+    setTimeout(() => {
+      setScanProgress({ percent: 50, status: 'Scanning multi-frame sequences & audio cues...' });
+    }, 350);
 
     setTimeout(() => {
-      setScanProgress({ percent: 45, status: 'Scanning multi-frame sequences & audio cues...' });
-    }, 400);
-
-    setTimeout(() => {
-      setScanProgress({ percent: 75, status: 'Evaluating against YouTube Community Guidelines & 3-Strikes Law...' });
-    }, 700);
+      setScanProgress({ percent: 80, status: 'Evaluating against YouTube Community Guidelines & 3-Strikes Law...' });
+    }, 650);
 
     setTimeout(async () => {
       try {
-        if (uploadedFile) {
-          const audit = await requestVideoAudit({
-            videoTitle: uploadedFile.name,
-            durationSec: dur,
-            durationFormatted: `00:${dur < 10 ? '0' + dur : dur}`,
-            strictnessMode,
-            frames: extractedFrames,
-          });
-          setReport(audit);
-          updateHistoryWithReport(audit, uploadedFile.name);
-        } else {
-          const base = SAMPLE_VIDEOS.find((s) => s.title === videoTitle) || SAMPLE_VIDEOS[0];
-          const updatedReport: AuditReport = {
-            ...base.mockReport,
-            strictnessMode,
-            overallRiskScore:
-              strictnessMode === 'PARANOID_ZERO_RISK'
-                ? Math.min(100, base.mockReport.overallRiskScore + 8)
-                : base.mockReport.overallRiskScore,
-          };
-          setReport(updatedReport);
-          updateHistoryWithReport(updatedReport, videoTitle);
-        }
+        const audit = await requestVideoAudit({
+          videoTitle,
+          durationSec: videoDurationSec,
+          durationFormatted: `00:${videoDurationSec < 10 ? '0' + videoDurationSec : videoDurationSec}`,
+          strictnessMode,
+          frames: extractedFrames,
+        });
+        setReport(audit);
+        updateHistoryWithReport(audit, videoTitle);
+        setQueuedTasks((prev) =>
+          prev.map((t) =>
+            t.id === activeTaskId
+              ? { ...t, status: 'COMPLETED', report: audit, progressPercent: 100 }
+              : t
+          )
+        );
       } catch (e) {
         console.error(e);
       } finally {
@@ -281,6 +684,13 @@ export default function App() {
     setCurrentTime(seconds);
     if (videoRef.current) {
       videoRef.current.currentTime = seconds;
+    }
+  };
+
+  const handleJumpAndPlay = (seconds: number) => {
+    handleSeek(seconds);
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
     }
   };
 
@@ -301,10 +711,19 @@ export default function App() {
     }
   };
 
+  const pendingQueueCount = queuedTasks.filter(
+    (t) => t.status === 'QUEUED' || t.status === 'EXTRACTING' || t.status === 'AUDITING'
+  ).length;
+
   // Navigation Items
   const navTabs = [
     { id: 'overview' as NavView, label: 'Dashboard Overview', icon: LayoutDashboard },
-    { id: 'scanner' as NavView, label: 'Video Scanner', icon: FileVideo },
+    {
+      id: 'scanner' as NavView,
+      label: 'Video Scanner',
+      icon: FileVideo,
+      badge: pendingQueueCount > 0 ? `${pendingQueueCount} in queue` : null,
+    },
     { id: 'analytics' as NavView, label: 'Channel Health (10 Uploads)', icon: Activity },
     {
       id: 'violations' as NavView,
@@ -314,6 +733,7 @@ export default function App() {
     },
     { id: 'appeal' as NavView, label: 'Strike Appeal Kit', icon: FileText },
     { id: 'knowledge' as NavView, label: 'Policy Encyclopedia', icon: BookOpen },
+    { id: 'profile' as NavView, label: 'Creator Profile', icon: User },
   ];
 
   return (
@@ -332,6 +752,8 @@ export default function App() {
           onSelectTheme={setCurrentTheme}
           currentUser={currentUser}
           onSignIn={handleSignIn}
+          onRegister={() => handleOpenAuth('register')}
+          onNavigateProfile={() => setCurrentView('profile')}
           onSignOut={handleSignOut}
         />
 
@@ -412,8 +834,33 @@ export default function App() {
               </div>
             </div>
 
-            {/* View 1: STUDIO OVERVIEW DASHBOARD */}
+            {/* View Render Area */}
             <AnimatePresence mode="wait">
+              {currentView === 'profile' && (
+                <motion.div
+                  key="view-profile"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ProfileView
+                    currentUser={currentUser}
+                    cloudReports={cloudReports}
+                    uploadHistory={uploadHistory}
+                    isLight={isLight}
+                    onOpenAuth={handleOpenAuth}
+                    onDemoLogin={handleDemoLogin}
+                    onSignOut={handleSignOut}
+                    onNavigateScanner={() => setCurrentView('scanner')}
+                    onLoadAudit={(title) => {
+                      setVideoTitle(title);
+                      setCurrentView('scanner');
+                    }}
+                  />
+                </motion.div>
+              )}
+
               {currentView === 'overview' && (
                 <motion.div
                   key="view-overview"
@@ -493,13 +940,21 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Section: Audit Verdict Summary Card */}
+                  {/* Section: Comprehensive Audit Results Dashboard */}
                   {report && (
-                    <AuditSummaryCard
+                    <AuditResultsDashboard
                       report={report}
+                      videoTitle={videoTitle}
+                      videoDurationSec={videoDurationSec}
                       onOpenCutGuide={() => setIsCutGuideOpen(true)}
                       onOpenAppealModal={() => setCurrentView('appeal')}
+                      onRescan={() => setCurrentView('scanner')}
+                      onJumpAndPlay={handleJumpAndPlay}
+                      uploadHistory={uploadHistory}
                       isLight={isLight}
+                      isAuthenticated={!!currentUser}
+                      onOpenAuth={handleOpenAuth}
+                      onDemoLogin={handleDemoLogin}
                     />
                   )}
 
@@ -511,20 +966,30 @@ export default function App() {
                     isScanning={isScanning}
                     scanProgress={scanProgress}
                     violations={report?.timelineViolations || []}
+                    extractedFrames={extractedFrames}
                     onUploadFile={handleUploadFile}
+                    onUploadFiles={handleUploadFiles}
                     onSelectSample={handleSelectSample}
+                    onQueueSample={handleQueueSample}
                     onTriggerAudit={handleTriggerAudit}
                     videoRef={videoRef}
                     currentTime={currentTime}
                     onSeek={handleSeek}
                     isLight={isLight}
+                    queuedTasks={queuedTasks}
+                    activeTaskId={activeTaskId}
+                    onSelectTask={handleSelectTask}
+                    onRemoveTask={handleRemoveTask}
+                    onClearCompletedTasks={handleClearCompletedTasks}
+                    onStartQueueAudit={processQueue}
+                    isQueueRunning={isQueueRunning}
                   />
 
                   {/* Section: Flagged Timeline Incidents */}
                   {report && (
                     <TimelineViolations
                       violations={report.timelineViolations}
-                      onSeekToViolation={handleSeek}
+                      onSeekToViolation={handleJumpAndPlay}
                       isLight={isLight}
                     />
                   )}
@@ -703,13 +1168,23 @@ export default function App() {
                     isScanning={isScanning}
                     scanProgress={scanProgress}
                     violations={report?.timelineViolations || []}
+                    extractedFrames={extractedFrames}
                     onUploadFile={handleUploadFile}
+                    onUploadFiles={handleUploadFiles}
                     onSelectSample={handleSelectSample}
+                    onQueueSample={handleQueueSample}
                     onTriggerAudit={handleTriggerAudit}
                     videoRef={videoRef}
                     currentTime={currentTime}
                     onSeek={handleSeek}
                     isLight={isLight}
+                    queuedTasks={queuedTasks}
+                    activeTaskId={activeTaskId}
+                    onSelectTask={handleSelectTask}
+                    onRemoveTask={handleRemoveTask}
+                    onClearCompletedTasks={handleClearCompletedTasks}
+                    onStartQueueAudit={processQueue}
+                    isQueueRunning={isQueueRunning}
                   />
 
                   {report && (
@@ -882,21 +1357,50 @@ export default function App() {
                     </p>
                   </div>
 
-                  {report && (
-                    <TimelineViolations
-                      violations={report.timelineViolations}
-                      onSeekToViolation={handleSeek}
-                      isLight={isLight}
-                    />
-                  )}
-
-                  {report && (
-                    <SafeCutGuideModal
-                      isOpen={true}
-                      isEmbedded={true}
-                      isLight={isLight}
-                      report={report}
-                    />
+                  {!currentUser ? (
+                    <div className="rounded-3xl border border-red-500/30 p-8 sm:p-12 text-center bg-gradient-to-b from-slate-900/90 to-slate-950 text-white shadow-xl">
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-lg shadow-red-600/30">
+                        <Lock className="h-7 w-7 animate-pulse" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-black">
+                        Sign In or Register to Unlock Frame-Accurate Cuts
+                      </h3>
+                      <p className="mt-2 max-w-md mx-auto text-xs sm:text-sm text-slate-300">
+                        Detailed second-by-second safe cuts, CapCut timecodes, and blur instructions are protected. Create a free account or log in to unlock.
+                      </p>
+                      <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <button
+                          onClick={() => handleOpenAuth('register')}
+                          className="w-full sm:w-auto rounded-xl bg-red-600 hover:bg-red-700 text-white px-6 py-3 font-sans text-xs font-bold transition shadow-lg cursor-pointer"
+                        >
+                          Create Free Account
+                        </button>
+                        <button
+                          onClick={() => handleOpenAuth('login')}
+                          className="w-full sm:w-auto rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-750 text-white px-6 py-3 font-sans text-xs font-semibold transition cursor-pointer"
+                        >
+                          Sign In
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {report && (
+                        <TimelineViolations
+                          violations={report.timelineViolations}
+                          onSeekToViolation={handleSeek}
+                          isLight={isLight}
+                        />
+                      )}
+                      {report && (
+                        <SafeCutGuideModal
+                          isOpen={true}
+                          isEmbedded={true}
+                          isLight={isLight}
+                          report={report}
+                        />
+                      )}
+                    </>
                   )}
                 </motion.div>
               )}
@@ -928,13 +1432,41 @@ export default function App() {
                     </p>
                   </div>
 
-                  {report && (
-                    <AppealGeneratorModal
-                      isOpen={true}
-                      isEmbedded={true}
-                      isLight={isLight}
-                      report={report}
-                    />
+                  {!currentUser ? (
+                    <div className="rounded-3xl border border-indigo-500/30 p-8 sm:p-12 text-center bg-gradient-to-b from-slate-900/90 to-slate-950 text-white shadow-xl">
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/30">
+                        <Lock className="h-7 w-7 animate-pulse" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-black">
+                        Sign In or Register to Generate Legal Strike Appeals
+                      </h3>
+                      <p className="mt-2 max-w-md mx-auto text-xs sm:text-sm text-slate-300">
+                        Access YouTube EDSA legal exception counter-appeal drafts within YouTube Studio&apos;s 800-character ceiling by signing in.
+                      </p>
+                      <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <button
+                          onClick={() => handleOpenAuth('register')}
+                          className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 font-sans text-xs font-bold transition shadow-lg cursor-pointer"
+                        >
+                          Create Free Account
+                        </button>
+                        <button
+                          onClick={() => handleOpenAuth('login')}
+                          className="w-full sm:w-auto rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-750 text-white px-6 py-3 font-sans text-xs font-semibold transition cursor-pointer"
+                        >
+                          Sign In
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    report && (
+                      <AppealGeneratorModal
+                        isOpen={true}
+                        isEmbedded={true}
+                        isLight={isLight}
+                        report={report}
+                      />
+                    )
                   )}
                 </motion.div>
               )}
@@ -1054,6 +1586,29 @@ export default function App() {
       <PolicyKnowledgeBase
         isOpen={isKnowledgeBaseOpen}
         onClose={() => setIsKnowledgeBaseOpen(false)}
+        isLight={isLight}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authModalMode}
+        isLight={isLight}
+        onDemoLogin={handleDemoLogin}
+      />
+
+      <FullScreenAnalysisModal
+        isOpen={isFullScreenAnalysisOpen}
+        onClose={() => setIsFullScreenAnalysisOpen(false)}
+        videoTitle={videoTitle}
+        progressPercent={scanProgress.percent}
+        progressStatus={scanProgress.status}
+        extractedFrames={extractedFrames}
+        report={report}
+        onViewResults={() => {
+          setIsFullScreenAnalysisOpen(false);
+          setCurrentView('overview');
+        }}
         isLight={isLight}
       />
     </div>
