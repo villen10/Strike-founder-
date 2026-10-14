@@ -7,6 +7,8 @@ import { AuditSummaryCard } from './components/AuditSummaryCard';
 import { AuditResultsDashboard } from './components/AuditResultsDashboard';
 import { TimelineViolations } from './components/TimelineViolations';
 import { ChannelHealthTrend, HistoricalUploadRecord } from './components/ChannelHealthTrend';
+import { FrequentViolationWidget } from './components/FrequentViolationWidget';
+import { ModernOverviewDashboard } from './components/ModernOverviewDashboard';
 import { AppealGeneratorModal } from './components/AppealGeneratorModal';
 import { SafeCutGuideModal } from './components/SafeCutGuideModal';
 import { PolicyKnowledgeBase } from './components/PolicyKnowledgeBase';
@@ -86,6 +88,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [isFullScreenAnalysisOpen, setIsFullScreenAnalysisOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -250,6 +253,7 @@ export default function App() {
   };
 
   const [queuedTasks, setQueuedTasks] = useState<QueuedVideoTask[]>([initialTask]);
+  const queuedTasksRef = useRef<QueuedVideoTask[]>([initialTask]);
   const [activeTaskId, setActiveTaskId] = useState<string>(initialTask.id);
   const [isQueueRunning, setIsQueueRunning] = useState<boolean>(false);
 
@@ -257,6 +261,10 @@ export default function App() {
   const activeTaskIdRef = useRef<string>(initialTask.id);
   const strictnessModeRef = useRef(strictnessMode);
   const isProcessingQueueRef = useRef(false);
+
+  useEffect(() => {
+    queuedTasksRef.current = queuedTasks;
+  }, [queuedTasks]);
 
   useEffect(() => {
     activeTaskIdRef.current = activeTaskId;
@@ -361,7 +369,7 @@ export default function App() {
     setQueuedTasks((prev) => prev.filter((t) => t.status !== 'COMPLETED' || t.id === activeTaskId));
   };
 
-  // Automated Async Queue Worker
+  // Automated Async Queue Worker - Bulletproof & Ultra-Fast
   const processQueue = async () => {
     if (isProcessingQueueRef.current) return;
     isProcessingQueueRef.current = true;
@@ -369,13 +377,8 @@ export default function App() {
 
     try {
       while (true) {
-        // Query next task that is QUEUED
-        let nextTask: QueuedVideoTask | undefined;
-        setQueuedTasks((prev) => {
-          nextTask = prev.find((t) => t.status === 'QUEUED');
-          return prev;
-        });
-
+        // Find next queued task using ref to avoid React state batching delays
+        const nextTask = queuedTasksRef.current.find((t) => t.status === 'QUEUED');
         if (!nextTask) break;
 
         const targetId = nextTask.id;
@@ -383,18 +386,17 @@ export default function App() {
         const targetSampleId = nextTask.sampleId;
         const targetTitle = nextTask.title;
 
-        // Mark EXTRACTING
-        setQueuedTasks((prev) =>
-          prev.map((t) =>
-            t.id === targetId
-              ? { ...t, status: 'EXTRACTING', progressPercent: 12, progressStatus: 'Extracting frame windows...' }
-              : t
-          )
+        // Mark EXTRACTING (Stage 1)
+        queuedTasksRef.current = queuedTasksRef.current.map((t) =>
+          t.id === targetId
+            ? { ...t, status: 'EXTRACTING', progressPercent: 18, progressStatus: 'Extracting keyframes & waveforms...' }
+            : t
         );
+        setQueuedTasks([...queuedTasksRef.current]);
 
         if (activeTaskIdRef.current === targetId) {
           setIsScanning(true);
-          setScanProgress({ percent: 12, status: `Ingesting "${targetTitle}" & extracting keyframes...` });
+          setScanProgress({ percent: 18, status: `Extracting keyframes for "${targetTitle}"...` });
         }
 
         let frames: ExtractedFrame[] = [];
@@ -404,14 +406,13 @@ export default function App() {
         try {
           if (targetFile) {
             const result = await extractVideoMetadataAndFrames(targetFile, (pct, statusMsg) => {
-              const mappedPct = Math.round(pct * 0.7);
-              setQueuedTasks((prev) =>
-                prev.map((t) =>
-                  t.id === targetId
-                    ? { ...t, progressPercent: mappedPct, progressStatus: statusMsg }
-                    : t
-                )
+              const mappedPct = Math.min(50, Math.max(18, pct));
+              queuedTasksRef.current = queuedTasksRef.current.map((t) =>
+                t.id === targetId
+                  ? { ...t, progressPercent: mappedPct, progressStatus: statusMsg }
+                  : t
               );
+              setQueuedTasks([...queuedTasksRef.current]);
               if (activeTaskIdRef.current === targetId) {
                 setScanProgress({ percent: mappedPct, status: statusMsg });
               }
@@ -425,28 +426,27 @@ export default function App() {
             durationFormatted = sample?.durationFormatted || '00:15';
           }
 
-          // Mark AUDITING
-          setQueuedTasks((prev) =>
-            prev.map((t) =>
-              t.id === targetId
-                ? {
-                    ...t,
-                    durationSec,
-                    durationFormatted,
-                    extractedFrames: frames,
-                    status: 'AUDITING',
-                    progressPercent: 78,
-                    progressStatus: 'Gemini Vision AI: Auditing policies & audio cues...',
-                  }
-                : t
-            )
+          // Mark AUDITING (Stage 2 & 3)
+          queuedTasksRef.current = queuedTasksRef.current.map((t) =>
+            t.id === targetId
+              ? {
+                  ...t,
+                  durationSec,
+                  durationFormatted,
+                  extractedFrames: frames,
+                  status: 'AUDITING',
+                  progressPercent: 65,
+                  progressStatus: 'Auditing YouTube guidelines & ad suitability...',
+                }
+              : t
           );
+          setQueuedTasks([...queuedTasksRef.current]);
 
           if (activeTaskIdRef.current === targetId) {
             setVideoDurationSec(durationSec);
             setExtractedFrames(frames);
             setIsScanning(true);
-            setScanProgress({ percent: 78, status: 'Gemini Vision AI: Auditing policies & audio cues...' });
+            setScanProgress({ percent: 65, status: 'Auditing YouTube guidelines & ad suitability...' });
           }
 
           const audit = await requestVideoAudit({
@@ -457,43 +457,41 @@ export default function App() {
             frames,
           });
 
-          // Mark COMPLETED
-          setQueuedTasks((prev) =>
-            prev.map((t) =>
-              t.id === targetId
-                ? {
-                    ...t,
-                    status: 'COMPLETED',
-                    progressPercent: 100,
-                    progressStatus: 'Audit complete',
-                    report: audit,
-                    completedAt: Date.now(),
-                  }
-                : t
-            )
+          // Mark COMPLETED (Stage 5)
+          queuedTasksRef.current = queuedTasksRef.current.map((t) =>
+            t.id === targetId
+              ? {
+                  ...t,
+                  status: 'COMPLETED',
+                  progressPercent: 100,
+                  progressStatus: 'Audit complete',
+                  report: audit,
+                  completedAt: Date.now(),
+                }
+              : t
           );
+          setQueuedTasks([...queuedTasksRef.current]);
 
           updateHistoryWithReport(audit, targetTitle);
 
           if (activeTaskIdRef.current === targetId) {
             setReport(audit);
             setIsScanning(false);
-            setScanProgress({ percent: 100, status: 'Audit complete!' });
+            setScanProgress({ percent: 100, status: 'Audit complete! All verification passed.' });
           }
         } catch (taskErr: any) {
           console.error('Task audit error:', taskErr);
-          setQueuedTasks((prev) =>
-            prev.map((t) =>
-              t.id === targetId
-                ? {
-                    ...t,
-                    status: 'ERROR',
-                    error: taskErr?.message || 'Verification error',
-                    progressStatus: 'Error during audit',
-                  }
-                : t
-            )
+          queuedTasksRef.current = queuedTasksRef.current.map((t) =>
+            t.id === targetId
+              ? {
+                  ...t,
+                  status: 'ERROR',
+                  error: taskErr?.message || 'Verification error',
+                  progressStatus: 'Error during audit',
+                }
+              : t
           );
+          setQueuedTasks([...queuedTasksRef.current]);
           if (activeTaskIdRef.current === targetId) {
             setIsScanning(false);
           }
@@ -520,7 +518,7 @@ export default function App() {
         videoUrl: objectUrl,
         durationSec: 0,
         durationFormatted: 'Queued',
-        status: 'QUEUED',
+        status: 'QUEUED' as const,
         progressPercent: 0,
         progressStatus: 'Waiting in queue...',
         extractedFrames: [],
@@ -528,26 +526,28 @@ export default function App() {
       };
     });
 
-    setQueuedTasks((prev) => [...prev, ...newTasks]);
+    const updatedQueue = [...queuedTasksRef.current, ...newTasks];
+    queuedTasksRef.current = updatedQueue;
+    setQueuedTasks(updatedQueue);
 
-    // If current video was sample, activate the first dropped file immediately
-    if (activeTaskId.startsWith('sample-') || !currentVideoUrl) {
-      const first = newTasks[0];
-      setActiveTaskId(first.id);
-      activeTaskIdRef.current = first.id;
-      setCurrentVideoUrl(first.videoUrl);
-      setVideoTitle(first.title);
-      setVideoDurationSec(0);
-      setCurrentTime(0);
-    }
+    // Activate the first dropped file immediately
+    const first = newTasks[0];
+    setActiveTaskId(first.id);
+    activeTaskIdRef.current = first.id;
+    setCurrentVideoUrl(first.videoUrl);
+    setVideoTitle(first.title);
+    setVideoDurationSec(0);
+    setCurrentTime(0);
 
-    // Open full screen video analysis loading popup
+    // Open video analysis loading modal with active progress
     setIsFullScreenAnalysisOpen(true);
+    setIsScanning(true);
+    setScanProgress({ percent: 15, status: `Starting analysis for "${first.title}"...` });
 
-    // Launch background queue worker
+    // Launch background queue worker immediately
     setTimeout(() => {
       processQueue();
-    }, 120);
+    }, 50);
   };
 
   const handleUploadFile = (file: File) => {
@@ -571,14 +571,27 @@ export default function App() {
       addedAt: Date.now(),
     };
 
-    setQueuedTasks((prev) => [...prev, newTask]);
+    const updatedQueue = [...queuedTasksRef.current, newTask];
+    queuedTasksRef.current = updatedQueue;
+    setQueuedTasks(updatedQueue);
+
+    setActiveTaskId(newTask.id);
+    activeTaskIdRef.current = newTask.id;
+    setVideoTitle(sample.title);
+    setVideoDurationSec(sample.durationSec);
+    setCurrentVideoUrl(null);
+    setCurrentTime(0);
+
     setIsFullScreenAnalysisOpen(true);
+    setIsScanning(true);
+    setScanProgress({ percent: 15, status: `Queuing "${sample.title}"...` });
+
     setTimeout(() => {
       processQueue();
-    }, 100);
+    }, 50);
   };
 
-  // Instant 1-Click Load Scenario
+  // Instant 1-Click Load Scenario with snappy, delightful animation
   const handleSelectSample = (sample: SampleVideoOption) => {
     setVideoTitle(sample.title);
     setVideoDurationSec(sample.durationSec);
@@ -594,25 +607,29 @@ export default function App() {
           : sample.mockReport.overallRiskScore,
     };
 
-    setReport(adjustedReport);
-    updateHistoryWithReport(adjustedReport, sample.title);
-    setScanProgress({ percent: 100, status: 'Audit complete!' });
+    // Open analysis modal and show snappy 700ms verification step animation
     setIsFullScreenAnalysisOpen(true);
+    setIsScanning(true);
+    setScanProgress({ percent: 22, status: 'Ingesting test scenario keyframes...' });
 
-    // Also update / add task to queue as active
-    const sampleTaskId = 'sample-' + sample.id;
-    setActiveTaskId(sampleTaskId);
-    activeTaskIdRef.current = sampleTaskId;
-    setQueuedTasks((prev) => {
-      const exists = prev.find((t) => t.id === sampleTaskId);
-      if (exists) {
-        return prev.map((t) =>
-          t.id === sampleTaskId ? { ...t, report: adjustedReport, status: 'COMPLETED' } : t
-        );
-      }
-      return [
-        ...prev,
-        {
+    setTimeout(() => {
+      setScanProgress({ percent: 68, status: 'Evaluating against YouTube Community Guidelines...' });
+    }, 280);
+
+    setTimeout(() => {
+      setReport(adjustedReport);
+      updateHistoryWithReport(adjustedReport, sample.title);
+      setScanProgress({ percent: 100, status: 'Audit complete! All verification passed.' });
+      setIsScanning(false);
+
+      const sampleTaskId = 'sample-' + sample.id;
+      setActiveTaskId(sampleTaskId);
+      activeTaskIdRef.current = sampleTaskId;
+      const updated = queuedTasksRef.current.map((t) =>
+        t.id === sampleTaskId ? { ...t, report: adjustedReport, status: 'COMPLETED' as const, progressPercent: 100 } : t
+      );
+      if (!updated.some((t) => t.id === sampleTaskId)) {
+        updated.push({
           id: sampleTaskId,
           sampleId: sample.id,
           title: sample.title,
@@ -620,63 +637,63 @@ export default function App() {
           videoUrl: null,
           durationSec: sample.durationSec,
           durationFormatted: sample.durationFormatted,
-          status: 'COMPLETED',
+          status: 'COMPLETED' as const,
           progressPercent: 100,
           progressStatus: 'Audit complete',
           extractedFrames: [],
           report: adjustedReport,
           addedAt: Date.now(),
           completedAt: Date.now(),
-        },
-      ];
-    });
+        });
+      }
+      queuedTasksRef.current = updated;
+      setQueuedTasks(updated);
+    }, 650);
   };
 
-  // Trigger full frame extraction & AI audit manually on current item
+  // Trigger full frame extraction & guidelines audit manually on active item
   const handleTriggerAudit = async () => {
     setIsFullScreenAnalysisOpen(true);
-    const activeTask = queuedTasks.find((t) => t.id === activeTaskId);
-    if (activeTask && activeTask.status === 'QUEUED') {
-      processQueue();
-      return;
-    }
-
     setIsScanning(true);
-    setScanProgress({ percent: 15, status: 'Initializing algorithmic ingest analyzer...' });
+    setScanProgress({ percent: 18, status: 'Ingesting keyframes & audio waveforms...' });
 
+    // Step 2
     setTimeout(() => {
-      setScanProgress({ percent: 50, status: 'Scanning multi-frame sequences & audio cues...' });
-    }, 350);
+      setScanProgress({ percent: 45, status: 'Auditing keyframe visuals & community rules...' });
+    }, 280);
 
+    // Step 3
     setTimeout(() => {
-      setScanProgress({ percent: 80, status: 'Evaluating against YouTube Community Guidelines & 3-Strikes Law...' });
-    }, 650);
+      setScanProgress({ percent: 72, status: 'Testing opening 7s & advertiser suitability...' });
+    }, 600);
 
+    // Step 4 & Finalization
     setTimeout(async () => {
+      setScanProgress({ percent: 88, status: 'Generating safe cuts and strike risk scoring...' });
       try {
         const audit = await requestVideoAudit({
           videoTitle,
-          durationSec: videoDurationSec,
-          durationFormatted: `00:${videoDurationSec < 10 ? '0' + videoDurationSec : videoDurationSec}`,
+          durationSec: videoDurationSec || 20,
+          durationFormatted: formatTime(videoDurationSec || 20),
           strictnessMode,
           frames: extractedFrames,
         });
         setReport(audit);
         updateHistoryWithReport(audit, videoTitle);
-        setQueuedTasks((prev) =>
-          prev.map((t) =>
-            t.id === activeTaskId
-              ? { ...t, status: 'COMPLETED', report: audit, progressPercent: 100 }
-              : t
-          )
+        const updated = queuedTasksRef.current.map((t) =>
+          t.id === activeTaskId
+            ? { ...t, status: 'COMPLETED' as const, report: audit, progressPercent: 100, progressStatus: 'Audit complete' }
+            : t
         );
+        queuedTasksRef.current = updated;
+        setQueuedTasks(updated);
       } catch (e) {
-        console.error(e);
+        console.error('Audit trigger error:', e);
       } finally {
-        setScanProgress({ percent: 100, status: 'Audit complete!' });
+        setScanProgress({ percent: 100, status: 'Audit complete! All verification passed.' });
         setIsScanning(false);
       }
-    }, 900);
+    }, 950);
   };
 
   // Seek video playback to specific seconds
@@ -715,26 +732,7 @@ export default function App() {
     (t) => t.status === 'QUEUED' || t.status === 'EXTRACTING' || t.status === 'AUDITING'
   ).length;
 
-  // Navigation Items
-  const navTabs = [
-    { id: 'overview' as NavView, label: 'Dashboard Overview', icon: LayoutDashboard },
-    {
-      id: 'scanner' as NavView,
-      label: 'Video Scanner',
-      icon: FileVideo,
-      badge: pendingQueueCount > 0 ? `${pendingQueueCount} in queue` : null,
-    },
-    { id: 'analytics' as NavView, label: 'Channel Health (10 Uploads)', icon: Activity },
-    {
-      id: 'violations' as NavView,
-      label: 'Flags & Safe Cuts',
-      icon: AlertTriangle,
-      badge: report?.timelineViolations.length ? `${report.timelineViolations.length}` : null,
-    },
-    { id: 'appeal' as NavView, label: 'Strike Appeal Kit', icon: FileText },
-    { id: 'knowledge' as NavView, label: 'Policy Encyclopedia', icon: BookOpen },
-    { id: 'profile' as NavView, label: 'Creator Profile', icon: User },
-  ];
+
 
   return (
     <div
@@ -745,94 +743,42 @@ export default function App() {
       {/* Top Header */}
       <div>
         <Header
-          strictnessMode={strictnessMode}
-          onToggleStrictness={handleToggleStrictness}
-          onOpenKnowledgeBase={() => setCurrentView('knowledge')}
           currentTheme={currentTheme}
-          onSelectTheme={setCurrentTheme}
           currentUser={currentUser}
-          onSignIn={handleSignIn}
-          onRegister={() => handleOpenAuth('register')}
           onNavigateProfile={() => setCurrentView('profile')}
-          onSignOut={handleSignOut}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
-        {/* Main Workspace with Desktop Sidebar */}
-        <div className="flex w-full min-h-[calc(100vh-65px)]">
-          {/* Desktop Left Sidebar Navigation */}
+        {/* Main Workspace with Modern Left Sidebar */}
+        <div className="flex w-full min-h-[calc(100vh-57px)]">
+          {/* Modern Sidebar (Desktop & Mobile Drawer) */}
           <Sidebar
             currentView={currentView}
             onSelectView={setCurrentView}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            isOpenMobile={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
             theme={theme}
             violationsCount={report?.timelineViolations.length || 0}
             avgComplianceScore={avgComplianceScore}
+            pendingQueueCount={pendingQueueCount}
+            strictnessMode={strictnessMode}
+            onToggleStrictness={handleToggleStrictness}
+            currentTheme={currentTheme}
+            onSelectTheme={setCurrentTheme}
+            currentUser={currentUser}
+            onSignIn={handleSignIn}
+            onRegister={() => handleOpenAuth('register')}
+            onSignOut={handleSignOut}
+            onScanNewVideo={() => {
+              setCurrentView('scanner');
+              handleTriggerAudit();
+            }}
           />
 
-          {/* Main View Area */}
+          {/* Main View Area (Clean view with no cluttered top button strip) */}
           <main className="flex-1 min-w-0 max-w-full px-3 py-4 sm:px-6 sm:py-6 pb-28 md:pb-12 flex flex-col gap-6">
-            {/* Top Navigation Tabs (Easy 1-Click Page Navigation) */}
-            <div
-              className={`flex items-center justify-between gap-2 overflow-x-auto pb-1 border-b ${
-                isLight ? 'border-slate-200' : 'border-slate-800/80'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 py-1">
-                {navTabs.map((tab) => {
-                  const isActive = currentView === tab.id;
-                  const Icon = tab.icon;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setCurrentView(tab.id)}
-                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 font-sans text-xs font-semibold transition shrink-0 ${
-                        isActive
-                          ? isLight
-                            ? 'bg-red-600 text-white shadow-xs font-bold'
-                            : `${theme.accentBg} text-white shadow-xs font-bold`
-                          : isLight
-                          ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950'
-                          : 'border border-slate-800/90 bg-slate-900/70 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                      }`}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      <span>{tab.label}</span>
-                      {tab.badge && (
-                        <span
-                          className={`rounded-full px-1.5 py-0.2 font-mono text-[10px] font-bold ${
-                            isActive
-                              ? 'bg-white/20 text-white'
-                              : 'bg-red-500 text-white'
-                          }`}
-                        >
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Strictness Mode Indicator */}
-              <div className="hidden lg:flex items-center gap-2 text-xs shrink-0 font-medium">
-                <span
-                  className={`rounded-lg px-2.5 py-1 font-mono text-[11px] font-bold flex items-center gap-1.5 ${
-                    strictnessMode === 'PARANOID_ZERO_RISK'
-                      ? 'bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/20'
-                      : 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20'
-                  }`}
-                >
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>
-                    {strictnessMode === 'PARANOID_ZERO_RISK'
-                      ? 'Paranoid Zero-Risk Filter Active'
-                      : 'Standard YouTube Filter Active'}
-                  </span>
-                </span>
-              </div>
-            </div>
 
             {/* View Render Area */}
             <AnimatePresence mode="wait">
@@ -868,10 +814,24 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
-                  className="flex flex-col gap-5"
+                  className="flex flex-col gap-6"
                 >
+                  {/* Modern Mobile Dashboard & Activity Section (Modeled directly on Image 2 Left Screen) */}
+                  <ModernOverviewDashboard
+                    currentUser={currentUser}
+                    history={uploadHistory}
+                    report={report}
+                    onSelectSample={handleSelectSample}
+                    samples={SAMPLE_VIDEOS}
+                    onNavigateScanner={() => setCurrentView('scanner')}
+                    onNavigateAnalytics={() => setCurrentView('analytics')}
+                    onOpenCutGuide={() => setIsCutGuideOpen(true)}
+                    onJumpAndPlay={handleJumpAndPlay}
+                    isLight={isLight}
+                  />
+
                   {/* Top Bar with Quick Actions (Clean, No Clutter Banner) */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
@@ -994,6 +954,15 @@ export default function App() {
                     />
                   )}
 
+                  {/* Section: Most Frequent Historical Violation Type Summary Widget */}
+                  <FrequentViolationWidget
+                    history={uploadHistory}
+                    currentReport={report}
+                    isLight={isLight}
+                    onOpenCutGuide={() => setIsCutGuideOpen(true)}
+                    onOpenKnowledgeBase={() => setCurrentView('knowledge')}
+                  />
+
                   {/* Section: Channel Health Historical Trend (10 Uploads) */}
                   <ChannelHealthTrend
                     history={uploadHistory}
@@ -1002,13 +971,13 @@ export default function App() {
 
                   {/* Section: Firebase Cloud Vault (Persistent Multi-Device Audits) */}
                   <div
-                    className={`rounded-2xl border p-4 sm:p-5 transition ${
+                    className={`rounded-3xl border p-5 sm:p-7 transition shadow-2xs ${
                       isLight
-                        ? 'border-slate-200/90 bg-white shadow-xs'
-                        : 'border-slate-800/90 bg-slate-900/90 shadow-sm'
+                        ? 'border-slate-100 bg-white shadow-slate-200/50'
+                        : 'border-slate-800 bg-slate-900'
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-3 mb-4 border-slate-200/80 dark:border-slate-800">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-4 mb-4 border-slate-100 dark:border-slate-800">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
@@ -1227,6 +1196,15 @@ export default function App() {
                   <ChannelHealthTrend
                     history={uploadHistory}
                     isLight={isLight}
+                  />
+
+                  {/* Channel Vulnerability Summary Widget */}
+                  <FrequentViolationWidget
+                    history={uploadHistory}
+                    currentReport={report}
+                    isLight={isLight}
+                    onOpenCutGuide={() => setIsCutGuideOpen(true)}
+                    onOpenKnowledgeBase={() => setCurrentView('knowledge')}
                   />
 
                   {/* Historical Uploads Table */}

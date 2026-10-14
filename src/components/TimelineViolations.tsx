@@ -24,10 +24,10 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
   if (violations.length === 0) {
     return (
       <div
-        className={`flex flex-col items-center justify-center rounded-2xl border p-8 text-center transition ${
+        className={`flex flex-col items-center justify-center rounded-3xl border p-8 text-center transition shadow-2xs ${
           isLight
-            ? 'border-emerald-200 bg-emerald-50/70 text-emerald-900 shadow-xs'
-            : 'border-emerald-500/30 bg-emerald-950/10 text-emerald-300'
+            ? 'border-emerald-200/80 bg-emerald-50/70 text-emerald-950 shadow-emerald-500/5'
+            : 'border-emerald-500/30 bg-emerald-950/20 text-emerald-300'
         }`}
       >
         <div
@@ -40,46 +40,50 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
           <CheckCircle2 className="h-8 w-8" />
         </div>
         <h3
-          className={`font-display text-base sm:text-lg font-black ${
-            isLight ? 'text-slate-900' : 'text-white'
+          className={`font-display text-base sm:text-lg font-black tracking-tight ${
+            isLight ? 'text-slate-950' : 'text-white'
           }`}
         >
           Zero Community Guideline Violations Detected
         </h3>
         <p
-          className={`mt-1.5 max-w-lg font-body text-xs sm:text-sm leading-relaxed ${
+          className={`mt-1.5 max-w-lg font-sans text-xs sm:text-sm leading-relaxed ${
             isLight ? 'text-slate-600' : 'text-slate-300'
           }`}
         >
-          All temporal keyframes meet YouTube automated moderation standards, child safety guidelines, and opening hook advertiser policies. Ready for safe scheduling and immediate public distribution.
+          All temporal keyframes meet YouTube automated moderation standards, child safety guidelines, and opening hook advertiser policies. Ready for safe scheduling.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+    <div
+      className={`rounded-3xl border p-5 sm:p-6 transition shadow-2xs ${
+        isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
+      }`}
+    >
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h3
             className={`font-display text-base sm:text-lg font-black tracking-tight ${
-              isLight ? 'text-slate-900' : 'text-white'
+              isLight ? 'text-slate-950' : 'text-white'
             }`}
           >
             Flagged Timeline Incidents (Actionable Fixes)
           </h3>
-          <p className={`font-body text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            Click any timestamp to seek the video player directly to the exact violation timecode
+          <p className="font-sans text-xs text-slate-500 mt-0.5">
+            Click any timestamp to seek video playback directly to the exact violation timecode
           </p>
         </div>
         <span
-          className={`rounded-xl px-3 py-1 font-mono text-xs font-bold ring-1 ring-inset ${
+          className={`rounded-full px-3 py-1 font-mono text-xs font-bold ring-1 ring-inset ${
             isLight
               ? 'bg-red-50 text-red-700 ring-red-200 shadow-2xs'
               : 'bg-rose-500/10 text-rose-300 ring-rose-500/30'
           }`}
         >
-          {violations.length} {violations.length === 1 ? 'Incident Flagged' : 'Incidents Flagged'}
+          {violations.length} {violations.length === 1 ? 'Incident' : 'Incidents'}
         </span>
       </div>
 
@@ -91,17 +95,17 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
           return (
             <div
               key={violation.id || index}
-              className={`flex flex-col overflow-hidden rounded-2xl border transition shadow-xs ${
+              className={`flex flex-col overflow-hidden rounded-2xl border transition shadow-2xs ${
                 isCritical
                   ? isLight
-                    ? 'border-red-200 bg-white'
+                    ? 'border-red-200/80 bg-red-50/20'
                     : 'border-rose-500/30 bg-slate-900/80 shadow-md shadow-rose-950/20'
                   : isCaution
                   ? isLight
-                    ? 'border-amber-200 bg-white'
+                    ? 'border-amber-200/80 bg-amber-50/20'
                     : 'border-amber-500/30 bg-slate-900/80'
                   : isLight
-                  ? 'border-slate-200 bg-white'
+                  ? 'border-slate-200/80 bg-white'
                   : 'border-slate-800 bg-slate-900/60'
               }`}
             >
@@ -109,7 +113,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
               <div
                 className={`flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5 ${
                   isLight
-                    ? 'border-slate-200 bg-slate-50/80 text-slate-900'
+                    ? 'border-slate-100 bg-slate-50/80 text-slate-900'
                     : 'border-slate-800/80 bg-slate-950/60 text-slate-100'
                 }`}
               >
@@ -125,25 +129,22 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                       <AlertTriangle className="h-4 w-4" />
                     )}
                     <span>
-                      {isCritical ? 'Community Strike Risk' : 'Demontization Warning'}
+                      {isCritical ? 'Community Strike Risk' : 'Demonetization Warning'}
                     </span>
                   </span>
 
                   <span className={isLight ? 'text-slate-300' : 'text-slate-600'}>·</span>
 
-                  <span
-                    className={`font-body text-xs font-medium ${
-                      isLight ? 'text-slate-600' : 'text-slate-400'
-                    }`}
-                  >
+                  <span className="font-sans text-xs font-medium text-slate-500">
                     {violation.categoryLabel}
                   </span>
                 </div>
 
                 {/* Timestamp Jump Button */}
                 <button
+                  type="button"
                   onClick={() => onSeekToViolation(violation.secondsStart)}
-                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 font-mono text-xs font-bold shadow-2xs transition ${
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 font-mono text-xs font-bold shadow-2xs transition cursor-pointer hover:scale-102 ${
                     isLight
                       ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-800'
                       : 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-white'
@@ -154,7 +155,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                   <span>
                     {violation.timestampStart} - {violation.timestampEnd}
                   </span>
-                  <span className={`text-[10px] font-normal ${isLight ? 'text-slate-400' : 'text-slate-400'}`}>
+                  <span className="text-[10px] font-normal text-slate-400">
                     (Seek)
                   </span>
                 </button>
@@ -163,7 +164,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
               {/* Main violation body */}
               <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-12">
                 {/* Visual Snapshot Frame Preview (4 cols) */}
-                <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-slate-800 md:col-span-4">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-slate-800 md:col-span-4">
                   {violation.frameSnapshot ? (
                     <img
                       src={violation.frameSnapshot}
@@ -188,7 +189,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                 <div className="flex flex-col justify-between md:col-span-8">
                   <div>
                     <h4
-                      className={`font-display text-sm sm:text-base font-bold ${
+                      className={`font-display text-sm sm:text-base font-black tracking-tight ${
                         isLight ? 'text-slate-900' : 'text-white'
                       }`}
                     >
@@ -202,20 +203,16 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                       </span>
                     </div>
 
-                    <p
-                      className={`mt-2 font-body text-xs sm:text-sm leading-relaxed ${
-                        isLight ? 'text-slate-700' : 'text-slate-300'
-                      }`}
-                    >
+                    <p className="mt-1.5 font-sans text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                       {violation.descriptionEn}
                     </p>
                   </div>
 
                   {/* Fix Recommendation Box */}
                   <div
-                    className={`mt-3.5 rounded-xl border p-3.5 ${
+                    className={`mt-3.5 rounded-2xl border p-3.5 ${
                       isLight
-                        ? 'border-slate-200 bg-slate-50/80'
+                        ? 'border-slate-100 bg-slate-50/80'
                         : 'border-slate-800 bg-slate-950/70'
                     }`}
                   >
@@ -241,11 +238,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                       </span>
                     </div>
 
-                    <p
-                      className={`mt-1.5 font-body text-xs leading-relaxed ${
-                        isLight ? 'text-slate-700' : 'text-slate-300'
-                      }`}
-                    >
+                    <p className="mt-1.5 font-sans text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                       {violation.actionableFix.instructionsEn}
                     </p>
                   </div>

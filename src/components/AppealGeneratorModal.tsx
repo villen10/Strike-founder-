@@ -107,13 +107,13 @@ export const AppealGeneratorModal: React.FC<AppealGeneratorModalProps> = ({
 
   const modalContent = (
     <div
-      className={`relative flex w-full flex-col overflow-hidden rounded-2xl border transition ${
+      className={`relative flex w-full flex-col overflow-hidden rounded-3xl border transition ${
         isEmbedded
           ? isLight
-            ? 'border-slate-200/90 bg-white text-slate-900 shadow-xs'
+            ? 'border-slate-100 bg-white text-slate-900 shadow-2xs'
             : 'border-slate-800 bg-slate-900 text-slate-100 shadow-xl'
           : isLight
-          ? 'max-h-[90vh] max-w-2xl border-slate-200 bg-white text-slate-900 shadow-2xl'
+          ? 'max-h-[90vh] max-w-2xl border-slate-100 bg-white text-slate-900 shadow-2xl'
           : 'max-h-[90vh] max-w-2xl border-slate-800 bg-slate-900 text-slate-100 shadow-2xl'
       }`}
     >

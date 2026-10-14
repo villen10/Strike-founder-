@@ -9,14 +9,10 @@ import {
   ShieldAlert,
   ShieldCheck,
   RotateCcw,
-  Sparkles,
-  Info,
   Clock,
   Layers,
   FileVideo,
   CheckCircle2,
-  Cpu,
-  Scan,
   Activity,
   Trash2,
   ListOrdered,
@@ -24,7 +20,9 @@ import {
   Loader2,
   ArrowUpRight,
   Plus,
-  FileCheck
+  FolderOpen,
+  Sparkles,
+  Info,
 } from 'lucide-react';
 import { SampleVideoOption, PolicyViolation, QueuedVideoTask } from '../types/audit';
 import { SAMPLE_VIDEOS } from '../services/sampleData';
@@ -96,6 +94,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedFilesCount, setDraggedFilesCount] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<'upload' | 'presets'>('upload');
 
   const effectiveQueueTasks = queuedTasks || queueTasks || [];
   const handleUploadBatch = onUploadFiles || onUploadMultipleFiles;
@@ -109,8 +108,6 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
   };
   const handleQueuePresetCase = onQueueSample || onQueuePreset;
 
-
-  // Sync play/pause state
   const togglePlay = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
@@ -175,7 +172,6 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    // Only turn off if leaving the drop container itself
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDragging(false);
       setDraggedFilesCount(0);
@@ -189,143 +185,192 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
   const queuedCount = effectiveQueueTasks.filter((t) => t.status === 'QUEUED').length;
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Test Presets Banner */}
-      <div
-        className={`rounded-2xl border p-4 sm:p-5 transition shadow-xs ${
-          isLight
-            ? 'border-slate-200/90 bg-white text-slate-900'
-            : 'border-slate-800/80 bg-slate-900/50 backdrop-blur-sm text-slate-100'
-        }`}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <div
-            className={`flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider ${
-              isLight ? 'text-slate-500' : 'text-slate-400'
-            }`}
-          >
-            <Layers className="h-3.5 w-3.5 text-red-600" />
-            <span>Instant Test Presets (1-Click Test Scenarios)</span>
+    <div className="flex flex-col gap-6">
+      {/* 1. Header Segmented Navigation: Add Video vs Presets */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-red-600/10 text-red-600 dark:bg-red-500/15 dark:text-red-400">
+            <Film className="h-5 w-5" />
           </div>
-          <span className="font-body text-[11px] text-slate-400">
-            Real Creator Incident Cases
-          </span>
+          <div>
+            <h2 className={`font-display text-base sm:text-lg font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              Video Guidelines Scanner
+            </h2>
+            <p className="font-sans text-xs text-slate-500">
+              Audit your video before publishing to prevent strikes and demonetization
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-          {SAMPLE_VIDEOS.map((sample) => {
-            const isCritical = sample.expectedResult === 'CRITICAL_STRIKE';
-            const isCaution = sample.expectedResult === 'DEMONETIZATION_WARNING';
-            const isClean = sample.expectedResult === 'CLEAN';
-
-            return (
-              <div
-                key={sample.id}
-                className={`group relative flex flex-col justify-between rounded-xl border p-3 text-left transition shadow-2xs ${
-                  videoTitle === sample.title
-                    ? isLight
-                      ? 'border-red-500 bg-red-50/60 ring-1 ring-red-500/30'
-                      : 'border-red-500/80 bg-red-950/30 ring-1 ring-red-500/30'
-                    : isLight
-                    ? 'border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-100/80'
-                    : 'border-slate-800 bg-slate-900/80 hover:border-slate-700 hover:bg-slate-850'
-                }`}
-              >
-                <div onClick={() => onSelectSample(sample)} className="cursor-pointer">
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="font-mono text-[10px] font-medium text-slate-500">{sample.category}</span>
-                    <span
-                      className={`flex items-center gap-1 font-mono text-[10px] font-bold ${
-                        isCritical
-                          ? 'text-red-600'
-                          : isCaution
-                          ? 'text-amber-600'
-                          : 'text-emerald-600'
-                      }`}
-                    >
-                      {isCritical && <ShieldAlert className="h-3 w-3" />}
-                      {isCaution && <AlertTriangle className="h-3 w-3" />}
-                      {isClean && <CheckCircle2 className="h-3 w-3" />}
-                      <span>
-                        {isCritical ? 'Strike Risk' : isCaution ? 'Ad Caution' : 'Safe'}
-                      </span>
-                    </span>
-                  </div>
-                  <h4
-                    className={`line-clamp-1 font-display text-xs font-bold ${
-                      isLight ? 'text-slate-900 group-hover:text-red-600' : 'text-slate-200 group-hover:text-white'
-                    }`}
-                  >
-                    {sample.title}
-                  </h4>
-                  <p
-                    className={`mt-1 line-clamp-2 font-body text-[11px] leading-relaxed ${
-                      isLight ? 'text-slate-600' : 'text-slate-400'
-                    }`}
-                  >
-                    {sample.shortDesc}
-                  </p>
-                </div>
-
-                <div
-                  className={`mt-3 flex items-center justify-between border-t pt-2 font-mono text-[10px] ${
-                    isLight ? 'border-slate-200/80 text-slate-500' : 'border-slate-800/60 text-slate-500'
-                  }`}
-                >
-                  <span className="flex items-center gap-1 font-bold">
-                    <Clock className="h-3 w-3 text-slate-400" />
-                    {sample.durationFormatted}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {handleQueuePresetCase && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQueuePresetCase(sample);
-                        }}
-                        title="Add preset to batch queue"
-                        className="flex items-center gap-0.5 rounded px-1.5 py-0.5 font-sans text-[10px] font-medium text-slate-500 hover:text-red-600 hover:bg-red-500/10 transition cursor-pointer"
-                      >
-                        <Plus className="h-3 w-3" />
-                        <span>Queue</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => onSelectSample(sample)}
-                      className="font-body font-bold text-red-600 group-hover:underline cursor-pointer"
-                    >
-                      Load →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        {/* Segmented Switch */}
+        <div className={`inline-flex rounded-2xl p-1 border ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('upload')}
+            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 font-sans text-xs font-bold transition cursor-pointer ${
+              activeTab === 'upload'
+                ? isLight
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'bg-slate-800 text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <FolderOpen className="h-3.5 w-3.5 text-red-600" />
+            <span>Add from Browser</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('presets')}
+            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 font-sans text-xs font-bold transition cursor-pointer ${
+              activeTab === 'presets'
+                ? isLight
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'bg-slate-800 text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5 text-amber-500" />
+            <span>Sample Cases ({SAMPLE_VIDEOS.length})</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Video & Upload Container */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-        {/* Left: Video Player & Timeline Scrubber (7 cols) */}
+      {/* 2. Sample Scenarios Drawer / View (shown when presets tab is chosen) */}
+      {activeTab === 'presets' && (
         <div
-          className={`flex flex-col gap-3.5 rounded-2xl border p-4 sm:p-5 lg:col-span-7 transition shadow-xs ${
+          className={`rounded-3xl border p-5 sm:p-6 transition shadow-2xs ${
             isLight
-              ? 'border-slate-200/90 bg-white text-slate-900'
-              : 'border-slate-800/90 bg-slate-900/60 text-slate-100'
+              ? 'border-slate-100 bg-white text-slate-900 shadow-slate-200/50'
+              : 'border-slate-800 bg-slate-900 text-slate-100'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <FileVideo className="h-4 w-4 shrink-0 text-red-600" />
-              <h3
-                className={`truncate font-display text-sm sm:text-base font-bold ${
-                  isLight ? 'text-slate-900' : 'text-white'
-                }`}
-                title={videoTitle || 'Select or upload a video'}
-              >
-                {videoTitle || 'Select or upload a video'}
-              </h3>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-display text-sm font-bold">Select a Real Creator Incident Case</span>
+              <span className="text-xs text-slate-400">Click to load and preview</span>
             </div>
+            <button
+              onClick={() => setActiveTab('upload')}
+              className="text-xs font-semibold text-red-600 hover:underline cursor-pointer"
+            >
+              Back to Upload →
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {SAMPLE_VIDEOS.map((sample) => {
+              const isCritical = sample.expectedResult === 'CRITICAL_STRIKE';
+              const isCaution = sample.expectedResult === 'DEMONETIZATION_WARNING';
+              const isClean = sample.expectedResult === 'CLEAN';
+              const isCurrent = videoTitle === sample.title;
+
+              return (
+                <div
+                  key={sample.id}
+                  onClick={() => {
+                    onSelectSample(sample);
+                    setActiveTab('upload');
+                  }}
+                  className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition cursor-pointer shadow-2xs ${
+                    isCurrent
+                      ? isLight
+                        ? 'border-red-500 bg-red-50/70 ring-2 ring-red-500/20'
+                        : 'border-red-500/80 bg-red-950/30 ring-2 ring-red-500/20'
+                      : isLight
+                      ? 'border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-100/80'
+                      : 'border-slate-800 bg-slate-900/80 hover:border-slate-700 hover:bg-slate-850'
+                  }`}
+                >
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-semibold text-slate-500">
+                        {sample.category}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-sans text-[10px] font-bold ${
+                          isCritical
+                            ? 'bg-red-500/10 text-red-600'
+                            : isCaution
+                            ? 'bg-amber-500/10 text-amber-600'
+                            : 'bg-emerald-500/10 text-emerald-600'
+                        }`}
+                      >
+                        {isCritical && <ShieldAlert className="h-3 w-3" />}
+                        {isCaution && <AlertTriangle className="h-3 w-3" />}
+                        {isClean && <CheckCircle2 className="h-3 w-3" />}
+                        <span>
+                          {isCritical ? 'Strike Risk' : isCaution ? 'Ad Caution' : 'Clean'}
+                        </span>
+                      </span>
+                    </div>
+
+                    <h4
+                      className={`line-clamp-1 font-display text-xs sm:text-sm font-bold ${
+                        isLight ? 'text-slate-900 group-hover:text-red-600' : 'text-slate-200 group-hover:text-white'
+                      }`}
+                    >
+                      {sample.title}
+                    </h4>
+                    <p
+                      className={`mt-1.5 line-clamp-2 font-sans text-xs leading-relaxed ${
+                        isLight ? 'text-slate-600' : 'text-slate-400'
+                      }`}
+                    >
+                      {sample.shortDesc}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`mt-3.5 flex items-center justify-between border-t pt-2.5 font-sans text-xs ${
+                      isLight ? 'border-slate-200/80 text-slate-500' : 'border-slate-800/60 text-slate-500'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1 font-medium">
+                      <Clock className="h-3 w-3 text-slate-400" />
+                      {sample.durationFormatted}
+                    </span>
+                    <span className="font-bold text-red-600 group-hover:underline">
+                      Load Video →
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 3. Main Workspace: Video Player (Left) + Upload & Queue Controls (Right) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Left: Video Player & Timeline Scrubber (7 cols) */}
+        <div
+          className={`flex flex-col gap-4 rounded-3xl border p-5 sm:p-6 lg:col-span-7 transition shadow-2xs ${
+            isLight
+              ? 'border-slate-100 bg-white text-slate-900 shadow-slate-200/50'
+              : 'border-slate-800 bg-slate-900 text-slate-100'
+          }`}
+        >
+          {/* Header Video Title & Duration */}
+          <div className="flex items-center justify-between gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-600/10 text-red-600">
+                <FileVideo className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <h3
+                  className={`truncate font-display text-sm sm:text-base font-bold ${
+                    isLight ? 'text-slate-900' : 'text-white'
+                  }`}
+                  title={videoTitle || 'Ready to audit'}
+                >
+                  {videoTitle || 'No Video Selected'}
+                </h3>
+                <p className="font-sans text-[11px] text-slate-500 truncate">
+                  {currentVideoUrl ? 'Loaded from browser storage' : 'Drop video or browse file'}
+                </p>
+              </div>
+            </div>
+
             {videoDurationSec > 0 && (
               <span
                 className={`shrink-0 rounded-xl px-2.5 py-1 font-mono text-xs font-bold ${
@@ -338,7 +383,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
           </div>
 
           {/* Video Preview Canvas / Video Tag */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-slate-800 shadow-inner">
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-slate-800/80 shadow-inner">
             {currentVideoUrl ? (
               <video
                 ref={videoRef}
@@ -352,22 +397,30 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
             ) : (
               <div
                 className={`flex h-full w-full flex-col items-center justify-center p-6 text-center ${
-                  isLight ? 'bg-slate-900 text-slate-300' : 'bg-gradient-to-b from-slate-900 to-slate-950 text-slate-400'
+                  isLight ? 'bg-slate-900 text-slate-300' : 'bg-slate-950 text-slate-400'
                 }`}
               >
                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-red-500 ring-1 ring-slate-700 shadow-sm">
                   <Film className="h-7 w-7" />
                 </div>
                 <p className="font-display text-sm font-bold text-white">
-                  Video Screen Ready
+                  Video Preview Screen
                 </p>
-                <p className="mt-1 max-w-xs font-body text-xs text-slate-400">
-                  Select a test scenario preset or drag & drop multiple videos to queue
+                <p className="mt-1 max-w-xs font-sans text-xs text-slate-400">
+                  Select a video file from your computer or choose an instant test scenario
                 </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-4 flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 font-sans text-xs font-bold transition cursor-pointer"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>Choose Video File</span>
+                </button>
               </div>
             )}
 
-            {/* Video Overlay Play Button */}
+            {/* Play/Pause Center Overlay */}
             {currentVideoUrl && (
               <button
                 onClick={togglePlay}
@@ -384,61 +437,42 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               </button>
             )}
 
-            {/* Scanning Overlay Animation - Ultra UX */}
+            {/* Professional, Clean Scanning Overlay (No cheap AI slop or lasers) */}
             {isScanning && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/92 backdrop-blur-xl z-20 p-6 text-center overflow-hidden"
+                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md z-20 p-6 text-center"
               >
-                {/* Laser Scanning Beam Sweep */}
-                <motion.div
-                  animate={{ y: ['0%', '100%', '0%'] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_20px_rgba(239,68,68,0.9)] z-10 opacity-80"
-                />
-
-                {/* Cyber Grid Background Effect */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:2rem_2rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
-
-                <div className="relative z-20 mb-3 flex h-20 w-20 items-center justify-center">
-                  <div className="absolute inset-0 animate-ping rounded-full bg-red-500/25" />
-                  <div className="absolute inset-2 animate-spin rounded-full border-2 border-dashed border-red-500/80" />
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-[0_0_25px_rgba(239,68,68,0.6)]">
-                    <Scan className="h-7 w-7 animate-pulse" />
-                  </div>
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/30">
+                  <Loader2 className="h-7 w-7 animate-spin" />
                 </div>
 
-                <div className="relative z-20 flex items-center gap-2 rounded-full bg-red-950/80 px-3 py-1 border border-red-500/30 text-xs font-mono text-red-300 mb-2">
-                  <Cpu className="h-3.5 w-3.5 animate-spin text-red-400" />
-                  <span>GEMINI VISION 1.5 PRO • NEURAL SCAN ACTIVE</span>
+                <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-sans font-semibold text-slate-200 mb-2">
+                  <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
+                  <span>Checking YouTube Community Guidelines</span>
                 </div>
 
-                <h4 className="relative z-20 font-display text-lg font-black tracking-wide text-white">
-                  Deep Temporal Video Audit
+                <h4 className="font-display text-base font-bold text-white">
+                  Auditing Video & Audio Compliance
                 </h4>
-                <p className="relative z-20 mt-1 max-w-sm font-body text-xs text-slate-300 leading-relaxed font-medium">
-                  {scanProgress.status}
+                <p className="mt-1 max-w-sm font-sans text-xs text-slate-300 leading-relaxed">
+                  {scanProgress.status || 'Extracting keyframes and testing against policy rules...'}
                 </p>
 
-                {/* Progress Bar with Glow */}
-                <div className="relative z-20 mt-5 w-72 max-w-full overflow-hidden rounded-full bg-slate-900/90 p-1 ring-1 ring-slate-700/80 shadow-inner">
+                {/* Clean Progress Bar */}
+                <div className="mt-4 w-64 max-w-full overflow-hidden rounded-full bg-slate-800 p-0.5 ring-1 ring-white/10">
                   <motion.div
-                    className="h-2.5 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 shadow-[0_0_16px_rgba(239,68,68,0.8)]"
+                    className="h-2 rounded-full bg-red-600"
                     initial={{ width: '0%' }}
                     animate={{ width: `${Math.max(6, scanProgress.percent)}%` }}
                     transition={{ type: 'spring', stiffness: 60, damping: 15 }}
                   />
                 </div>
 
-                <div className="relative z-20 mt-3 flex items-center gap-4 font-mono text-xs font-bold">
-                  <span className="text-red-400 text-sm tracking-wide">{scanProgress.percent}%</span>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-slate-400 flex items-center gap-1.5">
-                    <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-                    2-5s Chunking & Audio Scan
-                  </span>
+                <div className="mt-2 font-mono text-xs font-bold text-red-400">
+                  {scanProgress.percent}% Complete
                 </div>
               </motion.div>
             )}
@@ -446,7 +480,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
 
           {/* Interactive Heatmap Scrubber Timeline */}
           <div className="flex flex-col gap-2 pt-1">
-            {/* Real-time Playback Head Violation Tracker Badge */}
+            {/* Active Flagged Zone Indicator */}
             {(() => {
               const activeViolation = violations.find(
                 (v) => currentTime >= v.secondsStart && currentTime <= v.secondsEnd
@@ -455,23 +489,25 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               const isCrit = activeViolation.severity === 'CRITICAL_STRIKE';
               return (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className={`flex items-center justify-between rounded-xl px-3 py-2 border shadow-sm ${
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  className={`flex items-center justify-between rounded-xl px-3 py-2 border shadow-xs ${
                     isCrit
-                      ? 'bg-red-500/10 border-red-500/40 text-red-500 dark:text-red-400'
-                      : 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 animate-bounce shrink-0" />
-                    <span className="font-mono text-xs font-bold">
-                      Flagged Zone ({activeViolation.timestampStart} - {activeViolation.timestampEnd}):
+                  <div className="flex items-center gap-2 min-w-0">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span className="font-mono text-xs font-bold shrink-0">
+                      [{activeViolation.timestampStart} - {activeViolation.timestampEnd}]
                     </span>
-                    <span className="font-body text-xs font-medium truncate">{activeViolation.title}</span>
+                    <span className="font-sans text-xs font-semibold truncate">
+                      {activeViolation.title}
+                    </span>
                   </div>
-                  <span className="shrink-0 rounded-md bg-black/10 dark:bg-white/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase">
+                  <span className="shrink-0 rounded-md bg-black/10 dark:bg-white/10 px-2 py-0.5 font-sans text-[10px] font-bold uppercase">
                     {activeViolation.actionableFix.actionType}
                   </span>
                 </motion.div>
@@ -483,12 +519,12 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 isLight ? 'text-slate-600' : 'text-slate-400'
               }`}
             >
-              <span className="flex items-center gap-1 font-body font-semibold">
-                <Clock className="h-3 w-3 text-slate-500" />
-                Timeline Risk Heatmap
+              <span className="flex items-center gap-1.5 font-sans font-semibold">
+                <Clock className="h-3.5 w-3.5 text-slate-500" />
+                Timeline Policy Markers
               </span>
-              <span className="font-mono text-[10px] text-slate-500">
-                Click marker to jump video
+              <span className="font-sans text-[11px] text-slate-500">
+                Click any colored marker to jump
               </span>
             </div>
 
@@ -499,7 +535,6 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 isLight ? 'bg-slate-200 hover:bg-slate-300/80' : 'bg-slate-800/90 hover:bg-slate-800'
               }`}
             >
-              {/* Clean background track */}
               <div
                 className={`relative h-full w-full overflow-hidden rounded-lg ${
                   isLight ? 'bg-slate-100' : 'bg-slate-950'
@@ -510,7 +545,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                   violations.map((v) => {
                     const leftPct = (v.secondsStart / videoDurationSec) * 100;
                     const widthPct = Math.max(
-                      2.5,
+                      3,
                       ((v.secondsEnd - v.secondsStart) / videoDurationSec) * 100
                     );
                     const isCrit = v.severity === 'CRITICAL_STRIKE';
@@ -547,60 +582,61 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
             </div>
 
             {/* Heatmap Legend */}
-            <div className="flex items-center justify-between font-mono text-[10px] text-slate-500">
+            <div className="flex items-center justify-between font-sans text-xs text-slate-500 pt-0.5">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-red-600" />
                   Strike Hazard
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  Demonetization
+                  Monetization Alert
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1.5">
                   <span
                     className={`h-2 w-2 rounded-full ${
                       isLight ? 'bg-slate-300' : 'bg-slate-700'
                     }`}
                   />
-                  Compliant
+                  Safe Zone
                 </span>
               </div>
-              <span className="font-mono text-slate-500 font-bold">
+              <span className="font-mono text-xs font-semibold">
                 {videoDurationSec > 0 ? `${videoDurationSec}s total` : '0s'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right: Drag & Drop Ingest & Simultaneous Queued Tasks (5 cols) */}
+        {/* Right: Upload from Browser & Batch Queue (5 cols) */}
         <div
-          className={`flex flex-col justify-between gap-4 rounded-2xl border p-4 sm:p-5 lg:col-span-5 transition shadow-xs ${
+          className={`flex flex-col justify-between gap-5 rounded-3xl border p-5 sm:p-6 lg:col-span-5 transition shadow-2xs ${
             isLight
-              ? 'border-slate-200/90 bg-white text-slate-900'
-              : 'border-slate-800/90 bg-slate-900/60 text-slate-100'
+              ? 'border-slate-100 bg-white text-slate-900 shadow-slate-200/50'
+              : 'border-slate-800 bg-slate-900 text-slate-100'
           }`}
         >
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-4">
+            {/* Header */}
             <div className="flex items-center justify-between">
               <div>
                 <h3
-                  className={`font-display text-sm sm:text-base font-bold ${
+                  className={`font-display text-base font-bold ${
                     isLight ? 'text-slate-900' : 'text-white'
                   }`}
                 >
-                  Multi-Video Ingest & Batch Queue
+                  Add Video from Browser
                 </h3>
-                <p className="font-body text-[11px] text-slate-500">
-                  Simultaneous drag & drop queuing for automated audits
+                <p className="font-sans text-xs text-slate-500 mt-0.5">
+                  Select video files from your device to audit
                 </p>
               </div>
-              <span className="rounded-full bg-red-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-red-600">
-                Multi-File Ingest
+              <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 font-sans text-[11px] font-bold text-red-600">
+                Local Ingest
               </span>
             </div>
 
-            {/* Drag & Drop Area - Ultra Modern & Responsive */}
+            {/* Clean Dropzone - Matches Modern Screenshot Design */}
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -609,10 +645,10 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-200 ${
                 isDragging
                   ? isLight
-                    ? 'border-red-500 bg-red-50 ring-4 ring-red-500/20 scale-[1.01]'
-                    : 'border-red-500 bg-red-950/40 ring-4 ring-red-500/20 scale-[1.01]'
+                    ? 'border-red-500 bg-red-50/80 ring-4 ring-red-500/15 scale-[1.01]'
+                    : 'border-red-500 bg-red-950/40 ring-4 ring-red-500/15 scale-[1.01]'
                   : isLight
-                  ? 'border-slate-300 bg-slate-50/70 hover:border-red-400 hover:bg-slate-100/60'
+                  ? 'border-slate-200 bg-slate-50/70 hover:border-red-400 hover:bg-slate-100/70'
                   : 'border-slate-800 bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/80'
               }`}
             >
@@ -634,15 +670,10 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 }}
               />
 
-              {/* Background ambient radial glow on drag */}
-              {isDragging && (
-                <div className="pointer-events-none absolute inset-0 bg-radial-gradient from-red-500/10 via-transparent to-transparent animate-pulse" />
-              )}
-
               <div
                 className={`mb-3 flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm transition group-hover:scale-105 ${
                   isDragging
-                    ? 'bg-red-600 text-white animate-bounce'
+                    ? 'bg-red-600 text-white'
                     : isLight
                     ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
                     : 'bg-slate-800 text-rose-400 ring-1 ring-slate-700'
@@ -662,44 +693,37 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                   }`}
                 >
                   {isDragging
-                    ? `Drop ${draggedFilesCount > 1 ? draggedFilesCount + ' Videos' : 'Video'} to Queue Instantly!`
-                    : 'Drop Multiple Video Files Here'}
+                    ? `Drop ${draggedFilesCount > 1 ? draggedFilesCount + ' Videos' : 'Video'} to Audit`
+                    : 'Drag & Drop Video Files Here'}
                 </p>
-                <p className="mt-1 font-body text-xs text-slate-500">
+                <p className="mt-1 font-sans text-xs text-slate-500">
                   or <span className="font-semibold text-red-600 underline">browse files</span> from your computer
                 </p>
 
-                {/* Formats and batch tag */}
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 font-mono text-[10px]">
+                {/* Formats Pills */}
+                <div className="mt-3.5 flex flex-wrap items-center justify-center gap-1.5 font-sans text-[10px]">
                   <span
-                    className={`rounded px-1.5 py-0.5 ${
+                    className={`rounded-md px-2 py-0.5 font-semibold ${
                       isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
                     }`}
                   >
                     MP4
                   </span>
                   <span
-                    className={`rounded px-1.5 py-0.5 ${
+                    className={`rounded-md px-2 py-0.5 font-semibold ${
                       isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
                     }`}
                   >
                     MOV
                   </span>
                   <span
-                    className={`rounded px-1.5 py-0.5 ${
+                    className={`rounded-md px-2 py-0.5 font-semibold ${
                       isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
                     }`}
                   >
                     WEBM
                   </span>
-                  <span
-                    className={`rounded px-1.5 py-0.5 ${
-                      isLight ? 'bg-slate-200/80 text-slate-700' : 'bg-slate-800 text-slate-300'
-                    }`}
-                  >
-                    MKV
-                  </span>
-                  <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-600 font-bold">
+                  <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-600 font-bold">
                     Batch Support
                   </span>
                 </div>
@@ -708,26 +732,26 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
 
             {/* Audit Task Queue Section */}
             <div
-              className={`flex flex-col rounded-xl border p-3 ${
+              className={`flex flex-col rounded-2xl border p-3.5 ${
                 isLight
                   ? 'border-slate-200 bg-slate-50/70 text-slate-900'
                   : 'border-slate-800/90 bg-slate-950/50 text-slate-200'
               }`}
             >
-              <div className="mb-2 flex items-center justify-between border-b pb-2 border-slate-200/80 dark:border-slate-800/80">
+              <div className="mb-2.5 flex items-center justify-between border-b pb-2.5 border-slate-200/80 dark:border-slate-800/80">
                 <div className="flex items-center gap-2">
-                  <ListOrdered className="h-3.5 w-3.5 text-red-600" />
-                  <span className="font-mono text-xs font-bold">
-                    Audit Queue ({effectiveQueueTasks.length})
+                  <ListOrdered className="h-4 w-4 text-red-600" />
+                  <span className="font-display text-xs font-bold">
+                    Video Queue ({effectiveQueueTasks.length})
                   </span>
                   {processingCount > 0 && (
-                    <span className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.2 font-mono text-[9px] font-bold text-red-600">
+                    <span className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 font-sans text-[10px] font-bold text-red-600">
                       <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
                       {processingCount} Active
                     </span>
                   )}
                   {queuedCount > 0 && (
-                    <span className="rounded-full bg-amber-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-amber-600">
+                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 font-sans text-[10px] font-bold text-amber-600">
                       {queuedCount} Queued
                     </span>
                   )}
@@ -736,20 +760,20 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 {completedCount > 0 && onClearCompletedTasks && (
                   <button
                     onClick={onClearCompletedTasks}
-                    className="flex items-center gap-1 font-mono text-[10px] text-slate-500 hover:text-red-600 transition"
+                    className="flex items-center gap-1 font-sans text-[11px] font-semibold text-slate-500 hover:text-red-600 transition cursor-pointer"
                   >
-                    <CheckCheck className="h-3 w-3" />
+                    <CheckCheck className="h-3.5 w-3.5" />
                     <span>Clear Done</span>
                   </button>
                 )}
               </div>
 
               {/* Task Items List */}
-              <div className="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-0.5">
+              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto pr-0.5">
                 {effectiveQueueTasks.length === 0 ? (
                   <div className="py-4 text-center">
-                    <p className="font-body text-xs text-slate-500">
-                      Queue is currently empty. Drop videos above to begin!
+                    <p className="font-sans text-xs text-slate-500">
+                      Queue is currently empty. Drop a video above to begin!
                     </p>
                   </div>
                 ) : (
@@ -773,11 +797,11 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className={`group flex flex-col gap-1.5 rounded-lg border p-2 text-xs transition ${
+                          className={`group flex flex-col gap-1.5 rounded-xl border p-2.5 text-xs transition ${
                             isActive
                               ? isLight
-                                ? 'border-red-500 bg-white ring-1 ring-red-400/40 shadow-xs'
-                                : 'border-red-500/80 bg-slate-900 ring-1 ring-red-500/30'
+                                ? 'border-red-500 bg-white ring-2 ring-red-400/20 shadow-xs'
+                                : 'border-red-500/80 bg-slate-900 ring-2 ring-red-500/20'
                               : isLight
                               ? 'border-slate-200 bg-white/80 hover:bg-white'
                               : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900'
@@ -786,9 +810,8 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                           <div className="flex items-center justify-between gap-2">
                             <div
                               onClick={() => handleSelectQueued(task)}
-                              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
                             >
-                              {/* Task Icon / Status Icon */}
                               <div className="shrink-0">
                                 {isProcessing ? (
                                   <Loader2 className="h-4 w-4 animate-spin text-red-600" />
@@ -811,16 +834,16 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
 
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
-                                  <p className="truncate font-sans font-semibold text-[11px] leading-tight">
+                                  <p className="truncate font-sans font-bold text-xs leading-tight">
                                     {task.title}
                                   </p>
                                   {isActive && (
-                                    <span className="shrink-0 rounded bg-red-500/10 px-1 py-0.2 font-mono text-[8px] font-bold text-red-600">
+                                    <span className="shrink-0 rounded-md bg-red-500/10 px-1.5 py-0.2 font-sans text-[9px] font-bold text-red-600">
                                       VIEWING
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 font-mono text-[9px] text-slate-500 mt-0.5">
+                                <div className="flex items-center gap-2 font-sans text-[10px] text-slate-500 mt-0.5">
                                   {task.fileSizeFormatted && <span>{task.fileSizeFormatted}</span>}
                                   {task.durationFormatted && task.durationFormatted !== '--:--' && (
                                     <span>• {task.durationFormatted}</span>
@@ -834,7 +857,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                             <div className="flex items-center gap-1.5 shrink-0">
                               {isCompleted && task.report && (
                                 <span
-                                  className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-bold ${
+                                  className={`rounded-md px-2 py-0.5 font-sans text-[10px] font-bold ${
                                     isClean
                                       ? 'bg-emerald-500/10 text-emerald-600'
                                       : isAtRisk
@@ -847,34 +870,34 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                               )}
 
                               {isProcessing && (
-                                <span className="font-mono text-[10px] font-bold text-red-500">
+                                <span className="font-mono text-xs font-bold text-red-500">
                                   {task.progressPercent}%
                                 </span>
                               )}
 
                               {isQueued && (
-                                <span className="rounded bg-slate-500/10 px-1.5 py-0.5 font-mono text-[9px] text-slate-500">
-                                  Waiting
+                                <span className="rounded-md bg-slate-500/10 px-2 py-0.5 font-sans text-[10px] text-slate-500">
+                                  Queued
                                 </span>
                               )}
 
                               {handleSelectQueued && !isActive && (
                                 <button
                                   onClick={() => handleSelectQueued(task)}
-                                  className="rounded p-1 text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                                  title="Inspect report and video"
+                                  className="rounded-lg p-1 text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                                  title="Inspect video"
                                 >
-                                  <ArrowUpRight className="h-3.5 w-3.5" />
+                                  <ArrowUpRight className="h-4 w-4" />
                                 </button>
                               )}
 
                               {handleRemoveQueued && (
                                 <button
                                   onClick={() => handleRemoveQueued(task.id)}
-                                  className="rounded p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                                  className="rounded-lg p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                                   title="Remove from queue"
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               )}
                             </div>
@@ -898,18 +921,18 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               </div>
             </div>
 
-            {/* Quick Safety Summary Note */}
+            {/* Note */}
             <div
-              className={`rounded-xl border p-2.5 text-[11px] ${
+              className={`rounded-2xl border p-3 text-xs ${
                 isLight
                   ? 'border-slate-200 bg-slate-50/80 text-slate-600'
                   : 'border-slate-800/80 bg-slate-950/40 text-slate-400'
               }`}
             >
-              <div className="flex items-start gap-2">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
-                <p className="font-body leading-relaxed">
-                  Batch audit processes videos automatically. Evaluates frame temporal movement, children presence, weapons, and advertiser guidelines.
+              <div className="flex items-start gap-2.5">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+                <p className="font-sans leading-relaxed">
+                  Checks your upload against copyright, physical safety, COPPA minor safety, and YouTube advertiser suitability.
                 </p>
               </div>
             </div>
@@ -920,7 +943,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
             <button
               onClick={onTriggerAudit}
               disabled={isScanning}
-              className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-sm font-black tracking-wide text-white shadow-md transition ${
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-display text-sm font-bold tracking-tight text-white shadow-md transition cursor-pointer ${
                 isScanning
                   ? 'cursor-not-allowed bg-slate-400 text-white'
                   : 'bg-red-600 hover:bg-red-700 shadow-red-600/20 active:scale-[0.99]'
@@ -928,7 +951,7 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
             >
               <Sparkles className="h-4 w-4" />
               <span>
-                {isScanning ? 'Auditing Video Ingest...' : 'Run Guidelines Audit on Active Video'}
+                {isScanning ? 'Auditing Video Guidelines...' : 'Run Guidelines Audit on Video'}
               </span>
             </button>
           </div>

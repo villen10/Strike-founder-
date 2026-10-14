@@ -8,14 +8,19 @@ export async function requestVideoAudit(params: {
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
   frames: ExtractedFrame[];
 }): Promise<AuditReport> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
+
   try {
     const res = await fetch('/api/audit', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
       body: JSON.stringify(params),
     });
+    clearTimeout(timer);
 
     const data = await res.json();
     if (data.success && data.report) {
