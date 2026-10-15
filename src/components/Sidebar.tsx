@@ -18,10 +18,11 @@ import {
   Palette,
   LogOut,
   Sparkles,
-  Lock,
+  Search,
+  Plus,
   X,
   Check,
-  Menu,
+  Lock,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
@@ -80,6 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onScanNewVideo,
 }) => {
   const isLight = theme.isLight;
+  const [searchQuery, setSearchQuery] = useState('');
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
 
   const toggleLightDark = () => {
@@ -90,62 +92,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const navItems = [
-    {
-      id: 'overview' as NavView,
-      label: 'Studio Dashboard',
-      description: 'Overall compliance verdict',
-      icon: LayoutDashboard,
-      badge: null,
-    },
-    {
-      id: 'scanner' as NavView,
-      label: 'Video Scanner',
-      description: 'Frame-by-frame audit engine',
-      icon: FileVideo,
-      badge: pendingQueueCount > 0 ? `${pendingQueueCount} queued` : null,
-      badgeColor: 'bg-amber-500 text-white',
-    },
-    {
-      id: 'analytics' as NavView,
-      label: 'Channel Health',
-      description: '10-upload trend line',
-      icon: Activity,
-      badge: `${avgComplianceScore}%`,
-      badgeColor: isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-950 text-emerald-300',
-    },
-    {
-      id: 'violations' as NavView,
-      label: 'Policy Flags & Cuts',
-      description: 'Timecode cut sheet',
-      icon: AlertTriangle,
-      badge: violationsCount > 0 ? `${violationsCount}` : null,
-      badgeColor: 'bg-red-600 text-white',
-    },
-    {
-      id: 'appeal' as NavView,
-      label: 'Strike Appeal Kit',
-      description: 'Legal counter-appeal',
-      icon: FileText,
-      badge: null,
-    },
-    {
-      id: 'knowledge' as NavView,
-      label: 'Policy Encyclopedia',
-      description: 'YouTube community rules',
-      icon: BookOpen,
-      badge: null,
-    },
-    {
-      id: 'profile' as NavView,
-      label: 'Creator Profile',
-      description: 'Cloud scans & account',
-      icon: User,
-      badge: currentUser ? 'PRO' : null,
-      badgeColor: 'bg-emerald-500 text-slate-950 font-bold',
-    },
-  ];
-
   const handleItemClick = (id: NavView) => {
     onSelectView(id);
     if (isOpenMobile && onCloseMobile) {
@@ -153,12 +99,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const overviewItems = [
+    {
+      id: 'overview' as NavView,
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      badge: null,
+    },
+    {
+      id: 'scanner' as NavView,
+      label: 'Video Scanner',
+      icon: FileVideo,
+      badge: pendingQueueCount > 0 ? `${pendingQueueCount}` : null,
+      badgeColor: 'bg-amber-500 text-white',
+    },
+    {
+      id: 'analytics' as NavView,
+      label: 'Channel Health',
+      icon: Activity,
+      badge: `${avgComplianceScore}%`,
+      badgeColor: isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-950 text-emerald-300',
+    },
+  ];
+
+  const connectionItems = [
+    {
+      id: 'violations' as NavView,
+      label: 'Policy Flags & Cuts',
+      icon: AlertTriangle,
+      badge: violationsCount > 0 ? `${violationsCount}` : null,
+      badgeColor: 'bg-red-600 text-white',
+    },
+    {
+      id: 'appeal' as NavView,
+      label: 'Strike Appeal Kit',
+      icon: FileText,
+      badge: null,
+    },
+  ];
+
+  const moreItems = [
+    {
+      id: 'knowledge' as NavView,
+      label: 'Policy Encyclopedia',
+      icon: BookOpen,
+      badge: null,
+    },
+    {
+      id: 'profile' as NavView,
+      label: 'Creator Profile',
+      icon: User,
+      badge: currentUser ? 'PRO' : null,
+      badgeColor: 'bg-emerald-500 text-slate-950 font-bold',
+    },
+  ];
+
   const sidebarContent = (isDrawer = false) => (
     <div className="flex flex-col h-full justify-between">
-      {/* Top Header inside Sidebar */}
+      {/* Top Header & Logo */}
       <div>
         <div
-          className={`flex items-center justify-between p-3.5 border-b ${
+          className={`flex items-center justify-between p-4 border-b ${
             isLight ? 'border-slate-200/80 bg-white' : 'border-slate-800/80 bg-slate-950'
           }`}
         >
@@ -178,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   StrikeGuard <span className={theme.accentText}>AI</span>
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
-                  Creator Navigation
+                  YouTube Auditor
                 </span>
               </div>
             </div>
@@ -223,9 +224,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* PRIMARY ACTION BUTTON: Scan New Video (Moved from top buttons) */}
+        {/* Quick Search Box (matching reference image) */}
+        {(!isCollapsed || isDrawer) && (
+          <div className="px-3 pt-3 pb-1">
+            <div
+              className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition ${
+                isLight
+                  ? 'border-slate-200 bg-slate-50/80 text-slate-800 focus-within:bg-white focus-within:border-red-500'
+                  : 'border-slate-800 bg-slate-900/80 text-slate-200 focus-within:bg-slate-900 focus-within:border-rose-500'
+              }`}
+            >
+              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Quick search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent border-none outline-none font-sans text-xs placeholder:text-slate-400"
+              />
+              <span className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold border border-slate-300 dark:border-slate-700 text-slate-400">
+                /
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Primary Action: Audit New Video / Log (matching reference image "+ Log" button) */}
         {(!isCollapsed || isDrawer) ? (
-          <div className="p-3">
+          <div className="px-3 py-2">
             <button
               type="button"
               onClick={() => {
@@ -235,10 +261,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   handleItemClick('scanner');
                 }
               }}
-              className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-indigo-600 hover:from-red-500 hover:to-indigo-500 text-white font-sans text-xs font-bold py-2.5 px-3 shadow-md shadow-red-500/20 active:scale-[0.98] transition-all cursor-pointer"
+              className="w-full flex items-center justify-between rounded-xl bg-[#c2f268] hover:bg-[#b0e258] text-slate-950 font-sans text-xs font-bold py-2.5 px-3 shadow-xs transition-all cursor-pointer"
             >
-              <Scan className="h-4 w-4" />
-              <span>Audit New Video</span>
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-950 text-[#c2f268]">
+                  <Plus className="h-3.5 w-3.5 stroke-[3]" />
+                </div>
+                <span>Audit New Video</span>
+              </div>
+              <Scan className="h-4 w-4 text-slate-800" />
             </button>
           </div>
         ) : (
@@ -249,159 +280,250 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 if (onScanNewVideo) onScanNewVideo();
                 else handleItemClick('scanner');
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-red-600 to-indigo-600 text-white shadow-md shadow-red-500/20 hover:scale-105 transition cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c2f268] text-slate-950 shadow-xs hover:scale-105 transition cursor-pointer"
               title="Audit New Video"
             >
-              <Scan className="h-4.5 w-4.5" />
+              <Plus className="h-5 w-5 stroke-[3]" />
             </button>
           </div>
         )}
 
-        {/* Navigation Items List */}
-        <nav className="p-2.5 flex flex-col gap-1 overflow-y-auto max-h-[calc(100vh-420px)] sm:max-h-[calc(100vh-380px)]">
-          {(!isCollapsed || isDrawer) && (
-            <div className="px-2 pb-1 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-              Main Menu
-            </div>
-          )}
+        {/* Grouped Navigation List */}
+        <nav className="px-3 py-2 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-420px)] sm:max-h-[calc(100vh-380px)]">
+          {/* Section 1: OVERVIEW */}
+          <div>
+            {(!isCollapsed || isDrawer) && (
+              <div className="px-2 pb-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                Overview
+              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              {overviewItems.map((item) => {
+                const isActive = currentView === item.id;
+                const Icon = item.icon;
 
-          {navItems.map((item) => {
-            const isActive = currentView === item.id;
-            const Icon = item.icon;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleItemClick(item.id)}
-                className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 font-body text-xs font-semibold transition relative group cursor-pointer ${
-                  isActive
-                    ? isLight
-                      ? 'bg-red-50 text-red-700 shadow-xs ring-1 ring-red-200 font-bold'
-                      : 'bg-rose-950/60 text-white shadow-xs ring-1 ring-rose-500/40 font-bold'
-                    : isLight
-                    ? 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-950'
-                    : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
-                }`}
-                title={item.label}
-              >
-                <Icon
-                  className={`h-4 w-4 shrink-0 transition-colors ${
-                    isActive
-                      ? isLight
-                        ? 'text-red-600'
-                        : 'text-rose-400'
-                      : isLight
-                      ? 'text-slate-500 group-hover:text-slate-900'
-                      : 'text-slate-400 group-hover:text-slate-200'
-                  }`}
-                />
-
-                {(!isCollapsed || isDrawer) && (
-                  <div className="flex-1 text-left truncate flex flex-col">
-                    <span className="truncate">{item.label}</span>
-                  </div>
-                )}
-
-                {(!isCollapsed || isDrawer) && item.badge && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
-                      item.badgeColor ||
-                      (isLight ? 'bg-slate-100 text-slate-800' : 'bg-slate-800 text-slate-300')
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item.id)}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
+                      isActive
+                        ? isLight
+                          ? 'bg-slate-200/80 text-slate-950 font-bold shadow-2xs'
+                          : 'bg-slate-800 text-white font-bold shadow-2xs'
+                        : isLight
+                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
                     }`}
+                    title={item.label}
                   >
-                    {item.badge}
-                  </span>
-                )}
+                    <Icon
+                      className={`h-4 w-4 shrink-0 transition-colors ${
+                        isActive
+                          ? isLight
+                            ? 'text-slate-950'
+                            : 'text-white'
+                          : isLight
+                          ? 'text-slate-500 group-hover:text-slate-900'
+                          : 'text-slate-400 group-hover:text-slate-200'
+                      }`}
+                    />
 
-                {/* Active Indicator Bar */}
-                {isActive && (
-                  <div
-                    className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-md ${
-                      isLight ? 'bg-red-600' : 'bg-rose-500'
+                    {(!isCollapsed || isDrawer) && (
+                      <div className="flex-1 text-left truncate flex flex-col">
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                    )}
+
+                    {(!isCollapsed || isDrawer) && item.badge && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
+                          item.badgeColor ||
+                          (isLight ? 'bg-slate-200 text-slate-800' : 'bg-slate-800 text-slate-300')
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 2: CONNECTIONS */}
+          <div>
+            {(!isCollapsed || isDrawer) && (
+              <div className="px-2 pb-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                Connections
+              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              {connectionItems.map((item) => {
+                const isActive = currentView === item.id;
+                const Icon = item.icon;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item.id)}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
+                      isActive
+                        ? isLight
+                          ? 'bg-slate-200/80 text-slate-950 font-bold shadow-2xs'
+                          : 'bg-slate-800 text-white font-bold shadow-2xs'
+                        : isLight
+                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
                     }`}
-                  />
-                )}
-              </button>
-            );
-          })}
+                    title={item.label}
+                  >
+                    <Icon
+                      className={`h-4 w-4 shrink-0 transition-colors ${
+                        isActive
+                          ? isLight
+                            ? 'text-slate-950'
+                            : 'text-white'
+                          : isLight
+                          ? 'text-slate-500 group-hover:text-slate-900'
+                          : 'text-slate-400 group-hover:text-slate-200'
+                      }`}
+                    />
+
+                    {(!isCollapsed || isDrawer) && (
+                      <div className="flex-1 text-left truncate flex flex-col">
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                    )}
+
+                    {(!isCollapsed || isDrawer) && item.badge && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
+                          item.badgeColor ||
+                          (isLight ? 'bg-slate-200 text-slate-800' : 'bg-slate-800 text-slate-300')
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 3: MORE */}
+          <div>
+            {(!isCollapsed || isDrawer) && (
+              <div className="px-2 pb-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                More
+              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              {moreItems.map((item) => {
+                const isActive = currentView === item.id;
+                const Icon = item.icon;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item.id)}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
+                      isActive
+                        ? isLight
+                          ? 'bg-slate-200/80 text-slate-950 font-bold shadow-2xs'
+                          : 'bg-slate-800 text-white font-bold shadow-2xs'
+                        : isLight
+                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
+                    }`}
+                    title={item.label}
+                  >
+                    <Icon
+                      className={`h-4 w-4 shrink-0 transition-colors ${
+                        isActive
+                          ? isLight
+                            ? 'text-slate-950'
+                            : 'text-white'
+                          : isLight
+                          ? 'text-slate-500 group-hover:text-slate-900'
+                          : 'text-slate-400 group-hover:text-slate-200'
+                      }`}
+                    />
+
+                    {(!isCollapsed || isDrawer) && (
+                      <div className="flex-1 text-left truncate flex flex-col">
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                    )}
+
+                    {(!isCollapsed || isDrawer) && item.badge && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
+                          item.badgeColor ||
+                          (isLight ? 'bg-slate-200 text-slate-800' : 'bg-slate-800 text-slate-300')
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </nav>
       </div>
 
-      {/* BOTTOM CONTROLS SECTION: Strictness + Appearance + Account (All moved from top to here!) */}
+      {/* BOTTOM SECTION: PRO Upgrade Card + Preferences + User Footer (matching Image 3) */}
       <div
-        className={`p-3 border-t flex flex-col gap-2.5 ${
+        className={`p-3 border-t flex flex-col gap-3 ${
           isLight
-            ? 'border-slate-200/80 bg-slate-50/70 text-slate-800'
+            ? 'border-slate-200/80 bg-slate-50/80 text-slate-800'
             : 'border-slate-800/80 bg-slate-950/90 text-slate-200'
         }`}
       >
-        {/* Strictness Mode Selector */}
-        {(!isCollapsed || isDrawer) ? (
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
-              <span>Strictness Engine</span>
-              <span className={strictnessMode === 'PARANOID_ZERO_RISK' ? 'text-red-500 font-bold' : 'text-slate-500'}>
-                {strictnessMode === 'PARANOID_ZERO_RISK' ? 'Zero-Risk' : 'Standard'}
-              </span>
+        {/* Gorgeous Pro Upgrade Card (matching Image 3) */}
+        {(!isCollapsed || isDrawer) && (
+          <div
+            className={`rounded-2xl border p-3.5 flex flex-col gap-2.5 relative overflow-hidden ${
+              isLight
+                ? 'border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-blue-50/40 text-indigo-950 shadow-2xs'
+                : 'border-indigo-950/80 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 text-indigo-200 shadow-sm'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
+                    Current plan:
+                  </span>
+                  <span className="font-display text-xs font-black">Pro trial active</span>
+                </div>
+              </div>
             </div>
-            <div
-              className={`grid grid-cols-2 p-1 rounded-xl border text-[11px] font-medium ${
-                isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => onToggleStrictness('STANDARD')}
-                className={`py-1 rounded-lg text-center font-sans transition cursor-pointer ${
-                  strictnessMode === 'STANDARD'
-                    ? isLight
-                      ? 'bg-slate-900 text-white font-bold shadow-xs'
-                      : 'bg-slate-800 text-white font-bold shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Standard
-              </button>
-              <button
-                type="button"
-                onClick={() => onToggleStrictness('PARANOID_ZERO_RISK')}
-                className={`py-1 rounded-lg text-center font-sans flex items-center justify-center gap-1 transition cursor-pointer ${
-                  strictnessMode === 'PARANOID_ZERO_RISK'
-                    ? 'bg-red-600 text-white font-bold shadow-xs'
-                    : 'text-slate-500 hover:text-red-500'
-                }`}
-              >
-                <ShieldAlert className="h-3 w-3" />
-                <span>Zero-Risk</span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex justify-center">
+
+            <p className="font-sans text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              Upgrade to Pro to get the latest and exclusive features & automated strike defense.
+            </p>
+
             <button
-              onClick={() =>
-                onToggleStrictness(
-                  strictnessMode === 'STANDARD' ? 'PARANOID_ZERO_RISK' : 'STANDARD'
-                )
-              }
-              className={`h-8 w-8 rounded-xl flex items-center justify-center border transition cursor-pointer ${
-                strictnessMode === 'PARANOID_ZERO_RISK'
-                  ? 'bg-red-600 text-white border-red-500'
-                  : isLight
-                  ? 'border-slate-200 bg-white text-slate-700'
-                  : 'border-slate-800 bg-slate-900 text-slate-400'
-              }`}
-              title={`Strictness Mode: ${strictnessMode}`}
+              type="button"
+              onClick={() => handleItemClick('profile')}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-sans text-xs font-bold py-2 px-3 shadow-xs transition cursor-pointer"
             >
-              <ShieldAlert className="h-4 w-4" />
+              <Zap className="h-3.5 w-3.5 fill-current" />
+              <span>Upgrade to Pro</span>
             </button>
           </div>
         )}
 
-        {/* Theme & Display Quick Selector */}
-        {(!isCollapsed || isDrawer) ? (
+        {/* Preferences / Dark Mode & Theme Toggle */}
+        {(!isCollapsed || isDrawer) && (
           <div className="flex items-center justify-between gap-1.5 pt-1">
-            {/* Dark / Light Toggle */}
             <button
               type="button"
               onClick={toggleLightDark}
@@ -414,29 +536,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {isLight ? (
                 <>
                   <Moon className="h-3.5 w-3.5 text-slate-600" />
-                  <span className="text-[11px]">Dark Mode</span>
+                  <span className="text-[11px]">Dark mode</span>
                 </>
               ) : (
                 <>
                   <Sun className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-[11px]">Studio White</span>
+                  <span className="text-[11px]">Light mode</span>
                 </>
               )}
             </button>
 
-            {/* Theme Palette Dropdown Toggle */}
+            {/* Theme Picker Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsThemePickerOpen(!isThemePickerOpen)}
-                className={`flex h-8 items-center justify-center gap-1 px-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                className={`flex h-8 w-8 items-center justify-center rounded-xl border text-xs font-semibold transition cursor-pointer ${
                   isLight
                     ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
                     : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
                 }`}
-                title="Theme Colors"
+                title="Themes"
               >
-                <Palette className="h-3.5 w-3.5 text-red-500" />
+                <Palette className="h-3.5 w-3.5 text-indigo-500" />
               </button>
 
               {isThemePickerOpen && (
@@ -478,23 +600,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
           </div>
-        ) : (
-          <div className="flex justify-center">
-            <button
-              onClick={toggleLightDark}
-              className={`h-8 w-8 rounded-xl flex items-center justify-center border transition cursor-pointer ${
-                isLight
-                  ? 'border-slate-200 bg-white text-slate-700'
-                  : 'border-slate-800 bg-slate-900 text-slate-300'
-              }`}
-              title={isLight ? 'Switch to Dark Mode' : 'Switch to Studio White'}
-            >
-              {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-400" />}
-            </button>
-          </div>
         )}
 
-        {/* Creator Account Card / Auth (Moved from top to here!) */}
+        {/* User Footer (matching Image 1 & 3 bottom user card) */}
         {(!isCollapsed || isDrawer) ? (
           currentUser ? (
             <div
@@ -504,7 +612,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div
                 onClick={() => handleItemClick('profile')}
-                className="flex items-center gap-2 overflow-hidden cursor-pointer flex-1"
+                className="flex items-center gap-2.5 overflow-hidden cursor-pointer flex-1"
                 title="View Creator Profile"
               >
                 {currentUser.photoURL ? (
@@ -514,17 +622,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="h-8 w-8 rounded-full object-cover shrink-0"
                   />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white font-bold text-xs shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-xs shrink-0">
                     {(currentUser.displayName || currentUser.email || 'C')[0].toUpperCase()}
                   </div>
                 )}
                 <div className="flex flex-col truncate">
                   <span className="font-sans font-bold text-xs truncate text-slate-900 dark:text-white">
-                    {currentUser.displayName || 'Creator'}
+                    {currentUser.displayName || 'Brooklyn'}
                   </span>
-                  <span className="font-mono text-[9px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Pro Shield
+                  <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                    Pro trial
                   </span>
                 </div>
               </div>
@@ -542,68 +649,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ) : (
             <div
-              className={`rounded-2xl border p-2.5 flex flex-col gap-2 ${
+              className={`rounded-2xl border p-2.5 flex items-center justify-between gap-2 ${
                 isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-body text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                  Creator Portal
-                </span>
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">
-                  Guest
-                </span>
+              <div
+                onClick={() => handleItemClick('profile')}
+                className="flex items-center gap-2.5 overflow-hidden cursor-pointer flex-1"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-white font-bold text-xs shrink-0">
+                  <User className="h-4 w-4" />
+                </div>
+                <div className="flex flex-col truncate">
+                  <span className="font-sans font-bold text-xs truncate text-slate-900 dark:text-white">
+                    Guest Creator
+                  </span>
+                  <span className="font-mono text-[10px] text-amber-500">
+                    Sign in required
+                  </span>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
+
+              {onSignIn && (
                 <button
                   type="button"
                   onClick={onSignIn}
-                  className={`py-1.5 px-2 rounded-xl border text-center font-sans text-xs font-semibold transition cursor-pointer ${
-                    isLight
-                      ? 'border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-800'
-                      : 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200'
-                  }`}
+                  className="px-2.5 py-1 rounded-xl bg-indigo-600 text-white font-sans text-xs font-bold hover:bg-indigo-700 transition cursor-pointer"
                 >
                   Sign In
                 </button>
-                <button
-                  type="button"
-                  onClick={onRegister}
-                  className="py-1.5 px-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-center font-sans text-xs font-bold transition shadow-xs cursor-pointer"
-                >
-                  Register
-                </button>
-              </div>
+              )}
             </div>
           )
         ) : (
           <div className="flex justify-center">
             <button
               onClick={() => handleItemClick('profile')}
-              className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs cursor-pointer ${
-                currentUser
-                  ? 'bg-red-600 text-white'
-                  : isLight
-                  ? 'bg-slate-200 text-slate-700'
-                  : 'bg-slate-800 text-slate-300'
-              }`}
-              title={currentUser ? currentUser.displayName || 'Profile' : 'Creator Profile'}
+              className="h-8 w-8 rounded-full flex items-center justify-center bg-indigo-600 text-white font-bold text-xs cursor-pointer"
+              title="Creator Profile"
             >
               {currentUser ? (currentUser.displayName || 'C')[0].toUpperCase() : <User className="h-4 w-4" />}
             </button>
-          </div>
-        )}
-
-        {/* Channel Standing Indicator */}
-        {(!isCollapsed || isDrawer) && (
-          <div className="flex items-center justify-between text-[11px] pt-0.5">
-            <span className="font-body text-slate-500 text-[10px]">
-              Channel Standing:
-            </span>
-            <span className="font-mono text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <ShieldCheck className="h-3 w-3" />
-              0 Strikes (Safe)
-            </span>
           </div>
         )}
       </div>
@@ -612,32 +698,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* 1. Desktop Left Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col border-r transition-all duration-200 shrink-0 sticky top-[57px] h-[calc(100vh-57px)] z-30 ${
-          isCollapsed ? 'w-18' : 'w-64'
-        } ${
-          isLight
-            ? 'border-slate-200/80 bg-white text-slate-800'
-            : 'border-slate-800/80 bg-slate-950 text-slate-200'
-        }`}
+        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r ${
+          isLight ? 'border-slate-200/80 bg-slate-50/50' : 'border-slate-800/80 bg-slate-950'
+        } ${isCollapsed ? 'w-20' : 'w-72'}`}
       >
         {sidebarContent(false)}
       </aside>
 
-      {/* 2. Mobile Drawer Overlay (Opens when hamburger button is clicked) */}
+      {/* Mobile Drawer */}
       {isOpenMobile && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop Blur */}
+        <div className="fixed inset-0 z-50 flex md:hidden">
           <div
-            onClick={onCloseMobile}
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={onCloseMobile}
           />
-
-          {/* Drawer Body */}
           <div
-            className={`relative w-4/5 max-w-xs h-full border-r shadow-2xl flex flex-col z-10 transition-transform ${
-              isLight ? 'border-slate-200 bg-white text-slate-900' : 'border-slate-800 bg-slate-950 text-slate-100'
+            className={`relative flex w-80 flex-col shadow-2xl transition-transform duration-300 ${
+              isLight ? 'bg-white text-slate-900' : 'bg-slate-950 text-slate-100'
             }`}
           >
             {sidebarContent(true)}
@@ -662,120 +741,39 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   violationsCount,
 }) => {
   const isLight = theme.isLight;
+  const items = [
+    { id: 'overview' as NavView, label: 'Home', icon: LayoutDashboard },
+    { id: 'scanner' as NavView, label: 'Scanner', icon: FileVideo },
+    { id: 'analytics' as NavView, label: 'Health', icon: Activity },
+    { id: 'violations' as NavView, label: 'Flags', icon: AlertTriangle, badge: violationsCount > 0 ? violationsCount : null },
+    { id: 'profile' as NavView, label: 'Profile', icon: User },
+  ];
 
   return (
-    <div className="md:hidden fixed bottom-3 inset-x-3 z-40 max-w-md mx-auto pointer-events-none">
-      <nav
-        className={`pointer-events-auto rounded-3xl border shadow-2xl backdrop-blur-2xl px-2.5 py-1.5 flex items-center justify-between transition-colors duration-200 ${
-          isLight
-            ? 'border-slate-200/90 bg-white/95 text-slate-800 shadow-slate-300/50'
-            : 'border-slate-800/90 bg-slate-950/95 text-slate-200 shadow-black/80'
-        }`}
-      >
-        {/* Item 1: Home / Overview */}
-        <button
-          type="button"
-          onClick={() => onSelectView('overview')}
-          className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 px-1 rounded-2xl transition cursor-pointer relative ${
-            currentView === 'overview'
-              ? isLight
-                ? 'text-slate-950 font-bold'
-                : 'text-white font-bold'
-              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium'
-          }`}
-        >
-          <div className="relative">
-            <LayoutDashboard className="h-5 w-5" />
-            {currentView === 'overview' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-slate-900 dark:bg-white" />
-            )}
-          </div>
-          <span className="font-body text-[10px] mt-0.5 tracking-tight">Home</span>
-        </button>
-
-        {/* Item 2: Health / Statistics (Matching Image 2 Progress Tab) */}
-        <button
-          type="button"
-          onClick={() => onSelectView('analytics')}
-          className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 px-1 rounded-2xl transition cursor-pointer relative ${
-            currentView === 'analytics'
-              ? isLight
-                ? 'text-slate-950 font-bold'
-                : 'text-white font-bold'
-              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium'
-          }`}
-        >
-          <div className="relative">
-            <Activity className="h-5 w-5" />
-            {currentView === 'analytics' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-slate-900 dark:bg-white" />
-            )}
-          </div>
-          <span className="font-body text-[10px] mt-0.5 tracking-tight">Progress</span>
-        </button>
-
-        {/* Item 3: ELEVATED CENTER FAB BUTTON (Directly matching Image 2 & Image 3 Center FAB Style 06) */}
-        <div className="relative flex flex-col items-center justify-center px-1.5">
+    <div className={`fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around border-t px-2 py-2 backdrop-blur-md ${
+      isLight ? 'border-slate-200 bg-white/90 text-slate-900' : 'border-slate-800 bg-slate-950/90 text-slate-100'
+    }`}>
+      {items.map((item) => {
+        const isActive = currentView === item.id;
+        const Icon = item.icon;
+        return (
           <button
-            type="button"
-            onClick={() => onSelectView('scanner')}
-            className="flex h-12 w-12 -mt-5 items-center justify-center rounded-2xl bg-gradient-to-tr from-lime-400 via-emerald-500 to-teal-500 text-slate-950 font-black shadow-lg shadow-emerald-500/35 ring-4 ring-white dark:ring-slate-950 hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-            title="Scan & Ingest Video"
+            key={item.id}
+            onClick={() => onSelectView(item.id)}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition relative cursor-pointer ${
+              isActive ? 'text-red-600 dark:text-rose-400 font-bold' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
           >
-            <Scan className="h-6 w-6 stroke-[2.4]" />
-          </button>
-          <span className="font-body text-[9px] font-bold text-slate-600 dark:text-slate-300 mt-0.5">
-            Scan
-          </span>
-        </div>
-
-        {/* Item 4: Flags & Cuts */}
-        <button
-          type="button"
-          onClick={() => onSelectView('violations')}
-          className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 px-1 rounded-2xl transition cursor-pointer relative ${
-            currentView === 'violations'
-              ? isLight
-                ? 'text-slate-950 font-bold'
-                : 'text-white font-bold'
-              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium'
-          }`}
-        >
-          <div className="relative">
-            <AlertTriangle className="h-5 w-5" />
-            {violationsCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-600 font-mono text-[8px] font-bold text-white shadow-xs">
-                {violationsCount}
+            <Icon className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5">{item.label}</span>
+            {item.badge && (
+              <span className="absolute top-1 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white">
+                {item.badge}
               </span>
             )}
-            {currentView === 'violations' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-slate-900 dark:bg-white" />
-            )}
-          </div>
-          <span className="font-body text-[10px] mt-0.5 tracking-tight">Flags</span>
-        </button>
-
-        {/* Item 5: Creator Profile (Matching Image 1 & 2 Profile Tab) */}
-        <button
-          type="button"
-          onClick={() => onSelectView('profile')}
-          className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 px-1 rounded-2xl transition cursor-pointer relative ${
-            currentView === 'profile'
-              ? isLight
-                ? 'text-slate-950 font-bold'
-                : 'text-white font-bold'
-              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium'
-          }`}
-        >
-          <div className="relative">
-            <User className="h-5 w-5" />
-            {currentView === 'profile' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-slate-900 dark:bg-white" />
-            )}
-          </div>
-          <span className="font-body text-[10px] mt-0.5 tracking-tight">Profile</span>
-        </button>
-      </nav>
+          </button>
+        );
+      })}
     </div>
   );
 };
