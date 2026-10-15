@@ -18,7 +18,7 @@ import { FullScreenAnalysisModal } from './components/FullScreenAnalysisModal';
 import { COLOR_THEMES } from './services/themeConfig';
 import { SAMPLE_VIDEOS } from './services/sampleData';
 import { AuditReport, ColorThemeId, SampleVideoOption, QueuedVideoTask } from './types/audit';
-import { ExtractedFrame, extractVideoMetadataAndFrames } from './services/frameExtractor';
+import { ExtractedFrame, extractVideoMetadataAndFrames, formatTime } from './services/frameExtractor';
 import { requestVideoAudit } from './services/auditClient';
 import {
   auth,
@@ -477,7 +477,13 @@ export default function App() {
           if (activeTaskIdRef.current === targetId) {
             setReport(audit);
             setIsScanning(false);
-            setScanProgress({ percent: 100, status: 'Audit complete! All verification passed.' });
+            const statusMsg =
+              audit.safetyGrade === 'HIGH_STRIKE_RISK'
+                ? 'Audit complete: Critical strike risks identified!'
+                : audit.safetyGrade === 'MONETIZATION_AT_RISK'
+                ? 'Audit complete: Monetization warnings detected.'
+                : 'Audit complete! Video verified safe.';
+            setScanProgress({ percent: 100, status: statusMsg });
           }
         } catch (taskErr: any) {
           console.error('Task audit error:', taskErr);
@@ -657,26 +663,34 @@ export default function App() {
     setIsScanning(true);
     setScanProgress({ percent: 18, status: 'Ingesting keyframes & audio waveforms...' });
 
-    // Step 2
-    setTimeout(() => {
-      setScanProgress({ percent: 45, status: 'Auditing keyframe visuals & community rules...' });
-    }, 280);
+    let framesToUse = extractedFrames;
 
-    // Step 3
-    setTimeout(() => {
-      setScanProgress({ percent: 72, status: 'Testing opening 7s & advertiser suitability...' });
-    }, 600);
+    // If frames aren't extracted yet and active task has a file, extract them now
+    const currentTask = queuedTasksRef.current.find((t) => t.id === activeTaskId);
+    if ((!framesToUse || framesToUse.length === 0) && currentTask?.file) {
+      try {
+        setScanProgress({ percent: 30, status: 'Extracting keyframes from video...' });
+        const res = await extractVideoMetadataAndFrames(currentTask.file);
+        framesToUse = res.frames;
+        setExtractedFrames(res.frames);
+        setVideoDurationSec(Math.round(res.metadata.duration));
+      } catch {
+        // Continue with available frames
+      }
+    }
 
-    // Step 4 & Finalization
+    // Step 2 & 3 visual progress
+    setScanProgress({ percent: 55, status: 'Auditing keyframe visuals for sex, nudity & strikes...' });
+
     setTimeout(async () => {
-      setScanProgress({ percent: 88, status: 'Generating safe cuts and strike risk scoring...' });
+      setScanProgress({ percent: 80, status: 'Evaluating against YouTube Community Guidelines...' });
       try {
         const audit = await requestVideoAudit({
           videoTitle,
           durationSec: videoDurationSec || 20,
           durationFormatted: formatTime(videoDurationSec || 20),
           strictnessMode,
-          frames: extractedFrames,
+          frames: framesToUse,
         });
         setReport(audit);
         updateHistoryWithReport(audit, videoTitle);
@@ -687,13 +701,20 @@ export default function App() {
         );
         queuedTasksRef.current = updated;
         setQueuedTasks(updated);
+
+        const statusMsg =
+          audit.safetyGrade === 'HIGH_STRIKE_RISK'
+            ? 'Audit complete: Critical strike risks identified!'
+            : audit.safetyGrade === 'MONETIZATION_AT_RISK'
+            ? 'Audit complete: Monetization warnings detected.'
+            : 'Audit complete! Video verified safe.';
+        setScanProgress({ percent: 100, status: statusMsg });
       } catch (e) {
         console.error('Audit trigger error:', e);
       } finally {
-        setScanProgress({ percent: 100, status: 'Audit complete! All verification passed.' });
         setIsScanning(false);
       }
-    }, 950);
+    }, 600);
   };
 
   // Seek video playback to specific seconds

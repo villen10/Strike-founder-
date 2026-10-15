@@ -8,8 +8,9 @@ export async function requestVideoAudit(params: {
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
   frames: ExtractedFrame[];
 }): Promise<AuditReport> {
+  // Give Gemini Vision adequate time (25 seconds) to analyze multiple frames
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 4000);
+  const timer = setTimeout(() => controller.abort(), 25000);
 
   try {
     const res = await fetch('/api/audit', {
@@ -39,12 +40,12 @@ export async function requestVideoAudit(params: {
         criticalIssuesCount: rep.criticalIssuesCount ?? 0,
         warningsCount: rep.warningsCount ?? 0,
         summaryVerdictEn: rep.summaryVerdictEn || 'Audit completed.',
-        summaryVerdictUrdu: rep.summaryVerdictEn || 'Audit completed successfully.',
+        summaryVerdictUrdu: rep.summaryVerdictUrdu || rep.summaryVerdictEn || 'Audit completed.',
         timelineViolations: (rep.timelineViolations || []).map((v: any, index: number) => ({
           ...v,
           id: v.id || `viol-${index + 1}`,
           categoryLabel: v.categoryLabel || v.category || 'Policy Flag',
-          frameSnapshot: params.frames[index]?.dataUrl || undefined,
+          frameSnapshot: params.frames[index]?.dataUrl || params.frames[0]?.dataUrl || undefined,
         })),
         categoryScores: rep.categoryScores || {
           childSafety: 10,
@@ -69,7 +70,7 @@ export async function requestVideoAudit(params: {
 
     throw new Error(data.error || 'Server returned invalid report format');
   } catch (err: any) {
-    console.warn('Backend API request failed, generating intelligent local compliance audit:', err.message);
+    console.warn('Backend API request fallback, running client-side computer vision heuristics:', err.message);
     return generateClientSideAuditReport(params);
   }
 }
@@ -137,21 +138,32 @@ function generateClientSideAuditReport(params: {
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
   frames: ExtractedFrame[];
 }): AuditReport {
-  const isShorts = params.durationSec <= 60;
   const isStrict = params.strictnessMode === 'PARANOID_ZERO_RISK';
-
-  // Client-side heuristics based on video length, title keywords, and frames
   const lowerTitle = params.videoTitle.toLowerCase();
-  const hasSexualWords = lowerTitle.includes('naked') || lowerTitle.includes('nudity') || lowerTitle.includes('nsfw') || lowerTitle.includes('sex') || lowerTitle.includes('private') || lowerTitle.includes('uncensored') || lowerTitle.includes('adult') || lowerTitle.includes('boobs') || lowerTitle.includes('body');
-  const hasKidWords = lowerTitle.includes('kid') || lowerTitle.includes('child') || lowerTitle.includes('baby') || lowerTitle.includes('prank');
-  const hasDangerousWords = lowerTitle.includes('fight') || lowerTitle.includes('knife') || lowerTitle.includes('stunt') || lowerTitle.includes('accident') || lowerTitle.includes('crash');
+
+  // Keyword flags
+  const adultKeywords = ['xhamster', 'pornhub', 'xnxx', 'xvideos', 'porn', 'sex', 'sexy', 'naked', 'nudity', 'nsfw', 'boobs', 'erotic', 'strip', 'adult', 'private', 'uncensored', 'ganda'];
+  const kidKeywords = ['kid', 'child', 'baby', 'toddler', 'minor'];
+  const dangerousKeywords = ['strike', 'banned', 'fight', 'knife', 'blood', 'stunt', 'accident', 'crash', 'weapon', 'gun', 'kill'];
+
+  const hasSexualWords = adultKeywords.some((w) => lowerTitle.includes(w));
+  const hasKidWords = kidKeywords.some((w) => lowerTitle.includes(w));
+  const hasDangerousWords = dangerousKeywords.some((w) => lowerTitle.includes(w));
+
+  // Inspect actual frame computer vision data
+  const highSkinFrames = params.frames.filter((f) => (f.skinToneRatio ?? 0) > 0.28 || f.isPotentialNudity);
+  const avgSkinRatio = params.frames.length > 0
+    ? params.frames.reduce((acc, f) => acc + (f.skinToneRatio ?? 0), 0) / params.frames.length
+    : 0;
+
+  const isVisuallySexual = hasSexualWords || highSkinFrames.length >= 2 || avgSkinRatio > 0.24;
 
   let overallRisk = 12;
   let severity: RiskSeverity = 'CLEAN';
   let grade: AuditReport['safetyGrade'] = 'SAFE_TO_UPLOAD';
 
-  if (hasSexualWords) {
-    overallRisk = 96;
+  if (isVisuallySexual) {
+    overallRisk = 98;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
   } else if (hasKidWords && hasDangerousWords) {
@@ -159,46 +171,51 @@ function generateClientSideAuditReport(params: {
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
   } else if (hasDangerousWords) {
-    overallRisk = isStrict ? 75 : 62;
-    severity = 'DEMONETIZATION_WARNING';
-    grade = 'MONETIZATION_AT_RISK';
+    overallRisk = isStrict ? 84 : 72;
+    severity = 'CRITICAL_STRIKE';
+    grade = 'HIGH_STRIKE_RISK';
   } else if (hasKidWords) {
     overallRisk = isStrict ? 45 : 30;
     severity = 'MILD_CAUTION';
+    grade = 'SAFE_TO_UPLOAD';
   }
 
   const violations: PolicyViolation[] = [];
   if (overallRisk > 50) {
-    const isSex = hasSexualWords;
+    const isSex = isVisuallySexual;
+    const flaggedFrame = highSkinFrames[0] || params.frames[0];
+    const timestampStart = flaggedFrame ? flaggedFrame.timestamp : '00:02';
+    const secondsStart = flaggedFrame ? flaggedFrame.seconds : 2;
+
     violations.push({
       id: 'viol-local-1',
-      timestampStart: '00:02',
-      timestampEnd: '00:08',
-      secondsStart: 2,
-      secondsEnd: 8,
+      timestampStart,
+      timestampEnd: params.durationFormatted,
+      secondsStart,
+      secondsEnd: params.durationSec,
       severity,
-      category: isSex ? 'SEXUAL_NUDITY' : hasKidWords ? 'CHILD_SAFETY' : 'VIOLENCE_GRAPHIC',
-      categoryLabel: isSex ? 'Sexual Content & Nudity Policy' : hasKidWords ? 'Child Safety & Minor Protection' : 'Violent & Graphic Action',
-      title: isSex ? 'Unclothed Exposure / Private Parts Violation Detected' : hasKidWords ? 'Minor Exposed to Potential Hazard / Rapid Action' : 'Intense Physical Motion / Impact Cue',
+      category: isSex ? 'SEXUAL_CONTENT' : hasKidWords ? 'CHILD_SAFETY' : 'VIOLENCE_GRAPHIC',
+      categoryLabel: isSex ? 'Sex & Nudity Policy Violation' : hasKidWords ? 'Child Safety & Minor Protection' : 'Violent & Dangerous Content',
+      title: isSex ? 'Prohibited Adult / Nudity / Explicit Exposure Detected' : hasKidWords ? 'Minor Exposed to Potential Hazard / Rapid Action' : 'Severe Guideline / Strike Cue Detected',
       youtubePolicyRef: isSex
         ? 'YouTube Community Guidelines - Nudity and Sexual Content Policy'
         : hasKidWords
-        ? 'YouTube Community Guidelines - Child Safety Policy (CSAE / Endangerment)'
-        : 'YouTube Violent Content Policy - Simulated Violence without Disclaimer',
+        ? 'YouTube Community Guidelines - Child Safety Policy'
+        : 'YouTube Violent and Graphic Content Policy',
       descriptionEn: isSex
-        ? 'Automated visual classifiers detected prohibited nudity or private parts exposure between 00:02 and 00:08. YouTube strictly prohibits sexually explicit content or unclothed imagery, resulting in immediate video removal and channel strikes.'
-        : `Automated detection detected high risk between 00:02 and 00:08. YouTube's automated review system frequently flags this pattern as an instant community strike risk.`,
+        ? 'Visual inspection detected explicit adult content, high density unclothed exposure, or prohibited adult website material. YouTube algorithms will immediately flag this video, issue a permanent Community Guidelines Strike, and may terminate the channel.'
+        : 'Inspection detected high risk of YouTube strike. Platform automated systems flag this pattern immediately upon upload.',
       descriptionUrdu: isSex
-        ? 'Prohibited nudity or private parts exposure detected between 00:02 and 00:08. YouTube strictly bans sexual content.'
-        : `High risk detected between 00:02 and 00:08. Automated YouTube algorithms frequently flag this pattern as a strike hazard.`,
-      frameSnapshot: params.frames[0]?.dataUrl,
+        ? 'Prohibited adult content or explicit nudity detected. YouTube bans this immediately with a strike.'
+        : 'High strike hazard detected under YouTube Community Guidelines.',
+      frameSnapshot: flaggedFrame?.dataUrl || params.frames[0]?.dataUrl,
       actionableFix: {
         actionType: (isSex ? 'BLUR_AREA' : 'TRIM_CLIP') as ActionableFix['actionType'],
         instructionsEn: isSex
-          ? 'Blur or censor private parts / unclothed areas from 00:02 to 00:08 or remove the video entirely.'
-          : 'Trim or cut out the sequence from 00:02 to 00:08 in your video editor before uploading.',
-        instructionsUrdu: 'Trim or blur the flagged sequence before publishing.',
-        suggestedCut: isSex ? 'Blur / Cut 00:02 - 00:08 (6 seconds)' : 'Cut 00:02 - 00:08 (6 seconds)',
+          ? 'DO NOT upload this video. Remove the entire adult sequence or blur/censor completely with age-restriction.'
+          : 'Trim or cut out the sequence from 00:02 to the end before uploading.',
+        instructionsUrdu: 'Do NOT upload this video to YouTube without editing or removing the violation.',
+        suggestedCut: isSex ? `Cut / Remove sequence (${timestampStart} - ${params.durationFormatted})` : 'Cut flagged sequence',
       },
     });
   }
@@ -210,17 +227,17 @@ function generateClientSideAuditReport(params: {
     durationFormatted: params.durationFormatted,
     overallRiskScore: overallRisk,
     safetyGrade: grade,
-    strikeProbabilityPct: Math.round(overallRisk * 0.9),
-    demonetizationProbabilityPct: Math.min(99, Math.round(overallRisk * 1.05)),
+    strikeProbabilityPct: Math.round(overallRisk * 0.99),
+    demonetizationProbabilityPct: Math.min(100, Math.round(overallRisk * 1.05)),
     first7SecondsStatus: overallRisk > 60 ? 'FLAGGED' : 'COMPLIANT',
     totalIssuesCount: violations.length,
-    criticalIssuesCount: violations.filter(v => v.severity === 'CRITICAL_STRIKE').length,
-    warningsCount: violations.filter(v => v.severity !== 'CRITICAL_STRIKE').length,
+    criticalIssuesCount: violations.filter((v) => v.severity === 'CRITICAL_STRIKE').length,
+    warningsCount: violations.filter((v) => v.severity !== 'CRITICAL_STRIKE').length,
     summaryVerdictEn: overallRisk > 60
-      ? 'High risk of YouTube automated strike or removal due to prohibited nudity or policy violations. Actionable timeline trims or blurring are mandatory.'
+      ? 'CRITICAL STRIKE WARNING: High probability of YouTube automated strike or instant deletion due to policy violations (adult content/nudity/strikes).'
       : 'Clean audit. Video meets YouTube Community Guidelines and Advertiser-Friendly parameters.',
     summaryVerdictUrdu: overallRisk > 60
-      ? 'High risk of YouTube automated strike or removal due to policy violations.'
+      ? 'CRITICAL STRIKE WARNING: High probability of YouTube automated strike or deletion.'
       : 'Clean audit. Video meets YouTube Community Guidelines and Advertiser-Friendly parameters.',
     timelineViolations: violations,
     categoryScores: {
@@ -228,16 +245,16 @@ function generateClientSideAuditReport(params: {
       violenceGore: hasDangerousWords ? overallRisk : 8,
       harmfulDangerous: overallRisk > 50 ? 55 : 4,
       hateHarassment: 0,
-      sexualContent: hasSexualWords ? 98 : 0,
-      advertiserSuitability: overallRisk > 50 ? 95 : 10,
+      sexualContent: isVisuallySexual ? 99 : 0,
+      advertiserSuitability: overallRisk > 50 ? 98 : 10,
     },
     recommendedActionsList: violations.length > 0
-      ? ['Cut or trim the flagged seconds before publishing.', 'Double-check opening 7 seconds for advertiser suitability.']
+      ? ['Do NOT upload this file directly to YouTube.', 'Apply recommended cuts or blurring before uploading.']
       : ['Video is ready for public or unlisted YouTube release.'],
     safeCutSummary: {
       originalDuration: params.durationFormatted,
-      safeDurationAfterCuts: violations.length > 0 ? 'Trim 4s' : params.durationFormatted,
-      removedSecondsTotal: violations.length > 0 ? 4 : 0,
+      safeDurationAfterCuts: violations.length > 0 ? 'Trim required' : params.durationFormatted,
+      removedSecondsTotal: violations.length > 0 ? params.durationSec : 0,
     },
     scannedAt: 'Just now',
     strictnessMode: params.strictnessMode,
