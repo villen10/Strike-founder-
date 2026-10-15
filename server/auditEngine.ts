@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { YOUTUBE_MASTER_KNOWLEDGE_BASE } from '../src/services/youtubeMasterKnowledgeBase';
+import { selfCalibrateAgent } from './agentMemory';
 
 dotenv.config();
 
@@ -51,7 +52,7 @@ export function buildSafetyStrikeReport(params: {
     ? 'CRITICAL STRIKE IMMINENT: Multi-window temporal analysis detected prohibited adult content or exposure violating YouTube Community Guidelines.'
     : 'CRITICAL STRIKE IMMINENT: Video depicts prohibited illegal acts or dangerous contraband.';
 
-  return {
+  const report = {
     overallRiskScore: 100,
     safetyGrade: 'HIGH_STRIKE_RISK' as const,
     strikeProbabilityPct: 100,
@@ -128,6 +129,15 @@ export function buildSafetyStrikeReport(params: {
       removedSecondsTotal: params.durationSec,
     },
   };
+
+  selfCalibrateAgent({
+    videoTitle: params.videoTitle,
+    overallRiskScore: 100,
+    safetyGrade: 'HIGH_STRIKE_RISK',
+    violationsCount: 2,
+  });
+
+  return report;
 }
 
 export async function runGeminiVideoAudit(params: {
@@ -354,6 +364,12 @@ Return a strict JSON response adhering EXACTLY to this schema:
             borderlineCount: borderline,
           };
         }
+        selfCalibrateAgent({
+          videoTitle: params.videoTitle,
+          overallRiskScore: parsed.overallRiskScore ?? 10,
+          safetyGrade: parsed.safetyGrade ?? 'SAFE_TO_UPLOAD',
+          violationsCount: parsed.totalIssuesCount ?? 0,
+        });
         return parsed;
       }
     } catch (err: any) {
@@ -401,12 +417,12 @@ Return a strict JSON response adhering EXACTLY to this schema:
     });
   }
 
-  return {
+  const fallbackReport = {
     overallRiskScore: 10,
-    safetyGrade: 'SAFE_TO_UPLOAD',
+    safetyGrade: 'SAFE_TO_UPLOAD' as const,
     strikeProbabilityPct: 2,
     demonetizationProbabilityPct: 5,
-    first7SecondsStatus: 'COMPLIANT',
+    first7SecondsStatus: 'COMPLIANT' as const,
     totalIssuesCount: 0,
     criticalIssuesCount: 0,
     warningsCount: 0,
@@ -437,6 +453,15 @@ Return a strict JSON response adhering EXACTLY to this schema:
       removedSecondsTotal: 0,
     },
   };
+
+  selfCalibrateAgent({
+    videoTitle: params.videoTitle,
+    overallRiskScore: 10,
+    safetyGrade: 'SAFE_TO_UPLOAD',
+    violationsCount: 0,
+  });
+
+  return fallbackReport;
 }
 
 export async function runGeminiAppealGenerator(params: {
