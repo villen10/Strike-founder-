@@ -155,12 +155,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const sidebarContent = (isDrawer = false) => (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex flex-col h-full overflow-y-auto scrollbar-thin">
       {/* Top Header & Logo */}
       <div>
         <div
-          className={`flex items-center justify-between p-4 border-b ${
-            isLight ? 'border-slate-200/80 bg-white' : 'border-slate-800/80 bg-slate-950'
+          className={`flex items-center justify-between p-4 border-b sticky top-0 z-20 backdrop-blur-md ${
+            isLight ? 'border-slate-200/80 bg-white/95' : 'border-slate-800/80 bg-slate-950/95'
           }`}
         >
           {(!isCollapsed || isDrawer) ? (
@@ -224,7 +224,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Quick Search Box (matching reference image) */}
+        {/* Quick Search Box */}
         {(!isCollapsed || isDrawer) && (
           <div className="px-3 pt-3 pb-1">
             <div
@@ -249,7 +249,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* Primary Action: Audit New Video / Log (matching reference image "+ Log" button) */}
+        {/* Primary Action: Audit New Video / Log */}
         {(!isCollapsed || isDrawer) ? (
           <div className="px-3 py-2">
             <button
@@ -289,7 +289,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Grouped Navigation List */}
-        <nav className="px-3 py-2 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-420px)] sm:max-h-[calc(100vh-380px)]">
+        <nav className="px-3 py-2 flex flex-col gap-4">
           {/* Section 1: OVERVIEW */}
           <div>
             {(!isCollapsed || isDrawer) && (
@@ -475,15 +475,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* BOTTOM SECTION: PRO Upgrade Card + Preferences + User Footer (matching Image 3) */}
+      {/* BOTTOM SECTION: PRO Upgrade Card + Preferences + User Footer */}
       <div
-        className={`p-3 border-t flex flex-col gap-3 ${
+        className={`p-3 mt-4 border-t flex flex-col gap-3 shrink-0 ${
           isLight
-            ? 'border-slate-200/80 bg-slate-50/80 text-slate-800'
-            : 'border-slate-800/80 bg-slate-950/90 text-slate-200'
+            ? 'border-slate-200/80 bg-slate-50/90 text-slate-800'
+            : 'border-slate-800/80 bg-slate-950 text-slate-200'
         }`}
       >
-        {/* Gorgeous Pro Upgrade Card (matching Image 3) */}
+        {/* Gorgeous Pro Upgrade Card */}
         {(!isCollapsed || isDrawer) && (
           <div
             className={`rounded-2xl border p-3.5 flex flex-col gap-2.5 relative overflow-hidden ${
@@ -602,7 +602,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* User Footer (matching Image 1 & 3 bottom user card) */}
+        {/* User Footer */}
         {(!isCollapsed || isDrawer) ? (
           currentUser ? (
             <div
@@ -700,7 +700,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r ${
+        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r h-screen sticky top-0 ${
           isLight ? 'border-slate-200/80 bg-slate-50/50' : 'border-slate-800/80 bg-slate-950'
         } ${isCollapsed ? 'w-20' : 'w-72'}`}
       >
@@ -715,7 +715,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onCloseMobile}
           />
           <div
-            className={`relative flex w-80 flex-col shadow-2xl transition-transform duration-300 ${
+            className={`relative flex w-80 max-w-[85vw] h-full flex-col shadow-2xl transition-transform duration-300 ${
               isLight ? 'bg-white text-slate-900' : 'bg-slate-950 text-slate-100'
             }`}
           >
@@ -750,8 +750,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   ];
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around border-t px-2 py-2 backdrop-blur-md ${
-      isLight ? 'border-slate-200 bg-white/90 text-slate-900' : 'border-slate-800 bg-slate-950/90 text-slate-100'
+    <div className={`fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around border-t px-2 py-2 pb-safe backdrop-blur-md shadow-lg ${
+      isLight ? 'border-slate-200 bg-white/95 text-slate-900' : 'border-slate-800 bg-slate-950/95 text-slate-100'
     }`}>
       {items.map((item) => {
         const isActive = currentView === item.id;
