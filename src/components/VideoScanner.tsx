@@ -903,6 +903,25 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                             </div>
                           </div>
 
+                          {/* Individual Task Progress Bar */}
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${
+                                  isCompleted
+                                    ? 'bg-emerald-500 w-full'
+                                    : isError
+                                    ? 'bg-red-500 w-full'
+                                    : 'bg-red-600 animate-pulse'
+                                }`}
+                                style={{ width: `${isCompleted || isError ? 100 : task.progressPercent || 5}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-[9px] font-bold text-slate-400 shrink-0">
+                              {isCompleted ? '100%' : `${task.progressPercent || 0}%`}
+                            </span>
+                          </div>
+
                           {/* Progress bar during processing */}
                           {isProcessing && (
                             <div className="h-1 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">

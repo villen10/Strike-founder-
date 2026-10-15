@@ -225,40 +225,31 @@ export default function App() {
     }
   };
 
-  // Active video & audit states - initialize with high-interest sample so UI is immediately rich & populated
-  const defaultSample = SAMPLE_VIDEOS[0];
-  const [videoTitle, setVideoTitle] = useState(defaultSample.title);
-  const [videoDurationSec, setVideoDurationSec] = useState(defaultSample.durationSec);
+  // Active video & audit states - Clean empty state for new users/visitors
+  const [videoTitle, setVideoTitle] = useState('Ready for video upload');
+  const [videoDurationSec, setVideoDurationSec] = useState(0);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
   const [extractedFrames, setExtractedFrames] = useState<ExtractedFrame[]>([]);
-  const [report, setReport] = useState<AuditReport>(defaultSample.mockReport);
+  const [report, setReport] = useState<AuditReport | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
 
-  // Multi-Video Task Queue State
-  const initialTask: QueuedVideoTask = {
-    id: 'sample-' + defaultSample.id,
-    sampleId: defaultSample.id,
-    title: defaultSample.title,
-    fileSizeFormatted: '18.4 MB',
-    videoUrl: null,
-    durationSec: defaultSample.durationSec,
-    durationFormatted: defaultSample.durationFormatted,
-    status: 'COMPLETED',
-    progressPercent: 100,
-    progressStatus: 'Audit complete',
-    extractedFrames: [],
-    report: defaultSample.mockReport,
-    addedAt: Date.now(),
-    completedAt: Date.now(),
-  };
-
-  const [queuedTasks, setQueuedTasks] = useState<QueuedVideoTask[]>([initialTask]);
-  const queuedTasksRef = useRef<QueuedVideoTask[]>([initialTask]);
-  const [activeTaskId, setActiveTaskId] = useState<string>(initialTask.id);
+  // Multi-Video Task Queue State - Starts completely empty for new users
+  const [queuedTasks, setQueuedTasks] = useState<QueuedVideoTask[]>([]);
+  const queuedTasksRef = useRef<QueuedVideoTask[]>([]);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [isQueueRunning, setIsQueueRunning] = useState<boolean>(false);
 
+  // Self-Improving Memory System (Adaptive learning from past audits)
+  const [auditMemory, setAuditMemory] = useState<Array<{ title: string; riskScore: number; timestamp: number }>>(() => {
+    try {
+      const saved = localStorage.getItem('sg_audit_memory_profile');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  });
+
   // Refs to avoid stale closures in background async loop
-  const activeTaskIdRef = useRef<string>(initialTask.id);
+  const activeTaskIdRef = useRef<string | null>(null);
   const strictnessModeRef = useRef(strictnessMode);
   const isProcessingQueueRef = useRef(false);
 
@@ -473,6 +464,15 @@ export default function App() {
           setQueuedTasks([...queuedTasksRef.current]);
 
           updateHistoryWithReport(audit, targetTitle);
+
+          // Update self-improving memory profile for adaptive learning
+          setAuditMemory((prev) => {
+            const newMem = [{ title: targetTitle, riskScore: audit.overallRiskScore, timestamp: Date.now() }, ...prev.slice(0, 49)];
+            try {
+              localStorage.setItem('sg_audit_memory_profile', JSON.stringify(newMem));
+            } catch (e) {}
+            return newMem;
+          });
 
           if (activeTaskIdRef.current === targetId) {
             setReport(audit);
