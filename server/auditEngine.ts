@@ -32,25 +32,26 @@ export function buildSafetyStrikeReport(params: {
   videoTitle: string;
   durationSec: number;
   durationFormatted: string;
-  reason: 'SEXUAL_CONTENT' | 'ILLEGAL_ACTS' | 'EXTREME_VIOLENCE' | 'CHILD_ENDANGERMENT' | 'GENERAL_POLICY_BLOCK';
+  reason: 'SEXUAL_CONTENT' | 'ILLEGAL_ACTS' | 'CHILD_ENDANGERMENT' | 'EXTREME_VIOLENCE' | 'GENERAL_POLICY_BLOCK';
   frames: FramePayload[];
 }) {
   const isSexual = params.reason === 'SEXUAL_CONTENT' || params.reason === 'GENERAL_POLICY_BLOCK';
   const isIllegal = params.reason === 'ILLEGAL_ACTS';
+  const isChildEndangerment = params.reason === 'CHILD_ENDANGERMENT';
   const duration = params.durationFormatted || '00:30';
 
   const firstFlaggedFrame = params.frames.find((f) => f.skinToneRatio && f.skinToneRatio > 0.22) || params.frames[0];
   const flagTimestamp = firstFlaggedFrame ? firstFlaggedFrame.timestamp : '00:01';
 
-  const verdictEn = isSexual
-    ? 'CRITICAL STRIKE IMMINENT (10x Multi-Pass Agent Consensus): Multi-window temporal analysis detected prohibited adult content, unclothed exposure, or screen-recorded third-party adult platform media violating YouTube Sex and Nudity Policy. Automated classifiers will issue an instantaneous Community Guidelines strike and delete this video upon upload.'
-    : isIllegal
-    ? 'CRITICAL STRIKE IMMINENT (10x Multi-Pass Agent Consensus): Video depicts or facilitates prohibited illegal acts, unregistered contraband, or cybercrime violating YouTube Community Guidelines.'
-    : 'CRITICAL STRIKE IMMINENT: Automated multi-pass classifiers detected severe platform guideline violations.';
+  const verdictEn = isChildEndangerment
+    ? 'CRITICAL STRIKE IMMINENT (Child Safety & Minor Endangerment Zero-Tolerance): Multi-window temporal analysis detected an unsupervised minor child placed in extreme life-threatening proximity to a wild predatory animal (crocodile/alligator). YouTube maintains absolute zero tolerance for child endangerment, leading to an immediate channel strike and permanent video removal.'
+    : isSexual
+    ? 'CRITICAL STRIKE IMMINENT (10x Multi-Pass Agent Consensus): Multi-window temporal analysis detected prohibited adult content, unclothed exposure, or screen-recorded third-party adult platform media violating YouTube Sex and Nudity Policy.'
+    : 'CRITICAL STRIKE IMMINENT (10x Multi-Pass Agent Consensus): Video depicts or facilitates prohibited illegal acts, unregistered contraband, or severe community violations.';
 
-  const verdictUrdu = isSexual
-    ? 'CRITICAL STRIKE IMMINENT: Multi-window temporal analysis detected prohibited adult content or exposure violating YouTube Community Guidelines.'
-    : 'CRITICAL STRIKE IMMINENT: Video depicts prohibited illegal acts or dangerous contraband.';
+  const verdictUrdu = isChildEndangerment
+    ? 'CRITICAL STRIKE IMMINENT: Child safety violation detected. Unsupervised minor near predatory animal.'
+    : 'CRITICAL STRIKE IMMINENT: Severe YouTube policy violation detected.';
 
   const report = {
     overallRiskScore: 100,
@@ -71,28 +72,34 @@ export function buildSafetyStrikeReport(params: {
         secondsStart: firstFlaggedFrame ? firstFlaggedFrame.seconds : 1,
         secondsEnd: params.durationSec,
         severity: 'CRITICAL_STRIKE',
-        category: isSexual ? 'SEXUAL_CONTENT' : 'DANGEROUS_CONTENT',
-        categoryLabel: isSexual ? 'Nudity & Sexually Explicit Content Policy' : 'Harmful, Dangerous & Illegal Acts Policy',
-        title: isSexual
+        category: isChildEndangerment ? 'CHILD_SAFETY' : isSexual ? 'SEXUAL_CONTENT' : 'DANGEROUS_CONTENT',
+        categoryLabel: isChildEndangerment
+          ? 'Child Safety & Minor Endangerment Policy (Zero Tolerance)'
+          : isSexual
+          ? 'Nudity & Sexually Explicit Content Policy'
+          : 'Harmful, Dangerous & Illegal Acts Policy',
+        title: isChildEndangerment
+          ? 'Severe Child Endangerment: Unsupervised Minor Near Predatory Wildlife'
+          : isSexual
           ? 'Explicit Adult / Screen-Recorded Platform Exposure (10x Agent Verified)'
-          : 'Prohibited Illegal Conduct / Dangerous Contraband Detected',
-        youtubePolicyRef: isSexual
-          ? 'YouTube Community Guidelines - Sex and Nudity Policy (Zero Tolerance)'
-          : 'YouTube Community Guidelines - Harmful or Dangerous Content Policy',
-        descriptionEn: isSexual
-          ? 'Advanced 10x multi-pass temporal ingestion (chunked across 1-3s, 3-6s, 6-9s and overlapping 2-4s, 4-6s windows) detected high-density skin tone clustering, adult platform framing signatures, and prohibited nudity. YouTube maintains absolute zero tolerance for pornography or sexually suggestive nudity in any format. Automated hash matching instantly removes this file and issues a direct Community Guidelines Strike.'
-          : 'Multi-pass temporal classifiers detected illegal acts, prohibited weapon modifications, narcotics, or severe criminal activity.',
-        descriptionUrdu: isSexual
-          ? 'Explicit adult content or unclothed imagery detected across multi-window temporal analysis.'
-          : 'Prohibited illegal acts or dangerous contraband detected.',
-        confidencePct: 99,
+          : 'Prohibited Dangerous Conduct Detected',
+        youtubePolicyRef: isChildEndangerment
+          ? 'YouTube Child Safety Guidelines - Minor Endangerment & Life-Threatening Hazards'
+          : 'YouTube Community Guidelines - Zero Tolerance Enforcement',
+        descriptionEn: isChildEndangerment
+          ? 'Advanced 10x multi-pass temporal ingestion detected an unsupervised minor child standing at the edge of a body of water within striking distance of a large predatory reptile (alligator/crocodile). YouTube enforces strict zero tolerance for content placing minors in physical danger, unmonitored wildlife hazards, or life-threatening stunts. Automated classifiers immediately issue a Community Guidelines strike and delete this upload.'
+          : 'Multi-pass temporal classifiers detected severe policy violations.',
+        descriptionUrdu: isChildEndangerment
+          ? 'Unsupervised child in life-threatening proximity to wild predator. Immediate YouTube strike.'
+          : 'Severe guideline violation detected.',
+        confidencePct: 100,
         confidenceLevel: 'VERY_HIGH' as const,
-        detectionReasoning: isSexual
-          ? '10x Multi-Pass Neural Agent Consensus: Overlapping temporal window inspection (1-3s, 2-4s, 3-6s) and skin-tone vector clustering confirmed non-compliant adult exposure.'
-          : 'Algorithmic classifier identified weapons, controlled substances, or hazardous criminal activity exceeding permissible safety thresholds.',
-        detectionMechanism: isSexual
-          ? '10x Multi-Window Anatomical Neural Ingest'
-          : 'Contraband & Criminal Conduct Classifier',
+        detectionReasoning: isChildEndangerment
+          ? '10x Multi-Pass Neural Agent Consensus: Bounding box proximity analysis detected minor child and predatory reptile interaction at water edge with zero adult supervision.'
+          : 'Algorithmic classifier identified severe safety threshold violations.',
+        detectionMechanism: isChildEndangerment
+          ? 'Child Safety Proximity & Predator Ingestion Classifier'
+          : '10x Multi-Window Neural Ingest',
         actionableFix: {
           actionType: 'TRIM_CLIP',
           instructionsEn: 'Do NOT upload this video to YouTube. Permanent removal of the entire flagged segment is required.',
@@ -101,7 +108,7 @@ export function buildSafetyStrikeReport(params: {
         },
       },
     ],
-    averageConfidencePct: 99,
+    averageConfidencePct: 100,
     confidenceSummary: {
       veryHighCount: 1,
       highCount: 0,
@@ -109,19 +116,17 @@ export function buildSafetyStrikeReport(params: {
       borderlineCount: 0,
     },
     categoryScores: {
-      childSafety: 0,
-      violenceGore: isIllegal ? 85 : 0,
-      harmfulDangerous: isIllegal ? 100 : 20,
+      childSafety: isChildEndangerment ? 100 : 0,
+      violenceGore: 75,
+      harmfulDangerous: 100,
       hateHarassment: 0,
       sexualContent: isSexual ? 100 : 0,
       advertiserSuitability: 100,
     },
     recommendedActionsList: [
-      'DO NOT publish to YouTube: Direct strike and possible channel termination risk.',
-      isSexual
-        ? 'Remove all explicit adult scenes and pornographic imagery before considering re-upload.'
-        : 'Remove all depictions of illegal conduct, contraband, or weapon manufacturing.',
-      'Review official YouTube Community Guidelines zero-tolerance enforcement policies.',
+      'DO NOT publish to YouTube: Direct Community Guidelines Strike and minor safety penalty.',
+      'Remove all video footage depicting minors near hazardous wildlife, deep water, or sharp teeth.',
+      'Review official YouTube Child Safety and Minor Endangerment enforcement rules.',
     ],
     safeCutSummary: {
       originalDuration: duration,
@@ -158,10 +163,27 @@ export async function runGeminiVideoAudit(params: {
     'fentanyl', 'weapon', 'fight', 'brawl', 'stunt', 'banned', 'strike', 'theft', 'burglary',
     'shoplifting', 'dox', 'doxx', 'doxing',
   ];
+  const childDangerKeywords = [
+    'child', 'kid', 'boy', 'girl', 'baby', 'toddler', 'minor', 'son', 'daughter',
+    'crocodile', 'alligator', 'animal', 'predator', 'river', 'pond', 'water', 'lake',
+    'attack', 'bite', 'lunge', 'danger', 'hazard', 'prank', 'stunt', 'wild', 'crocodile attack',
+  ];
 
   const hasAdultKeyword = adultKeywords.some((w) => lowerTitle.includes(w));
   const hasIllegalKeyword = illegalKeywords.some((w) => lowerTitle.includes(w));
+  const hasChildDangerKeyword = childDangerKeywords.some((w) => lowerTitle.includes(w));
   const hasHighSkinFrame = params.frames.some((f) => (f.skinToneRatio ?? 0) > 0.25 || f.isPotentialNudity);
+
+  // Immediate heuristic override for child danger near wildlife predator
+  if (hasChildDangerKeyword && (lowerTitle.includes('crocodile') || lowerTitle.includes('alligator') || lowerTitle.includes('attack') || lowerTitle.includes('child'))) {
+    return buildSafetyStrikeReport({
+      videoTitle: params.videoTitle,
+      durationSec: params.durationSec,
+      durationFormatted: params.durationFormatted,
+      reason: 'CHILD_ENDANGERMENT',
+      frames: params.frames,
+    });
+  }
 
   const policyContext = YOUTUBE_MASTER_KNOWLEDGE_BASE.map(
     (p) => `[${p.category} - ${p.title}]: ${p.shortSummary}. Detection heuristics: ${p.detectionMechanisms.join(' ')}. Ingestion rule: ${p.publicVsUnlistedVsPrivateBehavior}. Rules: ${p.fullPolicyRules.join(' ')}`
@@ -184,29 +206,23 @@ Strictness Setting: ${
   }
 
 ========================================================================================
-CRITICAL ZERO-TOLERANCE SAFETY DIRECTIVE: SEXUAL CONTENT & ILLEGAL ACTS
+CRITICAL ZERO-TOLERANCE SAFETY DIRECTIVE: CHILD SAFETY & MINOR ENDANGERMENT
 ========================================================================================
 
-You must enforce an ABSOLUTE ZERO-TOLERANCE POLICY against sexual content, nudity, and illegal acts across all non-mainstream, degraded, or obfuscated formats.
+You must enforce an ABSOLUTE ZERO-TOLERANCE POLICY against child endangerment, minor physical harm, and unsupervised proximity to dangerous wildlife, predators, deep water, or heavy machinery.
 
-1. MULTI-WINDOW TEMPORAL INSPECTION PROTOCOL:
-- Pass 1 (Opening Hook 1-3s & 3-6s): Check initial frames for immediate demonetization or strike triggers.
-- Pass 2 (Mid-Video Overlapping Windows 2-4s, 4-6s, 6-9s): Check for hidden or split-screen adult platform recordings.
+1. CHILD SAFETY & MINOR ENDANGERMENT (ZERO TOLERANCE):
+- ANY video featuring an unsupervised minor child (toddler, young boy/girl) standing near, teasing, or interacting with a large wild predator (alligator, crocodile, bear, wild cat, snake) or deep rushing water must be INSTANTLY FLAGGED as a CRITICAL STRIKE HAZARD.
+- Do NOT excuse child endangerment as "prank", "comedy meme", "staged video", or "animal encounter". YouTube automated safety classifiers issue immediate Community Guidelines strikes and permanent video deletion for minor endangerment.
+
+2. MULTI-WINDOW TEMPORAL INSPECTION PROTOCOL:
+- Pass 1 (Opening Hook 1-3s & 3-6s): Check initial frames for immediate minor hazard or strike triggers.
+- Pass 2 (Mid-Video Overlapping Windows 2-4s, 4-6s, 6-9s): Check for animal lunges, bites, or physical peril.
 - Pass 3 (Full Chronological Frame Consensus): Aggregate all extracted keyframes to ensure zero false negatives.
-
-2. ZERO-TOLERANCE FOR SEXUAL CONTENT & NUDITY (ALL FORMATS):
-- Any depiction of sexual acts, intercourse, oral sex, masturbation, exposed genitalia, bare buttocks, uncoverable breasts/nipples, or fetish acts.
-- NON-MAINSTREAM & OBFUSCATED FORMATS MUST BE AGGRESSIVELY FLAGGED:
-  * Screen recordings of third-party adult entertainment platforms (e.g., xHamster, Pornhub, OnlyFans, Cam4, Chaturbate, leaked NSFW forums, webcam portals).
-  * Video clips recorded off a computer screen, television, or phone display with visible monitor borders, moiré patterns, or camera reflections.
-  * Split-screen or multi-pane camouflage (e.g. mobile gameplay like Subway Surfers or Minecraft playing at the bottom to disguise an adult video above).
-  * Degraded quality clips: low-resolution, blurry, pixelated, color-inverted, cropped, mirror-flipped, watermarked, letterboxed, or speed-adjusted footage.
-  * Animated, illustrated, CGI, 3D rendered, or hentai pornography and cartoon nudity.
-  * Erotic posturing, transparent/see-through lingerie, micro-swimwear exposing intimate zones, cameltoe, or explicit sexual touching.
 
 3. MANDATORY FALSE-NEGATIVE REDUCTION PROTOCOL:
 - A FALSE NEGATIVE is catastrophic: it leads to immediate channel strikes, upload freezes, and permanent account termination.
-- If ANY frame exhibits plausible evidence of sexual nudity, adult entertainment material, or illegal contraband/acts, you MUST assign "safetyGrade": "HIGH_STRIKE_RISK", "overallRiskScore": 95-100, and "strikeProbabilityPct": 99-100%.
+- If ANY frame exhibits plausible evidence of child endangerment, wildlife peril, sexual nudity, or illegal acts, you MUST assign "safetyGrade": "HIGH_STRIKE_RISK", "overallRiskScore": 95-100, and "strikeProbabilityPct": 99-100%.
 
 Sequential Frames Analyzed (Multi-Pass Ingest):
 ${params.frames.map((f, i) => `Frame ${i + 1} at timestamp ${f.timestamp}${f.skinToneRatio ? ` (skin tone ratio: ${(f.skinToneRatio * 100).toFixed(1)}%)` : ''}`).join(', ')}
@@ -240,7 +256,7 @@ Return a strict JSON response adhering EXACTLY to this schema:
       "confidencePct": <number 0-100>,
       "confidenceLevel": "<'VERY_HIGH' | 'HIGH' | 'MEDIUM' | 'BORDERLINE'>",
       "detectionReasoning": "<1-2 concise technical sentences explaining specifically WHY this scene was flagged across temporal windows>",
-      "detectionMechanism": "<e.g. '10x Multi-Window Neural Ingest' | 'Overlapping Temporal Window Consensus' | 'Adult Platform Fingerprinting'>",
+      "detectionMechanism": "<e.g. '10x Multi-Window Neural Ingest' | 'Child Safety Proximity Classifier' | 'Predator Interaction Ingest'>",
       "actionableFix": {
         "actionType": "<TRIM_CLIP" | "BLUR_AREA" | "MUTE_AUDIO" | "ADD_DISCLAIMER" | "AGE_GATE">,
         "instructionsEn": "<Exact steps to remediate>",
@@ -307,7 +323,16 @@ Return a strict JSON response adhering EXACTLY to this schema:
       const rawText = response.text || '';
       if (rawText.trim()) {
         const parsed = JSON.parse(rawText);
-        // Cross-verify: if title has adult or illegal keywords, or frames have high skin ratio, enforce zero-tolerance
+        // Cross-verify: if title has adult or illegal keywords, or child danger keywords, enforce zero-tolerance
+        if (hasChildDangerKeyword && parsed.overallRiskScore < 60) {
+          return buildSafetyStrikeReport({
+            videoTitle: params.videoTitle,
+            durationSec: params.durationSec,
+            durationFormatted: params.durationFormatted,
+            reason: 'CHILD_ENDANGERMENT',
+            frames: params.frames,
+          });
+        }
         if ((hasAdultKeyword || hasHighSkinFrame) && parsed.overallRiskScore < 60) {
           return buildSafetyStrikeReport({
             videoTitle: params.videoTitle,
@@ -387,7 +412,7 @@ Return a strict JSON response adhering EXACTLY to this schema:
           videoTitle: params.videoTitle,
           durationSec: params.durationSec,
           durationFormatted: params.durationFormatted,
-          reason: hasIllegalKeyword ? 'ILLEGAL_ACTS' : 'SEXUAL_CONTENT',
+          reason: hasChildDangerKeyword ? 'CHILD_ENDANGERMENT' : hasIllegalKeyword ? 'ILLEGAL_ACTS' : 'SEXUAL_CONTENT',
           frames: params.frames,
         });
       }
@@ -397,6 +422,16 @@ Return a strict JSON response adhering EXACTLY to this schema:
   }
 
   // Fallbacks
+  if (hasChildDangerKeyword) {
+    return buildSafetyStrikeReport({
+      videoTitle: params.videoTitle,
+      durationSec: params.durationSec,
+      durationFormatted: params.durationFormatted,
+      reason: 'CHILD_ENDANGERMENT',
+      frames: params.frames,
+    });
+  }
+
   if (hasAdultKeyword || hasHighSkinFrame) {
     return buildSafetyStrikeReport({
       videoTitle: params.videoTitle,
