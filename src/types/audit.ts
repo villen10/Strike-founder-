@@ -38,6 +38,8 @@ export interface ActionableFix {
   suggestedCut: string;
 }
 
+export type ConfidenceLevel = 'VERY_HIGH' | 'HIGH' | 'MEDIUM' | 'BORDERLINE';
+
 export interface PolicyViolation {
   id: string;
   timestampStart: string; // e.g. "00:04"
@@ -52,6 +54,10 @@ export interface PolicyViolation {
   descriptionEn: string;
   descriptionUrdu: string;
   frameSnapshot?: string;
+  confidencePct: number; // e.g. 96 (0-100)
+  confidenceLevel: ConfidenceLevel; // 'VERY_HIGH' | 'HIGH' | 'MEDIUM' | 'BORDERLINE'
+  detectionReasoning?: string; // Clear explanation of why the model flagged this segment
+  detectionMechanism?: string; // e.g. "Neural Vision Ingest", "Acoustic Spectral Analysis", "Kinetic Motion Vector"
   actionableFix: ActionableFix;
 }
 
@@ -61,6 +67,13 @@ export interface AuditReport {
   videoDurationSec: number;
   durationFormatted: string;
   overallRiskScore: number; // 0-100 (higher = more danger)
+  averageConfidencePct?: number; // Average detection confidence across flagged violations
+  confidenceSummary?: {
+    veryHighCount: number;
+    highCount: number;
+    mediumCount: number;
+    borderlineCount: number;
+  };
   safetyGrade: 'SAFE_TO_UPLOAD' | 'MONETIZATION_AT_RISK' | 'HIGH_STRIKE_RISK';
   strikeProbabilityPct: number;
   demonetizationProbabilityPct: number;

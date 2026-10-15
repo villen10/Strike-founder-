@@ -176,15 +176,28 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
                     >
                       {v.timestampStart} - {v.timestampEnd}
                     </span>
-                    <span
-                      className={`rounded px-1.5 py-0.2 font-mono text-[10px] font-bold uppercase ${
-                        isLight
-                          ? 'bg-slate-200 text-slate-800'
-                          : 'bg-slate-800 text-slate-300'
-                      }`}
-                    >
-                      {v.actionableFix.actionType}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {v.confidencePct && (
+                        <span
+                          className={`rounded px-1.5 py-0.2 font-mono text-[9px] font-bold ${
+                            v.confidenceLevel === 'VERY_HIGH' || v.confidencePct >= 90
+                              ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                          }`}
+                        >
+                          {v.confidencePct}% Certainty
+                        </span>
+                      )}
+                      <span
+                        className={`rounded px-1.5 py-0.2 font-mono text-[10px] font-bold uppercase ${
+                          isLight
+                            ? 'bg-slate-200 text-slate-800'
+                            : 'bg-slate-800 text-slate-300'
+                        }`}
+                      >
+                        {v.actionableFix.actionType}
+                      </span>
+                    </div>
                   </div>
                   <p
                     className={`mt-1 font-body text-xs leading-relaxed ${
@@ -193,6 +206,11 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
                   >
                     {v.actionableFix.instructionsEn}
                   </p>
+                  {v.detectionReasoning && (
+                    <p className="mt-1 font-mono text-[10px] text-slate-400">
+                      Reason: {v.detectionReasoning}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

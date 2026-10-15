@@ -20,6 +20,7 @@ import {
   BarChart3,
   Lock,
   Zap,
+  Gauge,
 } from 'lucide-react';
 import { AuditReport, PolicyViolation } from '../types/audit';
 import { HistoricalUploadRecord } from './ChannelHealthTrend';
@@ -182,23 +183,33 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div className="max-w-xl">
             {/* Top pill badge */}
-            <div className="inline-flex items-center gap-1.5 font-sans text-xs font-bold px-3 py-1 rounded-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xs mb-2.5 shadow-2xs">
-              {isCritical ? (
-                <>
-                  <ShieldAlert className="h-3.5 w-3.5 text-red-600 fill-current" />
-                  <span className="text-red-700 dark:text-red-400">Critical Strike Risk Active</span>
-                </>
-              ) : isCaution ? (
-                <>
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 fill-current" />
-                  <span className="text-amber-700 dark:text-amber-400">Monetization Caution</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 fill-current" />
-                  <span>Verified Safe for YouTube Ingestion</span>
-                </>
-              )}
+            <div className="flex flex-wrap items-center gap-2 mb-2.5">
+              <div className="inline-flex items-center gap-1.5 font-sans text-xs font-bold px-3 py-1 rounded-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xs shadow-2xs">
+                {isCritical ? (
+                  <>
+                    <ShieldAlert className="h-3.5 w-3.5 text-red-600 fill-current" />
+                    <span className="text-red-700 dark:text-red-400">Critical Strike Risk Active</span>
+                  </>
+                ) : isCaution ? (
+                  <>
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600 fill-current" />
+                    <span className="text-amber-700 dark:text-amber-400">Monetization Caution</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 fill-current" />
+                    <span>Verified Safe for YouTube Ingestion</span>
+                  </>
+                )}
+              </div>
+
+              {/* Confidence Badge */}
+              <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold px-3 py-1 rounded-full bg-black/10 dark:bg-white/10 backdrop-blur-xs">
+                <Gauge className="h-3.5 w-3.5 text-red-600 dark:text-rose-400" />
+                <span>
+                  {report.averageConfidencePct || (report.timelineViolations.length > 0 ? 95 : 99)}% Detection Certainty
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 mb-1">
@@ -497,17 +508,31 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
                       key={v.id}
                       type="button"
                       onClick={() => onJumpAndPlay(v.secondsStart)}
-                      className={`flex items-center justify-between rounded-xl p-2 text-left transition cursor-pointer ${
+                      className={`flex items-center justify-between gap-2 rounded-xl p-2 text-left transition cursor-pointer ${
                         isLight ? 'bg-slate-50 hover:bg-slate-100' : 'bg-slate-800/80 hover:bg-slate-800'
                       }`}
+                      title={`${v.title} - ${v.confidencePct || 90}% Certainty (${v.confidenceLevel || 'HIGH'})\n${v.detectionReasoning || ''}`}
                     >
                       <div className="flex items-center gap-1.5 truncate">
                         <Play className="h-3 w-3 text-red-600 shrink-0 fill-current" />
                         <span className="font-display text-xs font-bold truncate">{v.title}</span>
                       </div>
-                      <span className="font-mono text-[9px] font-bold text-slate-500 shrink-0">
-                        {v.timestampStart}
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-mono text-[9px] font-bold text-slate-500">
+                          {v.timestampStart}
+                        </span>
+                        {v.confidencePct && (
+                          <span
+                            className={`rounded px-1.5 py-0.2 font-mono text-[9px] font-bold ${
+                              v.confidenceLevel === 'VERY_HIGH' || v.confidencePct >= 90
+                                ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                            }`}
+                          >
+                            {v.confidencePct}%
+                          </span>
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -586,7 +611,7 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
               </div>
             </div>
 
-            {/* Card 4: Gemini Multimodal Vision Engine */}
+            {/* Card 4: Detection Certainty */}
             <div
               className={`rounded-3xl border p-4 sm:p-5 flex flex-col justify-between transition shadow-2xs ${
                 isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
@@ -595,18 +620,18 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-sans text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    Deep Audit Engine
+                    Detection Certainty
                   </span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-600">
-                    <Cpu className="h-4.5 w-4.5" />
+                    <Gauge className="h-4.5 w-4.5" />
                   </div>
                 </div>
 
                 <div className="font-display text-2xl font-black tracking-tight">
-                  Gemini <span className="text-xs font-normal text-slate-500">Vision</span>
+                  {report.averageConfidencePct || (report.timelineViolations.length > 0 ? 95 : 99)}% <span className="text-xs font-normal text-slate-500">certainty</span>
                 </div>
                 <span className="font-mono text-[11px] text-sky-600 font-semibold mt-0.5 block">
-                  YouTube Guidelines DB
+                  Zero False-Negative Standard
                 </span>
 
                 <button

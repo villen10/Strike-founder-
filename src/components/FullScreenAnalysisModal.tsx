@@ -13,6 +13,8 @@ import {
   Check,
   Loader2,
   AlertOctagon,
+  Gauge,
+  Cpu,
 } from 'lucide-react';
 import { AuditReport } from '../types/audit';
 import { ExtractedFrame } from '../services/frameExtractor';
@@ -388,7 +390,7 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`rounded-2xl border p-5 sm:p-6 transition shadow-md ${
+                className={`rounded-2xl border p-5 sm:p-6 transition shadow-md flex flex-col gap-4 ${
                   isClean
                     ? 'border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20 text-slate-900 dark:text-slate-100'
                     : isHighStrike
@@ -414,14 +416,22 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                       )}
                     </div>
                     <div>
-                      <h4 className="font-display text-sm sm:text-base font-bold">
-                        {isClean
-                          ? 'Safe to Publish to YouTube!'
-                          : isHighStrike
-                          ? `CRITICAL STRIKE RISK (${report.timelineViolations.length} Violations Flagged)`
-                          : `Monetization Caution (${report.timelineViolations.length} Issues)`}
-                      </h4>
-                      <p className="font-sans text-xs text-slate-300 mt-0.5 line-clamp-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="font-display text-sm sm:text-base font-bold">
+                          {isClean
+                            ? 'Safe to Publish to YouTube!'
+                            : isHighStrike
+                            ? `CRITICAL STRIKE RISK (${report.timelineViolations.length} Violations Flagged)`
+                            : `Monetization Caution (${report.timelineViolations.length} Issues)`}
+                        </h4>
+                        {report.averageConfidencePct && (
+                          <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold bg-black/20 text-white">
+                            <Gauge className="h-3 w-3" />
+                            {report.averageConfidencePct}% Certainty
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-sans text-xs text-slate-300 mt-1 line-clamp-2">
                         {report.summaryVerdictEn}
                       </p>
                     </div>
@@ -433,7 +443,7 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                       onViewResults?.();
                       onClose();
                     }}
-                    className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl text-white px-5 py-2.5 font-sans text-xs font-bold transition shadow-sm cursor-pointer ${
+                    className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl text-white px-5 py-2.5 font-sans text-xs font-bold transition shadow-sm cursor-pointer shrink-0 ${
                       isHighStrike
                         ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30 ring-2 ring-red-400'
                         : 'bg-red-600 hover:bg-red-700'
@@ -443,6 +453,56 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
+
+                {/* Specific Violation Confidence & Reasoning Breakdown */}
+                {report.timelineViolations && report.timelineViolations.length > 0 && (
+                  <div className="mt-1 flex flex-col gap-2.5 border-t border-white/10 pt-3">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                      Flagged Segments & Specific Algorithmic Confidence:
+                    </span>
+                    <div className="grid grid-cols-1 gap-2 max-h-52 overflow-y-auto pr-1">
+                      {report.timelineViolations.map((v) => {
+                        const confLevel = v.confidenceLevel || (v.confidencePct >= 90 ? 'VERY_HIGH' : v.confidencePct >= 75 ? 'HIGH' : v.confidencePct >= 60 ? 'MEDIUM' : 'BORDERLINE');
+                        return (
+                          <div
+                            key={v.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl bg-black/35 border border-white/10 p-2.5 text-xs"
+                          >
+                            <div className="flex items-start gap-2">
+                              <span className="font-mono text-xs font-bold text-red-400 shrink-0">
+                                {v.timestampStart} - {v.timestampEnd}
+                              </span>
+                              <div>
+                                <span className="font-bold text-white block">{v.title}</span>
+                                <span className="text-[11px] text-slate-300 font-sans block mt-0.5">
+                                  {v.detectionReasoning || v.descriptionEn}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 sm:self-center">
+                              {v.detectionMechanism && (
+                                <span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-[10px] text-slate-300">
+                                  {v.detectionMechanism}
+                                </span>
+                              )}
+                              <span
+                                className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
+                                  confLevel === 'VERY_HIGH'
+                                    ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/40'
+                                    : confLevel === 'HIGH'
+                                    ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40'
+                                    : 'bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-500/40'
+                                }`}
+                              >
+                                {v.confidencePct}% ({confLevel === 'VERY_HIGH' ? 'Very High' : confLevel === 'HIGH' ? 'High' : 'Moderate'})
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </div>

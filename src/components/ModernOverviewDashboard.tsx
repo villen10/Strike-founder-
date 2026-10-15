@@ -343,7 +343,7 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                     <h5 className="font-display text-xs sm:text-sm font-bold truncate">
                       {sample.title}
                     </h5>
-                    <div className="flex items-center gap-2 mt-0.5 font-sans text-[11px] text-slate-500">
+                    <div className="flex flex-wrap items-center gap-2 mt-0.5 font-sans text-[11px] text-slate-500">
                       <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
                         {Math.max(10, 100 - sample.mockReport.overallRiskScore)}% Score
                       </span>
@@ -357,6 +357,14 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                       >
                         {isSafe ? 'Safe' : 'Demonetization Risk'}
                       </span>
+                      {sample.mockReport.averageConfidencePct && (
+                        <>
+                          <span>·</span>
+                          <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                            {sample.mockReport.averageConfidencePct}% Certainty
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

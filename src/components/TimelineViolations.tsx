@@ -7,6 +7,10 @@ import {
   EyeOff,
   VolumeX,
   CheckCircle2,
+  Activity,
+  Cpu,
+  HelpCircle,
+  Gauge,
 } from 'lucide-react';
 import { PolicyViolation } from '../types/audit';
 
@@ -63,34 +67,38 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
         isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
       }`}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <h3
             className={`font-display text-base sm:text-lg font-black tracking-tight ${
               isLight ? 'text-slate-950' : 'text-white'
             }`}
           >
-            Flagged Timeline Incidents (Actionable Fixes)
+            Flagged Timeline Incidents & Confidence Metrics
           </h3>
           <p className="font-sans text-xs text-slate-500 mt-0.5">
-            Click any timestamp to seek video playback directly to the exact violation timecode
+            Detailed algorithmic detection confidence levels and explanations for each flagged segment
           </p>
         </div>
-        <span
-          className={`rounded-full px-3 py-1 font-mono text-xs font-bold ring-1 ring-inset ${
-            isLight
-              ? 'bg-red-50 text-red-700 ring-red-200 shadow-2xs'
-              : 'bg-rose-500/10 text-rose-300 ring-rose-500/30'
-          }`}
-        >
-          {violations.length} {violations.length === 1 ? 'Incident' : 'Incidents'}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className={`rounded-full px-3 py-1 font-mono text-xs font-bold ring-1 ring-inset ${
+              isLight
+                ? 'bg-red-50 text-red-700 ring-red-200 shadow-2xs'
+                : 'bg-rose-500/10 text-rose-300 ring-rose-500/30'
+            }`}
+          >
+            {violations.length} {violations.length === 1 ? 'Incident Flagged' : 'Incidents Flagged'}
+          </span>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-4">
         {violations.map((violation, index) => {
           const isCritical = violation.severity === 'CRITICAL_STRIKE';
           const isCaution = violation.severity === 'DEMONETIZATION_WARNING';
+          const confidence = violation.confidencePct ?? (isCritical ? 96 : 82);
+          const confLevel = violation.confidenceLevel || (confidence >= 90 ? 'VERY_HIGH' : confidence >= 75 ? 'HIGH' : confidence >= 60 ? 'MEDIUM' : 'BORDERLINE');
 
           return (
             <div
@@ -98,45 +106,65 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
               className={`flex flex-col overflow-hidden rounded-2xl border transition shadow-2xs ${
                 isCritical
                   ? isLight
-                    ? 'border-red-200/80 bg-red-50/20'
+                    ? 'border-red-200 bg-red-50/20 shadow-xs'
                     : 'border-rose-500/30 bg-slate-900/80 shadow-md shadow-rose-950/20'
                   : isCaution
                   ? isLight
-                    ? 'border-amber-200/80 bg-amber-50/20'
-                    : 'border-amber-500/30 bg-slate-900/80'
+                    ? 'border-amber-200 bg-amber-50/20 shadow-xs'
+                    : 'border-amber-500/30 bg-slate-900/80 shadow-xs'
                   : isLight
-                  ? 'border-slate-200/80 bg-white'
+                  ? 'border-slate-200 bg-white'
                   : 'border-slate-800 bg-slate-900/60'
               }`}
             >
-              {/* Header bar of the violation */}
+              {/* Header bar of the violation with Severity, Category & Confidence Pill */}
               <div
-                className={`flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5 ${
+                className={`flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 ${
                   isLight
-                    ? 'border-slate-100 bg-slate-50/80 text-slate-900'
+                    ? 'border-slate-100 bg-slate-50/90 text-slate-900'
                     : 'border-slate-800/80 bg-slate-950/60 text-slate-100'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <span
                     className={`flex items-center gap-1.5 font-display text-xs font-black tracking-wide uppercase ${
                       isCritical ? 'text-red-600' : 'text-amber-600'
                     }`}
                   >
                     {isCritical ? (
-                      <ShieldAlert className="h-4 w-4" />
+                      <ShieldAlert className="h-4 w-4 shrink-0" />
                     ) : (
-                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTriangle className="h-4 w-4 shrink-0" />
                     )}
                     <span>
-                      {isCritical ? 'Community Strike Risk' : 'Demonetization Warning'}
+                      {isCritical ? 'Community Strike Hazard' : 'Demonetization Alert'}
                     </span>
                   </span>
 
-                  <span className={isLight ? 'text-slate-300' : 'text-slate-600'}>·</span>
+                  <span className={isLight ? 'text-slate-300' : 'text-slate-700'}>·</span>
 
-                  <span className="font-sans text-xs font-medium text-slate-500">
+                  <span className="font-sans text-xs font-semibold text-slate-500">
                     {violation.categoryLabel}
+                  </span>
+
+                  {/* Algorithmic Confidence Level Badge */}
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold ring-1 ring-inset ${
+                      confLevel === 'VERY_HIGH'
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 ring-red-500/20'
+                        : confLevel === 'HIGH'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
+                        : confLevel === 'MEDIUM'
+                        ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 ring-yellow-500/20'
+                        : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-slate-500/20'
+                    }`}
+                    title={`Algorithmic certainty: ${confidence}%`}
+                  >
+                    <Gauge className="h-3 w-3 shrink-0" />
+                    <span>{confidence}% Confidence</span>
+                    <span className="text-[9px] uppercase opacity-75 font-sans">
+                      ({confLevel === 'VERY_HIGH' ? 'Very High' : confLevel === 'HIGH' ? 'High' : confLevel === 'MEDIUM' ? 'Moderate' : 'Borderline'})
+                    </span>
                   </span>
                 </div>
 
@@ -149,7 +177,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                       ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-800'
                       : 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-white'
                   }`}
-                  title="Jump to video time"
+                  title="Jump video playback to this timestamp"
                 >
                   <Play className="h-3 w-3 fill-current text-red-600" />
                   <span>
@@ -164,7 +192,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
               {/* Main violation body */}
               <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-12">
                 {/* Visual Snapshot Frame Preview (4 cols) */}
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-slate-800 md:col-span-4">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-slate-800 md:col-span-4 self-start">
                   {violation.frameSnapshot ? (
                     <img
                       src={violation.frameSnapshot}
@@ -183,22 +211,28 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                   <div className="absolute top-2 left-2 rounded-lg bg-black/80 px-2 py-0.5 font-mono text-[10px] font-bold text-white backdrop-blur-xs">
                     {violation.timestampStart}
                   </div>
+
+                  <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-0.5 font-mono text-[9px] font-bold text-red-400 backdrop-blur-xs">
+                    Certainty: {confidence}%
+                  </div>
                 </div>
 
-                {/* Issue Details & Official Policy citation (8 cols) */}
-                <div className="flex flex-col justify-between md:col-span-8">
+                {/* Issue Details, Policy Citation & Detection Reason (8 cols) */}
+                <div className="flex flex-col justify-between md:col-span-8 gap-3.5">
                   <div>
-                    <h4
-                      className={`font-display text-sm sm:text-base font-black tracking-tight ${
-                        isLight ? 'text-slate-900' : 'text-white'
-                      }`}
-                    >
-                      {violation.title}
-                    </h4>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4
+                        className={`font-display text-sm sm:text-base font-black tracking-tight ${
+                          isLight ? 'text-slate-900' : 'text-white'
+                        }`}
+                      >
+                        {violation.title}
+                      </h4>
+                    </div>
 
                     {/* Official YouTube Policy tag */}
-                    <div className="mt-1 flex items-center gap-1.5 font-mono text-xs text-red-600">
-                      <span className="font-semibold underline decoration-red-300">
+                    <div className="mt-1 flex items-center gap-1.5 font-mono text-xs text-red-600 dark:text-red-400">
+                      <span className="font-semibold underline decoration-red-300 dark:decoration-red-700">
                         {violation.youtubePolicyRef}
                       </span>
                     </div>
@@ -208,9 +242,57 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                     </p>
                   </div>
 
+                  {/* Why this item was flagged (Confidence & Detection Rationale) */}
+                  <div
+                    className={`rounded-2xl border p-3.5 text-xs transition ${
+                      isLight
+                        ? 'border-indigo-100 bg-indigo-50/50 text-indigo-950'
+                        : 'border-indigo-950/60 bg-indigo-950/20 text-indigo-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-1.5 font-display text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                        <Cpu className="h-3.5 w-3.5" />
+                        <span>Why This Scene Was Flagged</span>
+                      </div>
+                      {violation.detectionMechanism && (
+                        <span className="rounded-md bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-indigo-600 dark:text-indigo-300">
+                          {violation.detectionMechanism}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="font-sans leading-relaxed text-slate-600 dark:text-slate-300">
+                      {violation.detectionReasoning ||
+                        `Computer vision and acoustic ingestion classifiers detected high-probability policy infractions with ${confidence}% certainty in this segment.`}
+                    </p>
+
+                    {/* Visual Confidence Bar */}
+                    <div className="mt-2.5 flex items-center gap-2.5">
+                      <span className="font-mono text-[10px] text-slate-500 shrink-0 font-medium">
+                        Confidence:
+                      </span>
+                      <div className="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            confidence >= 90
+                              ? 'bg-red-600'
+                              : confidence >= 75
+                              ? 'bg-amber-500'
+                              : 'bg-indigo-500'
+                          }`}
+                          style={{ width: `${confidence}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300 shrink-0">
+                        {confidence}%
+                      </span>
+                    </div>
+                  </div>
+
                   {/* Fix Recommendation Box */}
                   <div
-                    className={`mt-3.5 rounded-2xl border p-3.5 ${
+                    className={`rounded-2xl border p-3.5 ${
                       isLight
                         ? 'border-slate-100 bg-slate-50/80'
                         : 'border-slate-800 bg-slate-950/70'

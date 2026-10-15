@@ -51,6 +51,8 @@ export const FrequentViolationWidget: React.FC<FrequentViolationWidgetProps> = (
     COPYRIGHT_FAIR_USE: 1,
     VIOLENCE_GRAPHIC: 0,
     HATE_SPEECH_HARASSMENT: 0,
+    SEXUAL_CONTENT: 0,
+    SEXUAL_NUDITY: 0,
   };
 
   // If current report has timeline violations, aggregate them dynamically
@@ -75,6 +77,24 @@ export const FrequentViolationWidget: React.FC<FrequentViolationWidgetProps> = (
       youtubePolicyRef: string;
     }
   > = {
+    SEXUAL_CONTENT: {
+      label: 'Sex & Nudity (Zero-Tolerance)',
+      severity: 'CRITICAL_STRIKE',
+      colorClass: 'text-rose-700 bg-rose-500/10 border-rose-500/30',
+      barColor: 'bg-rose-700',
+      recommendation:
+        'YouTube maintains absolute zero tolerance for explicit sexual acts, nudity, or adult site recordings across all formats. Must be cut completely.',
+      youtubePolicyRef: 'Sex & Nudity Policy (Immediate Strike)',
+    },
+    SEXUAL_NUDITY: {
+      label: 'Nudity & Sexual Exposure',
+      severity: 'CRITICAL_STRIKE',
+      colorClass: 'text-rose-700 bg-rose-500/10 border-rose-500/30',
+      barColor: 'bg-rose-700',
+      recommendation:
+        'Remove exposed unclothed bodies, bare skin clustering, or adult platform footage.',
+      youtubePolicyRef: 'YouTube Sex and Nudity Policy',
+    },
     DANGEROUS_CONTENT: {
       label: 'Dangerous Content & Hazardous Props',
       severity: 'CRITICAL_STRIKE',

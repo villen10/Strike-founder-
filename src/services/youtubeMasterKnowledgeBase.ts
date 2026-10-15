@@ -10,6 +10,8 @@ export interface MasterPolicyArticle {
   category:
     | 'INGESTION_ARCHITECTURE'
     | 'STRIKES_LAW'
+    | 'SEXUAL_NUDITY'
+    | 'ILLEGAL_ACTS'
     | 'CHILD_SAFETY'
     | 'ADVERTISER_SUITABILITY'
     | 'VIOLENCE_GRAPHIC'
@@ -303,6 +305,75 @@ export const YOUTUBE_MASTER_KNOWLEDGE_BASE: MasterPolicyArticle[] = [
         'Footage constitutes transformative critique under Fair Use doctrine with comprehensive original voiceover analysis.',
       sampleStudioPrompt:
         'Appeal for monetization review: All referenced footage is utilized under Fair Use for educational analysis and transformative commentary.',
+    },
+  },
+  {
+    id: 'sex-nudity-zero-tolerance-all-formats',
+    category: 'SEXUAL_NUDITY',
+    title: 'Sex, Nudity & Adult Content: Zero-Tolerance Enforcement Across All Formats',
+    shortSummary:
+      'Zero-tolerance policy strictly bans any pornography, sexual acts, genital/buttock/breast exposure, or adult platform footage, including screen recordings of adult sites, split-screen disguised clips, and non-mainstream formats.',
+    algorithmicSeverity: 'CRITICAL_IMMEDIATE_STRIKE',
+    detectionMechanisms: [
+      'Pixel Skin-Tone Clustering & Anatomical Localization: Automated vision models detect bare skin clusters, genital areas, and erotic posture vectors.',
+      'Adult Platform Fingerprinting: Hashes and optical watermarks from adult entertainment sites (xHamster, Pornhub, OnlyFans, Cam4, etc.) trigger instant automated takedowns.',
+      'Split-Screen & Camouflage Deconstruction: Machine learning models isolate multi-pane video segments (e.g. mobile gameplay beneath, adult screen above) to analyze each sub-frame independently.',
+      'Low-Res & Off-Screen Recording Detection: Convolutional classifiers detect monitor moiré patterns and screen borders to identify phone-recorded clips of adult videos.',
+    ],
+    publicVsUnlistedVsPrivateBehavior:
+      'Zero tolerance across all modes. Uploading adult or sexually explicit content in Unlisted or Private mode results in immediate automated deletion and direct Community Guidelines strikes.',
+    fullPolicyRules: [
+      'Rule 9.1: Absolute prohibition on intercourse, oral sex, masturbation, exposed genitalia, bare buttocks, or uncovered breasts/nipples.',
+      'Rule 9.2: Screen recordings of adult sites or phone-recorded monitor playback are flagged with the exact same strike severity as raw media.',
+      'Rule 9.3: Split-screen edits, meme overlays, reaction formats, or ironic "cringe compilations" containing sexual imagery are NOT protected by Fair Use or parody exceptions.',
+      'Rule 9.4: Animated, CGI, 3D rendered, or hentai pornography violates platform rules and triggers immediate strikes.',
+      'Rule 9.5: Zero-Tolerance False-Negative Protocol: If visual or acoustic indicators suggest adult material, classifiers mandate an immediate HIGH_STRIKE_RISK rating.',
+    ],
+    exactTimestampGuidelines: [
+      'Any second of exposed private areas or sexual acts results in video-wide strike and removal.',
+    ],
+    actionableRemediation:
+      'Do NOT upload adult or sexually explicit content to YouTube. If medical/artistic, apply 100% full opaque blurring, educational voiceover commentary, and age-gate.',
+    appealBlueprint: {
+      edsaSection: 'Section 9.1 Nudity Context Guidelines',
+      keyArgument:
+        'The flagged imagery was completely non-sexual, purely educational/documentary, and adhered to YouTube EDSA standards.',
+      sampleStudioPrompt:
+        'Formal appeal: The flagged sequence contains no prohibited sexually explicit acts or nudity and was misclassified by automated ingestion algorithms.',
+    },
+  },
+  {
+    id: 'illegal-acts-contraband-cybercrime',
+    category: 'ILLEGAL_ACTS',
+    title: 'Illegal Acts, Contraband, Weapons & Cybercrime: Strict Platform Prohibition',
+    shortSummary:
+      'Depicting or facilitating illegal acts, criminal contraband, unregistered firearm manufacturing (3D printed guns/auto-sears), narcotics, cybercrime, or street violence triggers immediate channel strikes and law-enforcement referral.',
+    algorithmicSeverity: 'CRITICAL_IMMEDIATE_STRIKE',
+    detectionMechanisms: [
+      'Contraband & Weapon CAD Model Heuristics: Classifiers recognize 3D-printer g-code rendering, ghost gun frames, drop-in auto sears, and Glock switches.',
+      'Substance & Paraphernalia Recognition: Identifies narcotic smoking, injection paraphernalia, prescription pill distribution, and clandestine laboratory equipment.',
+      'Cybercrime & Darknet OCR: Analyzes on-screen text for credential database leaks, credit card dumps (carding), ransomware command lines, and darknet marketplace URLs.',
+      'Real-World Criminal Activity Detection: Flags burglary, organized retail theft, vehicle break-ins, and high-speed police chases.',
+    ],
+    publicVsUnlistedVsPrivateBehavior:
+      'Criminal facilitation or depictions of severe illegal acts are blocked during transcode ingest in all visibility modes.',
+    fullPolicyRules: [
+      'Rule 10.1: Instructional content on manufacturing firearms, 3D printing lower receivers, installing full-auto conversion switches, or crafting explosives is strictly banned.',
+      'Rule 10.2: Content depicting illicit hard drug consumption, narcotics distribution, or drug synthesis instructions is removed immediately.',
+      'Rule 10.3: Demonstrations of unauthorized hacking, credential theft, Doxing individuals, or financial fraud/carding are classified as Harmful & Dangerous.',
+      'Rule 10.4: Non-mainstream formats (phone recordings of security monitors, Telegram contraband chats, dark web market recordings) are scrutinized with zero tolerance.',
+    ],
+    exactTimestampGuidelines: [
+      'Any segment showcasing illegal weapon modification or hard drug consumption is flagged for instant strike.',
+    ],
+    actionableRemediation:
+      'Remove all scenes depicting criminal conduct, drug consumption, weapon manufacturing, or cybercrime tools from your project timeline.',
+    appealBlueprint: {
+      edsaSection: 'Section 10.2 Cybersecurity & Journalism Exception',
+      keyArgument:
+        'Content is authorized journalistic reporting or ethical defensive cybersecurity education conducted in a safe, legal testing environment.',
+      sampleStudioPrompt:
+        'Appeal under Journalistic/Educational exception: The video reports on cyber threats with no instructional exploitation or criminal facilitation.',
     },
   },
 ];
