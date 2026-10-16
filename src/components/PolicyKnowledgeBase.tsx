@@ -413,7 +413,7 @@ export const PolicyKnowledgeBase: React.FC<PolicyKnowledgeBaseProps> = ({
         <span
           className={`font-sans text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-500'}`}
         >
-          YouTube Algorithmic Moderation Knowledge Base · Integrated with StrikeGuard AI Engine
+          YouTube Algorithmic Moderation Knowledge Base · Integrated with Strike Founder Engine
         </span>
         {onClose && !isEmbedded && (
           <button

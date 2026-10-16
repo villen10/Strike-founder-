@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
                     isLight ? 'text-slate-950' : 'text-white'
                   }`}
                 >
-                  StrikeGuard <span className={theme.accentText}>AI</span>
+                  Strike <span className={theme.accentText}>Founder</span>
                 </h1>
                 <span
                   className={`font-mono hidden sm:inline-block rounded px-1.5 py-0.2 text-[9px] font-bold tracking-wider uppercase ring-1 ring-inset ${

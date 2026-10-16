@@ -21,7 +21,7 @@ export const SafeCutGuideModal: React.FC<SafeCutGuideModalProps> = ({
 
   const [copied, setCopied] = useState(false);
 
-  const cutSheetText = `STRIKEGUARD AI - VIDEO EDITING CUT SHEET
+  const cutSheetText = `STRIKE FOUNDER - VIDEO EDITING CUT SHEET
 Video Title: ${report.videoTitle}
 Original Length: ${report.durationFormatted}
 Safe Target Length: ${report.safeCutSummary.safeDurationAfterCuts}

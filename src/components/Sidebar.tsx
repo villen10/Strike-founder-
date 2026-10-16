@@ -176,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div className="flex flex-col truncate">
                 <span className="font-display font-black text-sm tracking-tight text-slate-900 dark:text-white">
-                  StrikeGuard <span className={theme.accentText}>AI</span>
+                  Strike <span className={theme.accentText}>Founder</span>
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
                   YouTube Auditor

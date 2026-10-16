@@ -32,8 +32,8 @@ export const YOUTUBE_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
       'Private Videos: Private videos undergo automated abuse analysis. Severe Community Guidelines breaches on private uploads will still trigger official strikes and upload restrictions.',
       'Recommended Workflow: Upload your video as Unlisted at least 2 to 4 hours before your planned public release to allow automated processing and compliance checks to finalize safely.'
     ],
-    proTipEn: 'Never treat Unlisted or Private status as a sandbox for rule-breaking clips. Always run an audit with StrikeGuard AI and apply necessary cuts before publishing to YouTube.',
-    proTipUrdu: 'Never treat Unlisted or Private status as a sandbox for rule-breaking clips. Always run an audit with StrikeGuard AI and apply necessary cuts before publishing to YouTube.',
+    proTipEn: 'Never treat Unlisted or Private status as a sandbox for rule-breaking clips. Always run an audit with Strike Founder and apply necessary cuts before publishing to YouTube.',
+    proTipUrdu: 'Never treat Unlisted or Private status as a sandbox for rule-breaking clips. Always run an audit with Strike Founder and apply necessary cuts before publishing to YouTube.',
     strikeSeverity: 'CRITICAL',
   },
   {

@@ -1,5 +1,5 @@
 {
-  "name": "StrikeGuard AI",
+  "name": "Strike Founder",
   "description": "Pre-upload YouTube community guidelines and strike auditor. Detects child safety, dangerous stunts, violent actions, and monetization risks with frame-accurate timestamps and fix recommendations.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

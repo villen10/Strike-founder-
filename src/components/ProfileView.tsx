@@ -806,7 +806,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     {feedbackSent ? (
                       <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-center">
                         <CheckCheck className="mx-auto h-6 w-6 mb-1" />
-                        <span className="font-bold text-xs">Feedback received! Thank you for helping improve StrikeGuard.</span>
+                        <span className="font-bold text-xs">Feedback received! Thank you for helping improve Strike Founder.</span>
                       </div>
                     ) : (
                       <>

@@ -55,7 +55,7 @@ export const YOUTUBE_MASTER_KNOWLEDGE_BASE: MasterPolicyArticle[] = [
       'Rule 1.1: Every byte transmitted to YouTube ingest servers enters the Automated Content Verification pipeline before publishing is permitted.',
       'Rule 1.2: If an automated classifier detects severe violations (e.g. child safety or violent extremism), the video is blocked immediately and a channel strike is registered, even if the video was set to Private.',
       'Rule 1.3: Drafts abandoned in processing remain subject to policy scans if stored on YouTube infrastructure.',
-      'Rule 1.4: Recommended Creator Protocol: Always run local pre-upload analysis with StrikeGuard AI before pushing files to YouTube Studio.',
+      'Rule 1.4: Recommended Creator Protocol: Always run local pre-upload analysis with Strike Founder before pushing files to YouTube Studio.',
     ],
     exactTimestampGuidelines: [
       'First 5 minutes of ingest: Automated hash-checks and acoustic classifiers execute.',
@@ -234,7 +234,7 @@ export const YOUTUBE_MASTER_KNOWLEDGE_BASE: MasterPolicyArticle[] = [
       'Limit appeal text to 600 - 750 characters to guarantee it fits YouTube Studio description limits.',
     ],
     actionableRemediation:
-      'Use the StrikeGuard AI Strike Appeal Kit to generate a tailored 800-character EDSA counter-appeal and submit directly via YouTube Studio > Content > Restrictions > Appeal.',
+      'Use the Strike Founder Strike Appeal Kit to generate a tailored 800-character EDSA counter-appeal and submit directly via YouTube Studio > Content > Restrictions > Appeal.',
     appealBlueprint: {
       edsaSection: 'Section 6.1 EDSA Overarching Exemption',
       keyArgument:

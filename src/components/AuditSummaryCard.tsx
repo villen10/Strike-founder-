@@ -33,7 +33,7 @@ export const AuditSummaryCard: React.FC<AuditSummaryCardProps> = ({
   const [copied, setCopied] = React.useState(false);
 
   const handleCopySummary = () => {
-    const text = `StrikeGuard AI Compliance Audit:
+    const text = `Strike Founder Compliance Audit:
 Video: ${report.videoTitle}
 Status: ${report.safetyGrade}
 Overall Risk Score: ${report.overallRiskScore}/100
