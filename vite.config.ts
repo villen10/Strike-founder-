@@ -6,13 +6,14 @@ import { runGeminiVideoAudit, runGeminiAppealGenerator } from './server/auditEng
 
 function parseJsonBody(req: any): Promise<any> {
   return new Promise((resolve, reject) => {
-    let body = '';
+    const chunks: Buffer[] = [];
     req.on('data', (chunk: any) => {
-      body += chunk;
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     });
     req.on('end', () => {
       try {
-        resolve(body ? JSON.parse(body) : {});
+        const raw = Buffer.concat(chunks).toString('utf-8');
+        resolve(raw ? JSON.parse(raw) : {});
       } catch (e) {
         reject(e);
       }
@@ -23,10 +24,12 @@ function parseJsonBody(req: any): Promise<any> {
 
 function apiServerPlugin(): Plugin {
   return {
-    name: 'strikeguard-api',
+    name: 'strike-founder-api',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (req.url === '/api/audit' && req.method === 'POST') {
+        const urlPath = (req.url || '').split('?')[0];
+
+        if ((urlPath === '/api/audit' || urlPath === '/api/audit/') && req.method === 'POST') {
           try {
             const data = await parseJsonBody(req);
             const report = await runGeminiVideoAudit(data);
@@ -41,7 +44,7 @@ function apiServerPlugin(): Plugin {
           return;
         }
 
-        if (req.url === '/api/appeal' && req.method === 'POST') {
+        if ((urlPath === '/api/appeal' || urlPath === '/api/appeal/') && req.method === 'POST') {
           try {
             const data = await parseJsonBody(req);
             const result = await runGeminiAppealGenerator(data);

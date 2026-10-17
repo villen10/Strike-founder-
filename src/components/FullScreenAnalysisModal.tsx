@@ -32,11 +32,27 @@ interface FullScreenAnalysisModalProps {
 }
 
 const ANALYSIS_STEPS = [
-  { id: 1, label: 'Visual Ingest & Keyframe Extraction', desc: 'Decoding frame sequence and motion vectors' },
-  { id: 2, label: 'Sex, Nudity & Adult Content Policy', desc: 'Screening for explicit material, porn, or exposure' },
-  { id: 3, label: 'Child Safety & Physical Violence', desc: 'Checking for dangerous stunts, weapons, and harm' },
-  { id: 4, label: 'Opening 7-Second Advertiser Rules', desc: 'Verifying vulgarity, shock value, and green dollar' },
-  { id: 5, label: 'Final Strike & Monetization Verdict', desc: 'Computing platform risk score and safe cut timecodes' },
+  {
+    id: 1,
+    phase: 'Phase 1',
+    label: 'Frame-by-Frame Temporal Slicing (Timeline Times)',
+    desc: 'Scanning chronological timeline [00:00 → End], extracting frame timestamps',
+    badge: 'Times Scan',
+  },
+  {
+    id: 2,
+    phase: 'Phase 2',
+    label: 'Deep Frame-by-Frame Image & Blur Inspection',
+    desc: 'Analyzing each image frame for motion blur, rapid cut transitions & hidden content',
+    badge: 'Image Vision',
+  },
+  {
+    id: 3,
+    phase: 'Phase 3',
+    label: 'Gemini AI Full Video Audit & Strike Synthesis',
+    desc: 'Holistic multi-frame audit via Gemini API for Community Guidelines, strikes & safe cuts',
+    badge: 'Gemini API',
+  },
 ];
 
 export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = ({
@@ -56,22 +72,20 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
     if (!isOpen || extractedFrames.length === 0) return;
     const interval = setInterval(() => {
       setActiveFrameIndex((prev) => (prev + 1) % extractedFrames.length);
-    }, 600);
+    }, 500);
     return () => clearInterval(interval);
   }, [isOpen, extractedFrames.length]);
 
   if (!isOpen) return null;
 
   const currentStep =
-    progressPercent < 20
+    progressPercent < 30
       ? 1
-      : progressPercent < 45
+      : progressPercent < 60
       ? 2
-      : progressPercent < 70
+      : progressPercent < 100
       ? 3
-      : progressPercent < 92
-      ? 4
-      : 5;
+      : 3;
 
   const isCompleted = progressPercent >= 100;
   const isHighStrike = report?.safetyGrade === 'HIGH_STRIKE_RISK';
@@ -221,7 +235,7 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                         : 'Auditing Guidelines'}
                     </span>
                     <span className="font-sans text-xs text-slate-400">
-                      Step {currentStep} of 5
+                      Phase {currentStep} of 3
                     </span>
                   </div>
 
@@ -256,22 +270,22 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                           : isAtRisk
                           ? 'Monetization Caution ⚠️'
                           : 'Safe to Upload ✅'
-                        : 'Testing platform policies...'}
+                        : 'Gemini AI Multi-Pass Audit Active...'}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Step-by-Step Checklist Pipeline */}
+            {/* 3-Phase Step-by-Step Checklist Pipeline */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                   <Activity className="h-4 w-4 text-red-500" />
-                  <span>5-Point Platform Compliance Pipeline</span>
+                  <span>3-Stage Unified Analysis Engine</span>
                 </h3>
                 <span className="font-sans text-xs text-slate-400 font-semibold">
-                  {isCompleted ? '5 of 5 Analyzed' : `${currentStep - 1} of 5 Completed`}
+                  {isCompleted ? '3 of 3 Stages Finished' : `Stage ${currentStep} of 3 Active`}
                 </span>
               </div>
 
@@ -283,12 +297,10 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                   // Check if this step failed in the final report
                   const isStepFlagged =
                     isCompleted &&
-                    ((step.id === 2 && (report?.categoryScores?.sexualContent ?? 0) > 40) ||
-                      (step.id === 3 &&
-                        ((report?.categoryScores?.violenceGore ?? 0) > 40 ||
-                          (report?.categoryScores?.childSafety ?? 0) > 40)) ||
-                      (step.id === 4 && report?.first7SecondsStatus === 'FLAGGED') ||
-                      (step.id === 5 && isHighStrike));
+                    ((step.id === 2 &&
+                      ((report?.categoryScores?.sexualContent ?? 0) > 40 ||
+                        (report?.categoryScores?.childSafety ?? 0) > 40)) ||
+                      (step.id === 3 && isHighStrike));
 
                   return (
                     <motion.div
@@ -336,11 +348,16 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                         </div>
 
                         <div className="min-w-0">
-                          <span className="font-sans font-bold text-xs sm:text-sm truncate block">
-                            {step.label}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                              {step.phase}
+                            </span>
+                            <span className="font-sans font-bold text-xs sm:text-sm truncate">
+                              {step.label}
+                            </span>
+                          </div>
                           <p
-                            className={`text-xs truncate mt-0.5 ${
+                            className={`text-xs truncate mt-1 ${
                               isStepFlagged
                                 ? 'text-red-400 font-medium'
                                 : isDone
@@ -367,11 +384,11 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                         ) : isDone ? (
                           <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-sans text-xs font-bold px-2.5 py-1">
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                            <span>Passed</span>
+                            <span>Verified</span>
                           </span>
                         ) : isCurrent ? (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-red-500/10 text-red-600 font-sans text-xs font-bold px-2.5 py-1">
-                            <span>Checking...</span>
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-red-500/10 text-red-600 font-sans text-xs font-bold px-2.5 py-1 animate-pulse">
+                            <span>Processing...</span>
                           </span>
                         ) : (
                           <span className="font-sans text-xs text-slate-400">

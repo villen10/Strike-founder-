@@ -377,17 +377,17 @@ export default function App() {
         const targetSampleId = nextTask.sampleId;
         const targetTitle = nextTask.title;
 
-        // Mark EXTRACTING (Stage 1)
+        // Mark EXTRACTING (Phase 1 & Phase 2)
         queuedTasksRef.current = queuedTasksRef.current.map((t) =>
           t.id === targetId
-            ? { ...t, status: 'EXTRACTING', progressPercent: 18, progressStatus: 'Extracting keyframes & waveforms...' }
+            ? { ...t, status: 'EXTRACTING', progressPercent: 12, progressStatus: 'Phase 1/3 · Temporal Slicing: Reading timeline timestamps...' }
             : t
         );
         setQueuedTasks([...queuedTasksRef.current]);
 
         if (activeTaskIdRef.current === targetId) {
           setIsScanning(true);
-          setScanProgress({ percent: 18, status: `Extracting keyframes for "${targetTitle}"...` });
+          setScanProgress({ percent: 12, status: `Phase 1/3 · Slicing frames for "${targetTitle}"...` });
         }
 
         let frames: ExtractedFrame[] = [];
@@ -397,15 +397,14 @@ export default function App() {
         try {
           if (targetFile) {
             const result = await extractVideoMetadataAndFrames(targetFile, (pct, statusMsg) => {
-              const mappedPct = Math.min(50, Math.max(18, pct));
               queuedTasksRef.current = queuedTasksRef.current.map((t) =>
                 t.id === targetId
-                  ? { ...t, progressPercent: mappedPct, progressStatus: statusMsg }
+                  ? { ...t, progressPercent: pct, progressStatus: statusMsg }
                   : t
               );
               setQueuedTasks([...queuedTasksRef.current]);
               if (activeTaskIdRef.current === targetId) {
-                setScanProgress({ percent: mappedPct, status: statusMsg });
+                setScanProgress({ percent: pct, status: statusMsg });
               }
             });
             frames = result.frames;
@@ -417,7 +416,7 @@ export default function App() {
             durationFormatted = sample?.durationFormatted || '00:15';
           }
 
-          // Mark AUDITING (Stage 2 & 3)
+          // Mark AUDITING (Phase 3: Gemini AI Full Video Audit)
           queuedTasksRef.current = queuedTasksRef.current.map((t) =>
             t.id === targetId
               ? {
@@ -426,8 +425,8 @@ export default function App() {
                   durationFormatted,
                   extractedFrames: frames,
                   status: 'AUDITING',
-                  progressPercent: 65,
-                  progressStatus: 'Auditing YouTube guidelines & ad suitability...',
+                  progressPercent: 62,
+                  progressStatus: 'Phase 3/3 · Gemini AI: Synthesizing full video against Community Guidelines...',
                 }
               : t
           );
@@ -437,16 +436,48 @@ export default function App() {
             setVideoDurationSec(durationSec);
             setExtractedFrames(frames);
             setIsScanning(true);
-            setScanProgress({ percent: 65, status: 'Auditing YouTube guidelines & ad suitability...' });
+            setScanProgress({ percent: 62, status: 'Phase 3/3 · Gemini AI: Synthesizing full video against Community Guidelines...' });
           }
 
-          const audit = await requestVideoAudit({
-            videoTitle: targetTitle,
-            durationSec,
-            durationFormatted,
-            strictnessMode: strictnessModeRef.current,
-            frames,
-          });
+          let auditProgressTimer: any = null;
+          let currentAuditPct = 62;
+          const auditStatusMessages = [
+            'Phase 3/3 · Gemini AI: Multi-window keyframe temporal audit...',
+            'Phase 3/3 · Auditing Child Safety & Minor Endangerment zero-tolerance...',
+            'Phase 3/3 · Screening for predatory wildlife, dangerous stunts & peril...',
+            'Phase 3/3 · Auditing Graphic Violence, Weapons & Adult Exposure...',
+            'Phase 3/3 · Verifying opening 7-second hook & Advertiser Suitability...',
+            'Phase 3/3 · Synthesizing frame timestamps & calculating YouTube strike verdict...',
+          ];
+          let msgIdx = 0;
+
+          auditProgressTimer = setInterval(() => {
+            currentAuditPct = Math.min(94, currentAuditPct + 4);
+            msgIdx = (msgIdx + 1) % auditStatusMessages.length;
+            const statusMsg = auditStatusMessages[msgIdx];
+            queuedTasksRef.current = queuedTasksRef.current.map((t) =>
+              t.id === targetId
+                ? { ...t, progressPercent: currentAuditPct, progressStatus: statusMsg }
+                : t
+            );
+            setQueuedTasks([...queuedTasksRef.current]);
+            if (activeTaskIdRef.current === targetId) {
+              setScanProgress({ percent: currentAuditPct, status: statusMsg });
+            }
+          }, 3000);
+
+          let audit;
+          try {
+            audit = await requestVideoAudit({
+              videoTitle: targetTitle,
+              durationSec,
+              durationFormatted,
+              strictnessMode: strictnessModeRef.current,
+              frames,
+            });
+          } finally {
+            clearInterval(auditProgressTimer);
+          }
 
           // Mark COMPLETED (Stage 5)
           queuedTasksRef.current = queuedTasksRef.current.map((t) =>
@@ -679,42 +710,59 @@ export default function App() {
       }
     }
 
-    // Step 2 & 3 visual progress
-    setScanProgress({ percent: 55, status: 'Auditing keyframe visuals for sex, nudity & strikes...' });
+    setScanProgress({ percent: 52, status: 'Gemini Vision AI: Ingesting keyframe sequence...' });
 
-    setTimeout(async () => {
-      setScanProgress({ percent: 80, status: 'Evaluating against YouTube Community Guidelines...' });
-      try {
-        const audit = await requestVideoAudit({
-          videoTitle,
-          durationSec: videoDurationSec || 20,
-          durationFormatted: formatTime(videoDurationSec || 20),
-          strictnessMode,
-          frames: framesToUse,
-        });
-        setReport(audit);
-        updateHistoryWithReport(audit, videoTitle);
-        const updated = queuedTasksRef.current.map((t) =>
-          t.id === activeTaskId
-            ? { ...t, status: 'COMPLETED' as const, report: audit, progressPercent: 100, progressStatus: 'Audit complete' }
-            : t
-        );
-        queuedTasksRef.current = updated;
-        setQueuedTasks(updated);
+    let auditTimer: any = null;
+    let auditPct = 52;
+    const auditStatusMessages = [
+      'Gemini Vision AI: Inspecting keyframe sequence...',
+      'Auditing Child Safety & Minor Endangerment zero-tolerance rules...',
+      'Screening for wild predators, dangerous stunts & physical peril...',
+      'Auditing Graphic Violence, Weapons & Adult Exposure...',
+      'Verifying opening 7-second hook & Advertiser Suitability...',
+      'Synthesizing frame timestamps & computing YouTube strike verdict...',
+    ];
+    let msgIdx = 0;
 
-        const statusMsg =
-          audit.safetyGrade === 'HIGH_STRIKE_RISK'
-            ? 'Audit complete: Critical strike risks identified!'
-            : audit.safetyGrade === 'MONETIZATION_AT_RISK'
-            ? 'Audit complete: Monetization warnings detected.'
-            : 'Audit complete! Video verified safe.';
-        setScanProgress({ percent: 100, status: statusMsg });
-      } catch (e) {
-        console.error('Audit trigger error:', e);
-      } finally {
-        setIsScanning(false);
-      }
-    }, 600);
+    auditTimer = setInterval(() => {
+      auditPct = Math.min(94, auditPct + 4);
+      msgIdx = (msgIdx + 1) % auditStatusMessages.length;
+      setScanProgress({ percent: auditPct, status: auditStatusMessages[msgIdx] });
+    }, 3500);
+
+    try {
+      const audit = await requestVideoAudit({
+        videoTitle,
+        durationSec: videoDurationSec || 20,
+        durationFormatted: formatTime(videoDurationSec || 20),
+        strictnessMode,
+        frames: framesToUse,
+      });
+      clearInterval(auditTimer);
+      setReport(audit);
+      updateHistoryWithReport(audit, videoTitle);
+      const updated = queuedTasksRef.current.map((t) =>
+        t.id === activeTaskId
+          ? { ...t, status: 'COMPLETED' as const, report: audit, progressPercent: 100, progressStatus: 'Audit complete' }
+          : t
+      );
+      queuedTasksRef.current = updated;
+      setQueuedTasks(updated);
+
+      const statusMsg =
+        audit.safetyGrade === 'HIGH_STRIKE_RISK'
+          ? 'Audit complete: Critical strike risks identified!'
+          : audit.safetyGrade === 'MONETIZATION_AT_RISK'
+          ? 'Audit complete: Monetization warnings detected.'
+          : 'Audit complete! Video verified safe.';
+      setScanProgress({ percent: 100, status: statusMsg });
+    } catch (e: any) {
+      clearInterval(auditTimer);
+      console.error('Audit trigger error:', e);
+      setScanProgress({ percent: 0, status: e?.message || 'Audit failed. Please retry.' });
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   // Seek video playback to specific seconds

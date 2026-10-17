@@ -8,9 +8,9 @@ export async function requestVideoAudit(params: {
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
   frames: ExtractedFrame[];
 }): Promise<AuditReport> {
-  // Give Gemini Vision adequate time (25 seconds) to analyze multiple frames
+  // Allow up to 3 minutes for deep multi-frame Gemini Vision analysis
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 25000);
+  const timer = setTimeout(() => controller.abort(), 180000);
 
   try {
     const res = await fetch('/api/audit', {
@@ -22,6 +22,11 @@ export async function requestVideoAudit(params: {
       body: JSON.stringify(params),
     });
     clearTimeout(timer);
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || `Server responded with HTTP ${res.status}`);
+    }
 
     const data = await res.json();
     if (data.success && data.report) {
@@ -54,7 +59,7 @@ export async function requestVideoAudit(params: {
             confidencePct: conf,
             confidenceLevel: level,
             detectionReasoning: v.detectionReasoning || `Algorithmic inspection flagged this segment with ${conf}% confidence based on YouTube policy indicators.`,
-            detectionMechanism: v.detectionMechanism || 'Visual Ingest Classifier',
+            detectionMechanism: v.detectionMechanism || 'Strike Founder Neural Vision Classifier',
           };
         }),
         averageConfidencePct: rep.averageConfidencePct || (rep.timelineViolations?.length ? 94 : undefined),
@@ -87,7 +92,12 @@ export async function requestVideoAudit(params: {
 
     throw new Error(data.error || 'Server returned invalid report format');
   } catch (err: any) {
-    console.warn('Backend API request fallback, running client-side computer vision heuristics:', err.message);
+    clearTimeout(timer);
+    console.error('Gemini Video Audit request error:', err);
+    if (err.name === 'AbortError') {
+      throw new Error('Video audit took longer than 3 minutes. Please upload a shorter clip or verify network speed.');
+    }
+    // Fall back to client heuristic report only if server unreachable
     return generateClientSideAuditReport(params);
   }
 }
@@ -175,8 +185,11 @@ function generateClientSideAuditReport(params: {
   const hasKidWords = kidKeywords.some((w) => lowerTitle.includes(w));
   const hasDangerousWords = dangerousKeywords.some((w) => lowerTitle.includes(w));
 
-  // Inspect actual frame computer vision data
+  // Inspect actual frame computer vision data & deep-pass anomalies
   const highSkinFrames = params.frames.filter((f) => (f.skinToneRatio ?? 0) > 0.28 || f.isPotentialNudity);
+  const deepAnomalyFrames = params.frames.filter(
+    (f) => f.isDeepFrame && ((f.motionBlurScore || 0) > 0.65 || (f.rapidTransitionScore || 0) > 0.45)
+  );
   const avgSkinRatio = params.frames.length > 0
     ? params.frames.reduce((acc, f) => acc + (f.skinToneRatio ?? 0), 0) / params.frames.length
     : 0;
@@ -193,6 +206,10 @@ function generateClientSideAuditReport(params: {
     grade = 'HIGH_STRIKE_RISK';
   } else if (hasKidWords && hasDangerousWords) {
     overallRisk = isStrict ? 95 : 88;
+    severity = 'CRITICAL_STRIKE';
+    grade = 'HIGH_STRIKE_RISK';
+  } else if (deepAnomalyFrames.length > 0) {
+    overallRisk = isStrict ? 86 : 78;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
   } else if (hasDangerousWords) {

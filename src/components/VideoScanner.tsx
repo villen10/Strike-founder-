@@ -450,19 +450,25 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-sans font-semibold text-slate-200 mb-2">
-                  <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-                  <span>Checking YouTube Community Guidelines</span>
+                  <Activity className="h-3.5 w-3.5 text-red-500 animate-pulse" />
+                  <span>
+                    {scanProgress.percent < 30
+                      ? 'Phase 1/3: Temporal Frame Slicing'
+                      : scanProgress.percent < 60
+                      ? 'Phase 2/3: Deep Frame & Blur Inspection'
+                      : 'Phase 3/3: Gemini AI Full Video Audit'}
+                  </span>
                 </div>
 
                 <h4 className="font-display text-base font-bold text-white">
                   Auditing Video & Audio Compliance
                 </h4>
-                <p className="mt-1 max-w-sm font-sans text-xs text-slate-300 leading-relaxed">
+                <p className="mt-1 max-w-sm font-sans text-xs text-slate-300 leading-relaxed min-h-[32px] flex items-center justify-center">
                   {scanProgress.status || 'Extracting keyframes and testing against policy rules...'}
                 </p>
 
                 {/* Clean Progress Bar */}
-                <div className="mt-4 w-64 max-w-full overflow-hidden rounded-full bg-slate-800 p-0.5 ring-1 ring-white/10">
+                <div className="mt-3 w-72 max-w-full overflow-hidden rounded-full bg-slate-800 p-0.5 ring-1 ring-white/10">
                   <motion.div
                     className="h-2 rounded-full bg-red-600"
                     initial={{ width: '0%' }}
@@ -471,8 +477,9 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                   />
                 </div>
 
-                <div className="mt-2 font-mono text-xs font-bold text-red-400">
-                  {scanProgress.percent}% Complete
+                <div className="mt-2 flex items-center justify-between w-72 max-w-full text-[11px] font-mono text-slate-400">
+                  <span className="font-bold text-red-400">{scanProgress.percent}% Complete</span>
+                  <span>Unified 3-Stage Pipeline</span>
                 </div>
               </motion.div>
             )}

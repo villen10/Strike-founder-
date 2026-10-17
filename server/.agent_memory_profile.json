@@ -1,0 +1,17 @@
+{
+  "totalAuditsRun": 9,
+  "falseNegativeCorrections": 0,
+  "policyConfidenceWeights": {
+    "SEXUAL_CONTENT": 0.99,
+    "DANGEROUS_CONTENT": 0.95,
+    "VIOLENCE_GRAPHIC": 0.92,
+    "CHILD_SAFETY": 0.99,
+    "ADVERTISER_FRIENDLY": 0.88
+  },
+  "acquiredHeuristicSkills": [
+    "Multi-window temporal chunking (1-3s, 3-6s, 6-9s)",
+    "Overlapping transition frame analysis (2-4s, 4-6s)",
+    "Skin-tone density clustering & adult platform fingerprinting"
+  ],
+  "lastCalibratedAt": "2026-10-17T03:46:04.764Z"
+}
