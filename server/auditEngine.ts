@@ -70,6 +70,19 @@ export function buildSafetyStrikeReport(params: {
     warningsCount: 0,
     summaryVerdictEn: verdictEn,
     summaryVerdictUrdu: verdictUrdu,
+    aiGeneratedTitle: isChildEndangerment
+      ? 'Toddler & Wild Crocodile Danger Audit'
+      : isSexual
+      ? 'Adult Content & Explicit Policy Review'
+      : 'Dangerous Stunt & Prohibited Conduct Audit',
+    originalFileName: params.videoTitle,
+    primaryIssueBoldText: isChildEndangerment
+      ? 'CHILD SAFETY STRIKE: Unsupervised minor in striking range of wild predatory reptile'
+      : isSexual
+      ? 'SEXUAL CONTENT STRIKE: Prohibited adult exposure & nudity'
+      : 'DANGEROUS CONTENT STRIKE: Prohibited high-risk stunt',
+    videoExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    retentionHours: 24 as const,
     timelineViolations: [
       {
         id: 'viol-strike-1',
@@ -85,27 +98,33 @@ export function buildSafetyStrikeReport(params: {
           ? 'Nudity & Sexually Explicit Content Policy'
           : 'Harmful, Dangerous & Illegal Acts Policy',
         title: isChildEndangerment
-          ? 'Severe Child Endangerment: Unsupervised Minor Near Predatory Wildlife'
+          ? 'Severe Child Endangerment: Minor Near Predatory Wildlife'
           : isSexual
-          ? 'Explicit Adult / Screen-Recorded Platform Exposure (10x Agent Verified)'
+          ? 'Explicit Adult / Screen-Recorded Platform Exposure'
           : 'Prohibited Dangerous Conduct Detected',
+        primaryIssueBoldText: isChildEndangerment
+          ? 'CHILD SAFETY STRIKE: Minor in direct danger near predator'
+          : isSexual
+          ? 'SEXUAL CONTENT STRIKE: Prohibited adult exposure'
+          : 'DANGEROUS CONDUCT STRIKE: Life-threatening action',
         youtubePolicyRef: isChildEndangerment
           ? 'YouTube Child Safety Guidelines - Minor Endangerment & Life-Threatening Hazards'
           : 'YouTube Community Guidelines - Zero Tolerance Enforcement',
         descriptionEn: isChildEndangerment
-          ? 'Advanced 10x multi-pass temporal ingestion detected an unsupervised minor child standing at the edge of a body of water within striking distance of a large predatory reptile (alligator/crocodile). YouTube enforces strict zero tolerance for content placing minors in physical danger, unmonitored wildlife hazards, or life-threatening stunts. Automated classifiers immediately issue a Community Guidelines strike and delete this upload.'
+          ? 'Advanced multi-pass temporal ingestion detected an unsupervised minor child standing at the edge of a body of water within striking distance of a large predatory reptile (alligator/crocodile). YouTube enforces strict zero tolerance for content placing minors in physical danger, unmonitored wildlife hazards, or life-threatening stunts. Automated classifiers immediately issue a Community Guidelines strike and delete this upload.'
           : 'Multi-pass temporal classifiers detected severe policy violations.',
         descriptionUrdu: isChildEndangerment
           ? 'Unsupervised child in life-threatening proximity to wild predator. Immediate YouTube strike.'
           : 'Severe guideline violation detected.',
+        frameSnapshot: firstFlaggedFrame ? firstFlaggedFrame.dataUrl : (params.frames[0]?.dataUrl || undefined),
         confidencePct: 100,
         confidenceLevel: 'VERY_HIGH' as const,
         detectionReasoning: isChildEndangerment
-          ? '10x Multi-Pass Neural Agent Consensus: Bounding box proximity analysis detected minor child and predatory reptile interaction at water edge with zero adult supervision.'
+          ? 'Multi-Pass Neural Agent Consensus: Proximity analysis detected minor child and predatory reptile interaction at water edge with zero adult supervision.'
           : 'Algorithmic classifier identified severe safety threshold violations.',
         detectionMechanism: isChildEndangerment
           ? 'Child Safety Proximity & Predator Ingestion Classifier'
-          : '10x Multi-Window Neural Ingest',
+          : 'Multi-Window Neural Ingest',
         actionableFix: {
           actionType: 'TRIM_CLIP',
           instructionsEn: 'Do NOT upload this video to YouTube. Permanent removal of the entire flagged segment is required.',
@@ -217,6 +236,10 @@ CRITICAL ZERO-TOLERANCE RULES & YOUTUBE COMMUNITY GUIDELINES:
 5. ADVERTISER SUITABILITY & OPENING HOOK (FIRST 7 SECONDS):
 - Vulgar profanity, graphic shock value, or extreme gore in the opening 7 seconds triggers instant demonetization (Yellow Dollar).
 
+CRITICAL RESULTS TYPOGRAPHY & CLARITY RULE:
+- For every violation and for primaryIssueBoldText: Express the issue in BOLD, CLEAR, EASY ENGLISH with VERY FEW PUNCHY WORDS (e.g. "DANGEROUS CHILD HAZARD: Minor handling sharp blade unattended", "PROHIBITED ADULT EXPOSURE: Explicit nudity detected", "UNSAFE STUNT: High fall hazard").
+- For aiGeneratedTitle: Provide a smart, descriptive 3-6 word YouTube video title representing the video's actual subject matter (e.g., "Toddler Wildlife Hazard Review", "Dangerous Highway Drift Stunt").
+
 AUDIT DIRECTIVE:
 Examine every provided keyframe image carefully. Note the exact timestamps.
 If you observe ANY policy violation or child safety risk in the frames:
@@ -273,7 +296,7 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
   });
 
   const ai = getAiClient();
-  const modelsToTry = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
   for (const modelName of modelsToTry) {
     try {
@@ -288,6 +311,8 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
             properties: {
               overallRiskScore: { type: Type.INTEGER, description: '0 to 100 platform risk score' },
               safetyGrade: { type: Type.STRING, description: 'SAFE_TO_UPLOAD, MONETIZATION_AT_RISK, or HIGH_STRIKE_RISK' },
+              aiGeneratedTitle: { type: Type.STRING, description: 'Smart, descriptive, concise 3-6 word YouTube video title representing the analyzed content' },
+              primaryIssueBoldText: { type: Type.STRING, description: 'Bold, punchy, easy English summary of the primary violation in under 10 words' },
               strikeProbabilityPct: { type: Type.INTEGER, description: '0 to 100 strike probability' },
               demonetizationProbabilityPct: { type: Type.INTEGER, description: '0 to 100 demonetization probability' },
               first7SecondsStatus: { type: Type.STRING, description: 'COMPLIANT, CAUTION, or FLAGGED' },
@@ -310,6 +335,7 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
                     category: { type: Type.STRING, description: 'CHILD_SAFETY, SEXUAL_CONTENT, DANGEROUS_CONTENT, VIOLENCE_GRAPHIC, HATE_SPEECH_HARASSMENT, or ADVERTISER_FRIENDLY' },
                     categoryLabel: { type: Type.STRING },
                     title: { type: Type.STRING },
+                    primaryIssueBoldText: { type: Type.STRING, description: 'Bold, clear, easy English summary of this issue in under 8 words' },
                     youtubePolicyRef: { type: Type.STRING },
                     descriptionEn: { type: Type.STRING },
                     descriptionUrdu: { type: Type.STRING },
@@ -457,6 +483,18 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
 
             const category = v.category || (v.title?.toLowerCase().includes('child') ? 'CHILD_SAFETY' : 'DANGEROUS_CONTENT');
 
+            const matchedFrame =
+              params.frames.find((f) => Math.abs(f.seconds - (v.secondsStart ?? 0)) <= 2) ||
+              params.frames.find((f) => f.timestamp === v.timestampStart) ||
+              params.frames[0];
+            const frameSnapshot = v.frameSnapshot || (matchedFrame?.dataUrl ? matchedFrame.dataUrl : undefined);
+
+            const primaryBold =
+              v.primaryIssueBoldText ||
+              (v.severity === 'CRITICAL_STRIKE'
+                ? `CRITICAL STRIKE: ${v.title.slice(0, 45)}`
+                : `POLICY WARNING: ${v.title.slice(0, 45)}`);
+
             return {
               ...v,
               id: v.id || `viol-${idx + 1}`,
@@ -465,6 +503,8 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
               severity: v.severity || (category === 'CHILD_SAFETY' ? 'CRITICAL_STRIKE' : 'DEMONETIZATION_WARNING'),
               confidencePct: conf,
               confidenceLevel: v.confidenceLevel || level,
+              frameSnapshot,
+              primaryIssueBoldText: primaryBold,
               detectionReasoning: v.detectionReasoning || `${v.title}: Visual analysis identified platform policy infraction with ${conf}% confidence.`,
               detectionMechanism: v.detectionMechanism || 'Strike Founder Neural Vision Classifier',
             };
@@ -486,6 +526,21 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
             borderlineCount: borderline,
           };
         }
+
+        parsed.originalFileName = params.videoTitle;
+        parsed.aiGeneratedTitle =
+          parsed.aiGeneratedTitle ||
+          (parsed.totalIssuesCount > 0
+            ? (parsed.timelineViolations?.[0]?.title || 'Policy & Compliance Video Review')
+            : params.videoTitle.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]/g, ' ') + ' · Verified Safe');
+        parsed.primaryIssueBoldText =
+          parsed.primaryIssueBoldText ||
+          (parsed.timelineViolations?.[0]?.primaryIssueBoldText ||
+            (parsed.totalIssuesCount === 0
+              ? 'CLEAN: All temporal keyframes verified compliant for YouTube monetization'
+              : 'POLICY STRIKE HAZARD: Guidelines remediation needed'));
+        parsed.videoExpiresAt = Date.now() + 24 * 60 * 60 * 1000;
+        parsed.retentionHours = 24;
 
         selfCalibrateAgent({
           videoTitle: params.videoTitle,

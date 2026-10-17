@@ -32,6 +32,11 @@ import { FrameAnalysisProgress } from './FrameAnalysisProgress';
 interface VideoScannerProps {
   currentVideoUrl: string | null;
   videoTitle: string;
+  originalFileName?: string;
+  aiGeneratedTitle?: string;
+  videoExpiresAt?: number;
+  isVideoDeleted?: boolean;
+  onDeleteVideoMedia?: () => void;
   videoDurationSec: number;
   isScanning: boolean;
   scanProgress: { percent: number; status: string };
@@ -63,6 +68,11 @@ interface VideoScannerProps {
 export const VideoScanner: React.FC<VideoScannerProps> = ({
   currentVideoUrl,
   videoTitle,
+  originalFileName,
+  aiGeneratedTitle,
+  videoExpiresAt,
+  isVideoDeleted,
+  onDeleteVideoMedia,
   videoDurationSec,
   isScanning,
   scanProgress,
@@ -350,91 +360,127 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               : 'border-slate-800 bg-slate-900 text-slate-100'
           }`}
         >
-          {/* Header Video Title & Duration */}
-          <div className="flex items-center justify-between gap-3 min-w-0">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-600/10 text-red-600">
-                <FileVideo className="h-4 w-4" />
+          {/* PlayScreen Header: AI Title, Real Filename, & Auto-Delete Policy */}
+          <div className="flex flex-col gap-2 border-b pb-3.5 border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-600/10 text-red-600 mt-0.5">
+                  <FileVideo className="h-4.5 w-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-red-600/10 dark:bg-red-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-red-600 dark:text-red-400 uppercase">
+                      <Sparkles className="h-3 w-3" />
+                      PlayScreen Active
+                    </span>
+                    {originalFileName && (
+                      <span className="font-mono text-[11px] text-slate-500 truncate" title={`Original file: ${originalFileName}`}>
+                        📁 File: {originalFileName}
+                      </span>
+                    )}
+                  </div>
+                  <h3
+                    className={`truncate font-display text-base sm:text-lg font-black tracking-tight ${
+                      isLight ? 'text-slate-900' : 'text-white'
+                    }`}
+                    title={aiGeneratedTitle || videoTitle || 'Ready to audit'}
+                  >
+                    {aiGeneratedTitle || videoTitle || 'Ready to Play & Audit'}
+                  </h3>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3
-                  className={`truncate font-display text-sm sm:text-base font-bold ${
-                    isLight ? 'text-slate-900' : 'text-white'
-                  }`}
-                  title={videoTitle || 'Ready to audit'}
+
+              {/* Status Badges: Duration & Auto-Delete Timer */}
+              <div className="flex items-center gap-2 shrink-0">
+                {videoDurationSec > 0 && (
+                  <span
+                    className={`rounded-xl px-2.5 py-1 font-mono text-xs font-bold ${
+                      isLight ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-slate-800 text-slate-300'
+                    }`}
+                  >
+                    {formatTime(currentTime)} / {formatTime(videoDurationSec)}
+                  </span>
+                )}
+
+                {/* Auto-delete 24h retention badge */}
+                <div
+                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold"
+                  title="Video media automatically purges in 24 hours to protect privacy and storage. Full audit results and keyframe snapshots remain saved permanently."
                 >
-                  {videoTitle || 'No Video Selected'}
-                </h3>
-                <p className="font-sans text-[11px] text-slate-500 truncate">
-                  {currentVideoUrl ? 'Loaded from browser storage' : 'Drop video or browse file'}
-                </p>
+                  <Clock className="h-3 w-3" />
+                  <span>Auto-Delete: 24h</span>
+                </div>
+
+                {onDeleteVideoMedia && currentVideoUrl && (
+                  <button
+                    type="button"
+                    onClick={onDeleteVideoMedia}
+                    className="rounded-xl border border-slate-200 dark:border-slate-800 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+                    title="Free video storage now (audit results stay saved forever)"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
-
-            {videoDurationSec > 0 && (
-              <span
-                className={`shrink-0 rounded-xl px-2.5 py-1 font-mono text-xs font-bold ${
-                  isLight ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-slate-800 text-slate-300'
-                }`}
-              >
-                {formatTime(currentTime)} / {formatTime(videoDurationSec)}
-              </span>
-            )}
           </div>
 
-          {/* Video Preview Canvas / Video Tag */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-slate-800/80 shadow-inner">
+          {/* Video Preview Canvas / Video Tag (User plays directly with zero blocking buttons) */}
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black ring-1 ring-slate-800/80 shadow-inner group">
             {currentVideoUrl ? (
               <video
                 ref={videoRef}
                 src={currentVideoUrl}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={() => setIsPlaying(false)}
-                className="h-full w-full object-contain"
+                className="h-full w-full object-contain cursor-pointer"
                 playsInline
                 controls
               />
+            ) : isVideoDeleted ? (
+              <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-300">
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/30">
+                  <Clock className="h-7 w-7" />
+                </div>
+                <p className="font-display text-sm font-bold text-white">
+                  Video File Auto-Removed (Retention Expired)
+                </p>
+                <p className="mt-1 max-w-sm font-sans text-xs text-slate-400 leading-relaxed">
+                  The heavy video file was automatically cleaned to protect creator privacy and save local storage. All audit results, timestamps, AI title, and keyframe snapshots remain permanently preserved.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-4 flex items-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 py-2 font-sans text-xs font-bold transition cursor-pointer"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>Upload Video to PlayScreen</span>
+                </button>
+              </div>
             ) : (
               <div
-                className={`flex h-full w-full flex-col items-center justify-center p-6 text-center ${
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex h-full w-full flex-col items-center justify-center p-6 text-center cursor-pointer transition hover:bg-slate-900 ${
                   isLight ? 'bg-slate-900 text-slate-300' : 'bg-slate-950 text-slate-400'
                 }`}
               >
                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-red-500 ring-1 ring-slate-700 shadow-sm">
                   <Film className="h-7 w-7" />
                 </div>
-                <p className="font-display text-sm font-bold text-white">
-                  Video Preview Screen
+                <p className="font-display text-base font-bold text-white">
+                  PlayScreen: Upload Video Here
                 </p>
                 <p className="mt-1 max-w-xs font-sans text-xs text-slate-400">
-                  Select a video file from your computer or choose an instant test scenario
+                  Click or drag video directly to play yourself, scrub frames, and audit
                 </p>
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="mt-4 flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 font-sans text-xs font-bold transition cursor-pointer"
+                  className="mt-4 flex items-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 py-2 font-sans text-xs font-bold transition"
                 >
                   <Upload className="h-3.5 w-3.5" />
                   <span>Choose Video File</span>
                 </button>
               </div>
-            )}
-
-            {/* Play/Pause Center Overlay */}
-            {currentVideoUrl && (
-              <button
-                onClick={togglePlay}
-                className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition hover:opacity-100 focus:opacity-100"
-                aria-label="Toggle playback"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900/90 text-white shadow-xl backdrop-blur-sm transition hover:scale-105">
-                  {isPlaying ? (
-                    <Pause className="h-5 w-5" />
-                  ) : (
-                    <Play className="ml-0.5 h-5 w-5 fill-current" />
-                  )}
-                </div>
-              </button>
             )}
 
             {/* Professional, Clean Scanning Overlay (No cheap AI slop or lasers) */}

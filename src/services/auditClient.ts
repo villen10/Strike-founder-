@@ -273,6 +273,15 @@ function generateClientSideAuditReport(params: {
   return {
     id: 'report-' + Date.now(),
     videoTitle: params.videoTitle,
+    originalFileName: params.videoTitle,
+    aiGeneratedTitle: violations.length > 0
+      ? (violations[0]?.title || 'Policy & Compliance Video Review')
+      : params.videoTitle.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]/g, ' ') + ' · Clean Audit',
+    primaryIssueBoldText: violations.length > 0
+      ? (violations[0]?.primaryIssueBoldText || (violations[0]?.severity === 'CRITICAL_STRIKE' ? `CRITICAL STRIKE: ${violations[0]?.title}` : `POLICY WARNING: ${violations[0]?.title}`))
+      : 'CLEAN: All temporal keyframes safe to monetize',
+    videoExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    retentionHours: 24 as const,
     videoDurationSec: params.durationSec,
     durationFormatted: params.durationFormatted,
     overallRiskScore: overallRisk,

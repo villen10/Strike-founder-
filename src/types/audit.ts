@@ -58,12 +58,18 @@ export interface PolicyViolation {
   confidenceLevel: ConfidenceLevel; // 'VERY_HIGH' | 'HIGH' | 'MEDIUM' | 'BORDERLINE'
   detectionReasoning?: string; // Clear explanation of why the model flagged this segment
   detectionMechanism?: string; // e.g. "Neural Vision Ingest", "Acoustic Spectral Analysis", "Kinetic Motion Vector"
+  primaryIssueBoldText?: string; // Bold clear English summary in very few punchy words
   actionableFix: ActionableFix;
 }
 
 export interface AuditReport {
   id: string;
   videoTitle: string;
+  aiGeneratedTitle?: string; // Smart descriptive AI title given to the video
+  originalFileName?: string; // Real uploaded filename (e.g. "IMG_8291.mp4")
+  videoExpiresAt?: number; // Auto-deletion timestamp (12h or 24h retention)
+  isVideoDeleted?: boolean; // Video blob deleted to save storage, results kept
+  retentionHours?: 12 | 24;
   videoDurationSec: number;
   durationFormatted: string;
   overallRiskScore: number; // 0-100 (higher = more danger)
@@ -83,6 +89,7 @@ export interface AuditReport {
   warningsCount: number;
   summaryVerdictEn: string;
   summaryVerdictUrdu: string;
+  primaryIssueBoldText?: string; // Bold easy English summary of the main violation
   timelineViolations: PolicyViolation[];
   categoryScores: {
     childSafety: number;
@@ -122,8 +129,13 @@ export interface QueuedVideoTask {
   file?: File;
   sampleId?: string;
   title: string;
+  originalFileName?: string;
+  aiGeneratedTitle?: string;
   fileSizeFormatted?: string;
   videoUrl: string | null;
+  videoExpiresAt?: number;
+  isVideoDeleted?: boolean;
+  retentionHours?: 12 | 24;
   durationSec: number;
   durationFormatted: string;
   status: QueueTaskStatus;

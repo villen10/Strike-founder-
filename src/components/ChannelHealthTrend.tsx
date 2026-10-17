@@ -33,9 +33,17 @@ export interface HistoricalUploadRecord {
   index: number;
   date: string;
   title: string;
+  aiGeneratedTitle?: string;
+  originalFileName?: string;
   complianceScore: number; // 0 to 100 (100 is fully compliant/safe)
   status: 'SAFE_TO_UPLOAD' | 'MONETIZATION_AT_RISK' | 'HIGH_STRIKE_RISK';
   issuesCount: number;
+  videoUrl?: string | null;
+  videoExpiresAt?: number;
+  isVideoDeleted?: boolean;
+  primaryIssueBoldText?: string;
+  primaryIssueSnapshot?: string;
+  report?: any;
 }
 
 interface ChannelHealthTrendProps {
