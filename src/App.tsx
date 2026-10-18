@@ -633,15 +633,16 @@ export default function App() {
   const handleAuditVideoFromChannel = async (title: string, url: string) => {
     setCurrentView('scanner');
     setVideoTitle(title);
-    setCurrentVideoUrl(null);
+    setCurrentVideoUrl(url);
     setCurrentTime(0);
     setIsFullScreenAnalysisOpen(true);
     setIsScanning(true);
-    setScanProgress({ percent: 25, status: `Auditing channel video: "${title}"...` });
+    setScanProgress({ percent: 25, status: `Checking YouTube strike risks for: "${title}"...` });
 
     try {
       const audit = await requestVideoAudit({
         videoTitle: title,
+        videoUrl: url,
         durationSec: 60,
         durationFormatted: '01:00',
         strictnessMode: strictnessModeRef.current,
@@ -649,7 +650,7 @@ export default function App() {
       });
       setReport(audit);
       setIsScanning(false);
-      setScanProgress({ percent: 100, status: 'Audit complete!' });
+      setScanProgress({ percent: 100, status: 'Strike risk check complete!' });
       updateHistoryWithReport(audit, title);
     } catch (e: any) {
       console.error('Audit from channel failed:', e);

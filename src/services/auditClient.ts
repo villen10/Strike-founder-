@@ -3,6 +3,7 @@ import { ExtractedFrame } from './frameExtractor';
 
 export async function requestVideoAudit(params: {
   videoTitle: string;
+  videoUrl?: string;
   durationSec: number;
   durationFormatted: string;
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';

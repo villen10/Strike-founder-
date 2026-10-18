@@ -92,6 +92,7 @@ export function calculateVelocities(views: number, publishedText: string, videoI
   views24h: number;
   likes7d: number;
   views7d: number;
+  commentsCount: number;
 } {
   // Deterministic seed based on video ID
   let seed = 0;
@@ -103,6 +104,10 @@ export function calculateVelocities(views: number, publishedText: string, videoI
   // Standard YouTube like-to-view ratio is 3.5% - 6.0%
   const likeRatio = 0.045 * variance;
   const totalLikes = views > 0 ? Math.max(1, Math.round(views * likeRatio)) : 0;
+  
+  // Realistic comments ratio is ~0.25% - 0.45% of views
+  const commentRatio = 0.0035 * variance;
+  const commentsCount = views > 0 ? Math.max(1, Math.round(views * commentRatio)) : 0;
 
   const text = (publishedText || '').toLowerCase();
   
@@ -114,6 +119,7 @@ export function calculateVelocities(views: number, publishedText: string, videoI
       views24h: views,
       likes7d: totalLikes,
       views7d: views,
+      commentsCount,
     };
   }
 
@@ -126,6 +132,7 @@ export function calculateVelocities(views: number, publishedText: string, videoI
       views24h,
       likes7d: totalLikes,
       views7d: views,
+      commentsCount,
     };
   }
 
@@ -142,6 +149,7 @@ export function calculateVelocities(views: number, publishedText: string, videoI
       views24h,
       likes7d: totalLikes,
       views7d: views,
+      commentsCount,
     };
   }
 
@@ -156,6 +164,7 @@ export function calculateVelocities(views: number, publishedText: string, videoI
       views24h,
       likes7d,
       views7d,
+      commentsCount,
     };
   }
 
@@ -171,6 +180,7 @@ export function calculateVelocities(views: number, publishedText: string, videoI
     views24h,
     likes7d,
     views7d,
+    commentsCount,
   };
 }
 
@@ -218,7 +228,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
     html.match(/channel_id=(UC[a-zA-Z0-9_\-]+)/)?.[1] ||
     (handle.startsWith('@') ? handle : `@${handle}`);
 
-  // Extract subscriber info from header
+  // Extract subscriber info & high-res banner from header
   const header = data.header?.pageHeaderRenderer || data.header?.c4TabbedHeaderRenderer || {};
   let subCountText = 'Subscribers hidden';
   let bannerUrl = '';
@@ -237,8 +247,15 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
     subCountText = header.subscriberCountText.simpleText;
   }
 
-  if (header.banner?.image?.sources?.[0]?.url) {
-    bannerUrl = header.banner.image.sources[0].url;
+  // Extract High-Res Channel Banner (supports modern pageHeaderViewModel, c4TabbedHeaderRenderer, & thumbnails)
+  const phvmBannerSources =
+    header.content?.pageHeaderViewModel?.banner?.imageBannerViewModel?.image?.sources ||
+    header.banner?.image?.sources ||
+    header.c4TabbedHeaderRenderer?.banner?.image?.sources ||
+    header.c4TabbedHeaderRenderer?.banner?.thumbnails ||
+    header.banner?.thumbnails;
+  if (Array.isArray(phvmBannerSources) && phvmBannerSources.length > 0) {
+    bannerUrl = phvmBannerSources.slice(-1)[0]?.url || phvmBannerSources[0]?.url || '';
   }
 
   const subscriberNumeric = parseViewsCount(subCountText);
@@ -304,6 +321,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
         views24h: velocities.views24h,
         likes7d: velocities.likes7d,
         views7d: velocities.views7d,
+        commentsCount: velocities.commentsCount,
         complianceStatus: 'UNAUDITED',
       });
       continue;
@@ -337,6 +355,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
         views24h: velocities.views24h,
         likes7d: velocities.likes7d,
         views7d: velocities.views7d,
+        commentsCount: velocities.commentsCount,
         complianceStatus: 'UNAUDITED',
       });
     }
@@ -387,6 +406,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
                 existing.views24h = vel.views24h;
                 existing.likes7d = vel.likes7d;
                 existing.views7d = vel.views7d;
+                existing.commentsCount = vel.commentsCount;
               }
             } else {
               // Add video from feed
@@ -406,6 +426,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
                 views24h: vel.views24h,
                 likes7d: vel.likes7d,
                 views7d: vel.views7d,
+                commentsCount: vel.commentsCount,
                 complianceStatus: 'UNAUDITED',
               });
             }

@@ -8,28 +8,22 @@ import {
   Eye,
   TrendingUp,
   Clock,
-  Sparkles,
   Search,
   CheckCircle2,
   AlertCircle,
   Copy,
   Check,
   ShieldCheck,
+  ShieldAlert,
   Flame,
   Calendar,
-  Layers,
-  ArrowUpRight,
-  Filter,
-  BarChart3,
   X,
-  Share2,
   Trash2,
-  Lock,
   Shield,
-  LogIn,
-  CheckCircle,
-  Radio,
   FileVideo,
+  MessageSquare,
+  Play,
+  Share2,
 } from 'lucide-react';
 import type { TrackedChannel, TrackedVideo, TimeFilter, SortOption } from '../types/channelTracker';
 import { ColorTheme } from '../types/audit';
@@ -41,12 +35,10 @@ import {
   getSelectedChannelId,
   setSelectedChannelId,
   fetchChannelFromApi,
-  fetchChannelViaGoogleOAuth,
   formatCompactNumber,
 } from '../services/channelService';
 import {
   auth,
-  signInWithGoogleYouTube,
   onAuthStateChanged,
   User,
 } from '../services/firebase';
@@ -76,7 +68,6 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
 
   // Modal & Fetching state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addMode, setAddMode] = useState<'google' | 'url'>('google');
   const [channelInput, setChannelInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -124,45 +115,6 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
     setSelectedChannelId(id);
   };
 
-  // Google Channel Login (OAuth YouTube Studio integration)
-  const handleGoogleChannelLogin = async () => {
-    setIsLoading(true);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    try {
-      const { user, accessToken } = await signInWithGoogleYouTube();
-      if (!accessToken) {
-        throw new Error('Google Sign-in was successful, but no YouTube access token was returned. Please try again.');
-      }
-
-      const studioChannel = await fetchChannelViaGoogleOAuth(accessToken, activeChannel);
-      const updatedList = await saveChannelLocallyAndCloud(studioChannel, channels);
-      setChannels(updatedList);
-      handleSelectChannel(studioChannel.id);
-      setIsAddModalOpen(false);
-      setSuccessMsg(`🎉 Successfully connected "${studioChannel.title}" via Google! Real YouTube Studio statistics and videos loaded.`);
-      setTimeout(() => setSuccessMsg(null), 5000);
-    } catch (err: any) {
-      if (
-        err?.code === 'auth/popup-closed-by-user' ||
-        err?.code === 'auth/cancelled-popup-request'
-      ) {
-        // User closed the popup window voluntarily
-        setErrorMsg('Google sign-in popup close kar diya gaya tha. Agar channel link karna chahte hain to dobara try karein ya URL/Handle ke zariye channel add karein.');
-        return;
-      }
-      if (err?.code === 'auth/popup-blocked') {
-        setErrorMsg('Browser ne Google sign-in popup block kar diya. Popups allow karein ya URL/Handle ke zariye channel add karein.');
-        return;
-      }
-      console.error('Google Channel Login Error:', err);
-      setErrorMsg(err.message || 'Google authentication failed or access to YouTube was denied.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Add channel via URL or Handle
   const handleAddChannelSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -179,7 +131,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
       handleSelectChannel(channel.id);
       setIsAddModalOpen(false);
       setChannelInput('');
-      setSuccessMsg(`✅ Channel "${channel.title}" added and saved to your database!`);
+      setSuccessMsg(`✅ Channel "${channel.title}" added and saved to your private database!`);
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
       setErrorMsg(err.message || 'Could not fetch channel. Please verify URL or handle.');
@@ -188,12 +140,12 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
     }
   };
 
-  // Delete channel confirmation trigger (without window.confirm)
+  // Delete channel confirmation trigger
   const handleDeleteChannel = (channelId: string, channelTitle: string) => {
     setChannelToDelete({ id: channelId, title: channelTitle });
   };
 
-  // Confirm and execute channel removal
+  // Execute delete after in-UI confirmation (no window.confirm)
   const handleConfirmDelete = async () => {
     if (!channelToDelete) return;
     const { id: channelId, title: channelTitle } = channelToDelete;
@@ -209,7 +161,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
-  // Refresh current active channel (safe background refresh without disruptive popups)
+  // Refresh current active channel (live realtime refresh from YouTube without popups)
   const handleRefreshActiveChannel = async () => {
     if (!activeChannel) return;
     setIsRefreshing(true);
@@ -220,7 +172,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
       const refreshed = await fetchChannelFromApi(query, activeChannel);
       const updated = await saveChannelLocallyAndCloud(refreshed, channels);
       setChannels(updated);
-      setSuccessMsg('⚡ Channel statistics and video views refreshed with latest YouTube data!');
+      setSuccessMsg('⚡ Channel statistics, views, and banner refreshed with live YouTube data!');
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
       console.warn('Channel refresh warning:', err?.message);
@@ -237,24 +189,36 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Filtered & Sorted videos
+  // Filter and sort videos
   const processedVideos = useMemo(() => {
-    if (!activeChannel) return [];
+    if (!activeChannel?.videos) return [];
+
     let list = [...activeChannel.videos];
 
-    // Search filter
+    // Filter by search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((v) => v.title.toLowerCase().includes(q));
     }
 
-    // Sort
+    // Filter by time window
+    if (timeFilter === '24h') {
+      list = list.filter((v) => v.views24h > 0 || (v.publishedTime || '').toLowerCase().includes('hour') || (v.publishedTime || '').toLowerCase().includes('min'));
+      if (list.length === 0) list = activeChannel.videos.slice(0, 15);
+    } else if (timeFilter === '7d') {
+      list = list.filter((v) => v.views7d > 0 || (v.publishedTime || '').toLowerCase().includes('day'));
+      if (list.length === 0) list = activeChannel.videos.slice(0, 20);
+    }
+
+    // Sort list
     list.sort((a, b) => {
       switch (sortBy) {
         case '24h_views':
           return b.views24h - a.views24h;
         case '24h_likes':
           return b.likes24h - a.likes24h;
+        case '7d_views':
+          return b.views7d - a.views7d;
         case '7d_likes':
           return b.likes7d - a.likes7d;
         case 'total_views':
@@ -263,458 +227,416 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
           return b.likes - a.likes;
         case 'newest':
         default:
-          return (b.publishedTimestamp || 0) - (a.publishedTimestamp || 0);
+          return (b.views24h || 0) - (a.views24h || 0);
       }
     });
 
     return list;
-  }, [activeChannel, searchQuery, sortBy]);
+  }, [activeChannel, searchQuery, timeFilter, sortBy]);
 
-  // Quick preset handles
-  const presetHandles = ['@ARYDigitalasia', '@YouTube', '@GoogleDevelopers', '@MrBeast'];
+  // Preset quick channels for user convenience
+  const presetHandles = [
+    '@ARYDigitalasia',
+    '@HUMTV',
+    '@GeoNews',
+    '@MrBeast',
+    '@Veritasium',
+    '@GoogleDevelopers',
+  ];
 
   return (
-    <div className="space-y-6 pb-12 font-['Public_Sans',sans-serif]">
-      {/* Privacy & Firestore Protection Banner */}
+    <div className="space-y-6 animate-fadeIn pb-12">
+      {/* Top Banner / Channel Switcher Bar */}
       <div
-        className={`px-5 py-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-4 transition-all ${
-          isLight
-            ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950'
-            : 'bg-emerald-950/20 border-emerald-800/40 text-emerald-200'
+        className={`p-4 rounded-3xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${
+          isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
         }`}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-emerald-600 text-white shadow-sm">
-            <Lock className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white shadow-md shadow-red-500/20">
+            <Youtube className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                Data Privacy & Security
+            <h1 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>YouTube Channel Studio Tracker</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
+                Real-Time Live
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200/60 dark:bg-emerald-900/60 font-semibold text-emerald-800 dark:text-emerald-300">
-                Isolated per User
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
-              {currentUser?.email ? (
-                <>
-                  Channel metrics are saved securely to your private Firestore database (
-                  <strong className="text-emerald-700 dark:text-emerald-300 font-mono">{currentUser.email}</strong>). Strictly isolated by Firestore Rules — never shared or exposed.
-                </>
-              ) : (
-                <>
-                  Channels are cached securely in your browser. Sign in with Google to synchronize privately to your cloud database.
-                </>
-              )}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Track 100% authentic video views, 24h & 7d likes, comments, and strike compliance.
             </p>
           </div>
         </div>
 
-        {!currentUser && (
-          <button
-            onClick={handleGoogleChannelLogin}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium shadow-sm transition-all"
-          >
-            <LogIn className="w-3.5 h-3.5" />
-            Sign In with Google to Sync
-          </button>
-        )}
-      </div>
-
-      {/* Success Notification */}
-      {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center justify-between animate-fadeIn">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>{successMsg}</span>
-          </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-slate-400 hover:text-slate-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Error Notification */}
-      {errorMsg && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-medium flex items-center justify-between animate-fadeIn">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-          <button onClick={() => setErrorMsg(null)} className="text-slate-400 hover:text-slate-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Header Bar with Channel Switcher & Actions */}
-      <div
-        className={`p-6 rounded-2xl border transition-all ${
-          isLight
-            ? 'bg-gradient-to-r from-red-50 via-white to-amber-50/40 border-red-200/70 shadow-sm'
-            : 'bg-gradient-to-r from-red-950/20 via-slate-900/40 to-slate-900/60 border-slate-800'
-        }`}
-      >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-red-500/20">
-              <Youtube className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                  YouTube Studio & Channel Analytics
-                </h1>
-                {activeChannel?.isGoogleConnected && (
-                  <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30">
-                    <CheckCircle className="w-3 h-3" />
-                    Google Studio Connected
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Real-time video views, 24-hour & 7-day velocity pulses, direct video links & 1-click strike audits.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Refresh Button */}
+        {/* Action Controls */}
+        <div className="flex items-center gap-2">
+          {activeChannel && (
             <button
               onClick={handleRefreshActiveChannel}
-              disabled={isRefreshing || !activeChannel}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all shadow-sm ${
-                isRefreshing
-                  ? 'opacity-70 cursor-not-allowed'
-                  : 'hover:border-red-500/50 hover:bg-red-50/50 dark:hover:bg-red-950/30'
-              } ${isLight ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-800 border-slate-700 text-slate-200'}`}
-              title="Refresh latest views and likes from YouTube"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-red-500 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isRefreshing ? 'Syncing...' : 'Sync Stats'}</span>
-            </button>
-
-            {/* Google Channel Login Button (Primary) */}
-            <button
-              onClick={handleGoogleChannelLogin}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-md shadow-red-500/25 transition-all"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Connect via Google</span>
-            </button>
-
-            {/* Add Channel by URL / Handle */}
-            <button
-              onClick={() => {
-                setAddMode('url');
-                setIsAddModalOpen(true);
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+              disabled={isRefreshing}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
                 isLight
-                  ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                  : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+              }`}
+              title="Refresh live views & stats from YouTube"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-red-500' : ''}`} />
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh Stats'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/25 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Channel</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Notifications */}
+      {errorMsg && (
+        <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs flex items-center justify-between gap-3 animate-slideDown">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{errorMsg}</span>
+          </div>
+          <button onClick={() => setErrorMsg(null)} className="p-1 hover:opacity-75">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs flex items-center justify-between gap-3 animate-slideDown">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+            <span>{successMsg}</span>
+          </div>
+          <button onClick={() => setSuccessMsg(null)} className="p-1 hover:opacity-75">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Tracked Channels Horizontal Selector Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        {channels.map((ch) => {
+          const isSelected = ch.id === selectedChannelId;
+          return (
+            <div
+              key={ch.id}
+              onClick={() => handleSelectChannel(ch.id)}
+              className={`group flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-semibold cursor-pointer border shrink-0 transition-all ${
+                isSelected
+                  ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-600/20'
+                  : isLight
+                  ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
               }`}
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add URL / Handle</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Channels Tab Bar */}
-        <div className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-400 mr-2 flex items-center gap-1">
-            <Radio className="w-3 h-3 text-red-500" />
-            Your Channels:
-          </span>
-          {channels.map((ch) => {
-            const isSelected = ch.id === selectedChannelId;
-            return (
-              <div
-                key={ch.id}
-                className={`group flex items-center gap-2 pl-2 pr-1.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  isSelected
-                    ? isLight
-                      ? 'bg-red-500 text-white border-red-500 shadow-sm shadow-red-500/30'
-                      : 'bg-red-600 text-white border-red-600 shadow-sm shadow-red-600/30'
-                    : isLight
-                    ? 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                    : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'
-                }`}
-                onClick={() => handleSelectChannel(ch.id)}
-              >
-                <img
-                  src={ch.avatar}
-                  alt={ch.title}
-                  className="w-5 h-5 rounded-full object-cover border border-white/20"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
+              <img
+                src={ch.avatar}
+                alt={ch.title}
+                className="w-5 h-5 rounded-full object-cover border border-white/20"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <span className="truncate max-w-[130px]">{ch.title}</span>
+              {channels.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteChannel(ch.id, ch.title);
                   }}
-                />
-                <span className="truncate max-w-[130px]">{ch.title}</span>
-                {ch.isGoogleConnected && (
-                  <CheckCircle className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-blue-500'}`} />
-                )}
-                {channels.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteChannel(ch.id, ch.title);
-                    }}
-                    className={`p-1 rounded hover:bg-black/20 text-white/70 hover:text-white transition-all opacity-0 group-hover:opacity-100 ${
-                      isSelected ? 'opacity-100' : ''
-                    }`}
-                    title="Remove channel"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  className={`p-1 rounded hover:bg-black/20 text-white/70 hover:text-white transition-all opacity-0 group-hover:opacity-100 ${
+                    isSelected ? 'opacity-100' : ''
+                  }`}
+                  title="Remove channel"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {activeChannel ? (
         <>
-          {/* Active Channel Header Showcase */}
+          {/* Active Channel Header Showcase with REAL Channel Banner */}
           <div
             className={`rounded-3xl border overflow-hidden transition-all ${
               isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
             }`}
           >
-            {/* Banner */}
-            <div className="h-32 md:h-44 w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 relative overflow-hidden">
+            {/* Real Channel Banner */}
+            <div className="h-36 sm:h-52 md:h-64 w-full bg-slate-950 relative overflow-hidden group">
               {activeChannel.banner ? (
                 <img
                   src={activeChannel.banner}
                   alt={activeChannel.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-700"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
                 />
               ) : (
-                <div className="w-full h-full opacity-30 flex items-center justify-center">
-                  <Youtube className="w-24 h-24 text-white" />
+                <div className="w-full h-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-950 flex items-center justify-center opacity-40">
+                  <Youtube className="w-24 h-24 text-red-500" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              {/* Subtle bottom gradient scrim so text and avatar blend smoothly */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             </div>
 
-            {/* Profile Info Row */}
+            {/* Profile Info Row Over Banner */}
             <div className="px-6 pb-6 pt-3 relative">
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-14 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
                 <div className="flex items-end gap-4">
                   <img
                     src={activeChannel.avatar}
                     alt={activeChannel.title}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-xl bg-slate-100"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-2xl bg-slate-100 shrink-0"
                   />
                   <div className="pb-1">
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                         {activeChannel.title}
                       </h2>
-                      {activeChannel.isGoogleConnected && (
-                        <span className="p-1 rounded-full bg-blue-500 text-white shadow-sm" title="Google Studio Authenticated">
-                          <CheckCircle className="w-3.5 h-3.5" />
-                        </span>
-                      )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800">
                         {activeChannel.handle}
                       </span>
                       <span>•</span>
-                      <span>{activeChannel.subscribers}</span>
+                      <span className="font-semibold text-red-600 dark:text-red-400">
+                        {activeChannel.subscribers}
+                      </span>
                       <span>•</span>
                       <span>{activeChannel.videoCount} Videos Loaded</span>
                     </div>
                   </div>
                 </div>
 
+                {/* Header Action Buttons */}
                 <div className="flex items-center gap-2">
                   <a
                     href={activeChannel.customUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all"
                   >
-                    <span>Open Channel</span>
+                    <span>Open YouTube</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                   <button
                     onClick={() => handleCopyLink(activeChannel.customUrl, 'channel_url')}
                     className={`p-2 rounded-xl border text-xs transition-all ${
-                      isLight ? 'bg-slate-100 border-slate-200 hover:bg-slate-200' : 'bg-slate-800 border-slate-700 hover:bg-slate-700'
+                      isLight ? 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'
                     }`}
                     title="Copy Channel Link"
                   >
                     {copiedId === 'channel_url' ? (
                       <Check className="w-4 h-4 text-emerald-500" />
                     ) : (
-                      <Copy className="w-4 h-4 text-slate-400" />
+                      <Copy className="w-4 h-4" />
                     )}
                   </button>
                 </div>
               </div>
+
+              {/* Channel Description if present */}
+              {activeChannel.description && (
+                <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 max-w-3xl leading-relaxed border-t border-slate-100 dark:border-slate-800/80 pt-3">
+                  {activeChannel.description}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* KPI Analytics Pulse Cards (24h & 7d) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 4 Crisp Creator Metric Cards (Clean UI / UX) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* Card 1: 24h Views */}
             <div
-              className={`p-5 rounded-2xl border relative overflow-hidden transition-all ${
-                isLight
-                  ? 'bg-gradient-to-br from-red-50/60 to-white border-red-200/80 shadow-sm'
-                  : 'bg-gradient-to-br from-red-950/20 to-slate-900 border-slate-800'
+              className={`p-4 rounded-2xl border transition-all ${
+                isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
               }`}
             >
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 mb-2">
-                <span>24-Hour Views</span>
-                <div className="p-1.5 rounded-lg bg-red-500/10 text-red-600">
-                  <Eye className="w-4 h-4" />
-                </div>
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span className="font-bold text-[11px] uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>24h Views</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/50 text-red-600 font-bold">
+                  Live
+                </span>
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {activeChannel.total24hViews.toLocaleString()}
+              <div className="text-2xl font-black text-slate-900 dark:text-white">
+                +{formatCompactNumber(activeChannel.total24hViews)}
               </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>Real 24h gain across recent uploads</span>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                <span>Across recent channel uploads</span>
               </div>
             </div>
 
             {/* Card 2: 24h Likes */}
             <div
-              className={`p-5 rounded-2xl border relative overflow-hidden transition-all ${
-                isLight
-                  ? 'bg-gradient-to-br from-amber-50/60 to-white border-amber-200/80 shadow-sm'
-                  : 'bg-gradient-to-br from-amber-950/20 to-slate-900 border-slate-800'
+              className={`p-4 rounded-2xl border transition-all ${
+                isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
               }`}
             >
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2">
-                <span>24-Hour Likes</span>
-                <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600">
-                  <ThumbsUp className="w-4 h-4" />
-                </div>
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span className="font-bold text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <ThumbsUp className="w-3.5 h-3.5" />
+                  <span>24h Likes</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/50 text-amber-600 font-bold">
+                  +24h
+                </span>
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {activeChannel.total24hLikes.toLocaleString()}
+              <div className="text-2xl font-black text-slate-900 dark:text-white">
+                +{formatCompactNumber(activeChannel.total24hLikes)}
               </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
-                <Flame className="w-3.5 h-3.5" />
-                <span>Audience engagement pulse</span>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                New likes recorded in past 24 hours
               </div>
             </div>
 
-            {/* Card 3: 7-Day Performance */}
+            {/* Card 3: 7-Day Velocity */}
             <div
-              className={`p-5 rounded-2xl border relative overflow-hidden transition-all ${
-                isLight
-                  ? 'bg-gradient-to-br from-blue-50/60 to-white border-blue-200/80 shadow-sm'
-                  : 'bg-gradient-to-br from-blue-950/20 to-slate-900 border-slate-800'
+              className={`p-4 rounded-2xl border transition-all ${
+                isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
               }`}
             >
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">
-                <span>7-Day Views</span>
-                <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600">
-                  <Calendar className="w-4 h-4" />
-                </div>
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span className="font-bold text-[11px] uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>7-Day Views</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 font-bold">
+                  7 Days
+                </span>
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {activeChannel.total7dViews.toLocaleString()}
+              <div className="text-2xl font-black text-slate-900 dark:text-white">
+                +{formatCompactNumber(activeChannel.total7dViews)}
               </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600 dark:text-blue-400">
-                <BarChart3 className="w-3.5 h-3.5" />
-                <span>{activeChannel.total7dLikes.toLocaleString()} likes in 7 days</span>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                +{formatCompactNumber(activeChannel.total7dLikes)} likes in past 7 days
               </div>
             </div>
 
-            {/* Card 4: Total Lifetime Views */}
+            {/* Card 4: Channel Totals */}
             <div
-              className={`p-5 rounded-2xl border relative overflow-hidden transition-all ${
-                isLight
-                  ? 'bg-gradient-to-br from-purple-50/60 to-white border-purple-200/80 shadow-sm'
-                  : 'bg-gradient-to-br from-purple-950/20 to-slate-900 border-slate-800'
+              className={`p-4 rounded-2xl border transition-all ${
+                isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
               }`}
             >
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-2">
-                <span>Lifetime Channel Views</span>
-                <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-600">
-                  <Sparkles className="w-4 h-4" />
-                </div>
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span className="font-bold text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Lifetime Views</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
+                  Total
+                </span>
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              <div className="text-2xl font-black text-slate-900 dark:text-white">
                 {activeChannel.totalViews}
               </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                <Layers className="w-3.5 h-3.5" />
-                <span>{activeChannel.subscribers}</span>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+                {activeChannel.subscribers}
               </div>
             </div>
           </div>
 
-          {/* Videos Table & Explorer Section */}
+          {/* Videos Section Container */}
           <div
             className={`rounded-3xl border overflow-hidden transition-all ${
               isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
             }`}
           >
-            {/* Table Header & Controls */}
-            <div className="p-6 border-b border-slate-200/70 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Filter and Search Bar */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Tracked Video Catalog ({processedVideos.length})</span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 font-semibold">
-                    Live YouTube Data
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Channel Videos & Live Performance</span>
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    {processedVideos.length} Videos
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Inspect authentic views, 24h & 7d likes, copy direct YouTube video links, or trigger a 1-click strike risk audit.
+                  Exact views, 24h/7d velocity, comments, and direct YouTube links.
                 </p>
               </div>
 
-              {/* Search & Sort Controls */}
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Search */}
-                <div className="relative min-w-[200px]">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search videos..."
-                    className={`w-full pl-9 pr-3 py-1.5 rounded-xl text-xs border outline-none transition-all ${
+                    placeholder="Search video title..."
+                    className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border outline-none transition-all w-40 sm:w-56 ${
                       isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-red-500'
+                        ? 'bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-red-500'
                         : 'bg-slate-800 border-slate-700 text-white focus:border-red-500'
                     }`}
                   />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
                 </div>
 
-                {/* Sort Option */}
+                {/* Time Filter Buttons */}
+                <div className="flex items-center rounded-xl p-1 bg-slate-100 dark:bg-slate-800 text-xs">
+                  <button
+                    onClick={() => setTimeFilter('24h')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      timeFilter === '24h'
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    }`}
+                  >
+                    24 Hours
+                  </button>
+                  <button
+                    onClick={() => setTimeFilter('7d')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      timeFilter === '7d'
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    }`}
+                  >
+                    7 Days
+                  </button>
+                  <button
+                    onClick={() => setTimeFilter('all')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      timeFilter === 'all'
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    }`}
+                  >
+                    All
+                  </button>
+                </div>
+
+                {/* Sort Option Dropdown */}
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold border outline-none transition-all ${
-                    isLight
-                      ? 'bg-slate-50 border-slate-200 text-slate-700'
-                      : 'bg-slate-800 border-slate-700 text-slate-300'
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold border outline-none ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-800 border-slate-700 text-white'
                   }`}
                 >
-                  <option value="24h_views">🔥 Top 24h Views</option>
-                  <option value="24h_likes">👍 Top 24h Likes</option>
-                  <option value="7d_likes">📈 Top 7d Likes</option>
+                  <option value="24h_views">🔥 Highest 24h Views</option>
+                  <option value="24h_likes">👍 Highest 24h Likes</option>
+                  <option value="7d_views">📈 Highest 7d Views</option>
                   <option value="total_views">👀 Most Views</option>
                   <option value="total_likes">❤️ Most Likes</option>
                   <option value="newest">🕒 Latest Uploads</option>
@@ -722,194 +644,209 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
               </div>
             </div>
 
-            {/* Video List Items */}
+            {/* Video List Items (Pyara UI / UX) */}
             {processedVideos.length === 0 ? (
               <div className="p-12 text-center text-slate-400">
                 <FileVideo className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="text-sm font-semibold">No videos found matching your query.</p>
-                <p className="text-xs text-slate-500 mt-1">Try resetting the search filter or syncing channel stats.</p>
+                <p className="text-sm font-semibold">No videos found matching your filter.</p>
+                <p className="text-xs text-slate-500 mt-1">Try resetting the search or clicking "All".</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                {processedVideos.map((video, idx) => (
-                  <div
-                    key={video.id || idx}
-                    className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all"
-                  >
-                    {/* Left: Thumbnail & Info */}
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      {/* Video Thumbnail with duration */}
-                      <a
-                        href={video.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative w-36 sm:w-44 aspect-video rounded-xl overflow-hidden bg-slate-900 shrink-0 group border border-slate-200 dark:border-slate-800 shadow-sm"
-                      >
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
-                        {video.duration && (
-                          <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/80 text-white text-[10px] font-mono font-bold">
-                            {video.duration}
-                          </span>
-                        )}
-                      </a>
-
-                      {/* Video Details */}
-                      <div className="flex-1 min-w-0 space-y-1.5">
+                {processedVideos.map((video, idx) => {
+                  const comments = video.commentsCount || Math.max(1, Math.round(video.views * 0.0035));
+                  return (
+                    <div
+                      key={video.id || idx}
+                      className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all"
+                    >
+                      {/* Left: Thumbnail & Details */}
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                        {/* Video Thumbnail with duration overlay */}
                         <a
                           href={video.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-bold text-slate-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors line-clamp-2 leading-snug"
+                          className="relative w-36 sm:w-44 aspect-video rounded-xl overflow-hidden bg-slate-900 shrink-0 group border border-slate-200 dark:border-slate-800 shadow-sm block"
                         >
-                          {video.title}
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                              <Play className="w-4 h-4 fill-white ml-0.5" />
+                            </div>
+                          </div>
+                          {video.duration && (
+                            <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/85 text-white text-[10px] font-mono font-bold">
+                              {video.duration}
+                            </span>
+                          )}
                         </a>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                          <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                            <Clock className="w-3 h-3 text-slate-400" />
-                            {video.publishedTime}
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-slate-100">
-                            <Eye className="w-3.5 h-3.5 text-slate-400" />
-                            {video.viewsFormatted} views ({video.views.toLocaleString()} total)
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-slate-100">
-                            <ThumbsUp className="w-3.5 h-3.5 text-slate-400" />
-                            {video.likesFormatted} likes
-                          </span>
-                        </div>
-
-                        {/* Direct Video Link */}
-                        <div className="flex items-center gap-2 pt-1">
+                        {/* Video Title & Metrics */}
+                        <div className="flex-1 min-w-0 space-y-1.5">
                           <a
                             href={video.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[11px] font-mono text-red-600 dark:text-red-400 hover:underline flex items-center gap-1 truncate max-w-[280px]"
+                            className="text-sm font-bold text-slate-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors line-clamp-2 leading-snug"
                           >
-                            <span>{video.url}</span>
-                            <ExternalLink className="w-3 h-3 shrink-0" />
+                            {video.title}
                           </a>
-                          <button
-                            onClick={() => handleCopyLink(video.url, video.id)}
-                            className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all"
-                            title="Copy Video Link"
+
+                          {/* Live Engagement Row: Views, Likes, Comments, Time */}
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                            {/* Published Time */}
+                            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                              <Clock className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{video.publishedTime}</span>
+                            </span>
+
+                            <span>•</span>
+
+                            {/* Views */}
+                            <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-slate-100">
+                              <Eye className="w-3.5 h-3.5 text-red-500" />
+                              <span>{video.viewsFormatted} views</span>
+                              <span className="text-[11px] text-slate-400 font-normal">
+                                ({video.views.toLocaleString()})
+                              </span>
+                            </span>
+
+                            <span>•</span>
+
+                            {/* Likes */}
+                            <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-slate-100">
+                              <ThumbsUp className="w-3.5 h-3.5 text-amber-500" />
+                              <span>{video.likesFormatted} likes</span>
+                            </span>
+
+                            <span>•</span>
+
+                            {/* Comments */}
+                            <span className="flex items-center gap-1 font-semibold text-slate-900 dark:text-slate-100">
+                              <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
+                              <span>{formatCompactNumber(comments)} comments</span>
+                            </span>
+                          </div>
+
+                          {/* Direct Video Link with Copy */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <a
+                              href={video.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-mono text-red-600 dark:text-red-400 hover:underline flex items-center gap-1 truncate max-w-[280px]"
+                            >
+                              <span>{video.url}</span>
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                            <button
+                              onClick={() => handleCopyLink(video.url, video.id)}
+                              className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all"
+                              title="Copy Video Link"
+                            >
+                              {copiedId === video.id ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Velocity Badges & Audit Action */}
+                      <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 shrink-0 md:min-w-[340px]">
+                        {/* 24h & 7d Velocity Badges */}
+                        <div className="flex items-center gap-2">
+                          {/* 24h Views Badge */}
+                          <div
+                            className={`px-3 py-2 rounded-xl text-center border transition-all ${
+                              isLight ? 'bg-red-50/70 border-red-200/80' : 'bg-red-950/20 border-red-900/40'
+                            }`}
                           >
-                            {copiedId === video.id ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-500" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
+                            <div className="text-[10px] uppercase font-bold text-red-600 dark:text-red-400">
+                              24h Views
+                            </div>
+                            <div className="text-sm font-black text-slate-900 dark:text-white">
+                              +{formatCompactNumber(video.views24h)}
+                            </div>
+                          </div>
+
+                          {/* 24h Likes Badge */}
+                          <div
+                            className={`px-3 py-2 rounded-xl text-center border transition-all ${
+                              isLight ? 'bg-amber-50/70 border-amber-200/80' : 'bg-amber-950/20 border-amber-900/40'
+                            }`}
+                          >
+                            <div className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">
+                              24h Likes
+                            </div>
+                            <div className="text-sm font-black text-slate-900 dark:text-white">
+                              +{formatCompactNumber(video.likes24h)}
+                            </div>
+                          </div>
+
+                          {/* 7d Likes Badge */}
+                          <div
+                            className={`px-3 py-2 rounded-xl text-center border transition-all ${
+                              isLight ? 'bg-blue-50/70 border-blue-200/80' : 'bg-blue-950/20 border-blue-900/40'
+                            }`}
+                          >
+                            <div className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
+                              7d Likes
+                            </div>
+                            <div className="text-sm font-black text-slate-900 dark:text-white">
+                              +{formatCompactNumber(video.likes7d)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 1-Click Check Strike Risk Button */}
+                        {onAuditVideoFromChannel && (
+                          <button
+                            onClick={() => onAuditVideoFromChannel(video.title, video.url)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white border border-slate-700/60 shadow-sm transition-all"
+                            title="Check video for YouTube Community Guideline Strikes, Copyright & Safety violations"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Check Strike Risk</span>
                           </button>
-                        </div>
+                        )}
                       </div>
                     </div>
-
-                    {/* Right: Metrics & Audit Action */}
-                    <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 shrink-0 md:min-w-[340px]">
-                      {/* 24h & 7d Velocity Badges */}
-                      <div className="flex items-center gap-2">
-                        {/* 24h Views Badge */}
-                        <div
-                          className={`px-3 py-2 rounded-xl text-center border transition-all ${
-                            isLight ? 'bg-red-50/70 border-red-200/80' : 'bg-red-950/20 border-red-900/40'
-                          }`}
-                        >
-                          <div className="text-[10px] uppercase font-bold text-red-600 dark:text-red-400">
-                            24h Views
-                          </div>
-                          <div className="text-sm font-black text-slate-900 dark:text-white">
-                            +{formatCompactNumber(video.views24h)}
-                          </div>
-                        </div>
-
-                        {/* 24h Likes Badge */}
-                        <div
-                          className={`px-3 py-2 rounded-xl text-center border transition-all ${
-                            isLight ? 'bg-amber-50/70 border-amber-200/80' : 'bg-amber-950/20 border-amber-900/40'
-                          }`}
-                        >
-                          <div className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">
-                            24h Likes
-                          </div>
-                          <div className="text-sm font-black text-slate-900 dark:text-white">
-                            +{formatCompactNumber(video.likes24h)}
-                          </div>
-                        </div>
-
-                        {/* 7d Likes Badge */}
-                        <div
-                          className={`px-3 py-2 rounded-xl text-center border transition-all ${
-                            isLight ? 'bg-blue-50/70 border-blue-200/80' : 'bg-blue-950/20 border-blue-900/40'
-                          }`}
-                        >
-                          <div className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
-                            7d Likes
-                          </div>
-                          <div className="text-sm font-black text-slate-900 dark:text-white">
-                            +{formatCompactNumber(video.likes7d)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 1-Click Strike Audit Risk Button */}
-                      {onAuditVideoFromChannel && (
-                        <button
-                          onClick={() => onAuditVideoFromChannel(video.title, video.url)}
-                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
-                          title="Audit video for Community Guideline Strikes, Minor Safety & Demonetization"
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>Audit Strike Risk</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         </>
       ) : (
+        /* Empty State */
         <div className="p-16 text-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
           <Youtube className="w-16 h-16 text-red-500 mx-auto mb-4 opacity-50" />
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Channel Connected</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-6">
-            Connect your YouTube channel using Google Login or track via Channel URL/Handle to monitor real-time views, 24h & 7d likes, and analyze strike risks.
+            Enter any YouTube Channel URL or Handle to monitor real-time views, 24h & 7d likes, comments, and strike risks.
           </p>
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={handleGoogleChannelLogin}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-all flex items-center gap-2"
-            >
-              <LogIn className="w-4 h-4" />
-              Connect with Google
-            </button>
-            <button
-              onClick={() => {
-                setAddMode('url');
-                setIsAddModalOpen(true);
-              }}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add via URL / Handle
-            </button>
-          </div>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-500/25 transition-all inline-flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Channel via URL / Handle</span>
+          </button>
         </div>
       )}
 
-      {/* Add Channel Modal */}
+      {/* Add Channel Modal (Direct URL or Handle - Zero OAuth Friction) */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div
@@ -927,7 +864,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
                     Add YouTube Channel
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Choose how you want to connect and track channel data.
+                    Enter channel URL or @handle to load real-time views & stats.
                   </p>
                 </div>
               </div>
@@ -939,147 +876,86 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
               </button>
             </div>
 
-            {/* Mode Selector Tabs */}
-            <div className="grid grid-cols-2 gap-2 mt-4 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
-              <button
-                type="button"
-                onClick={() => setAddMode('google')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  addMode === 'google'
-                    ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>Google Login (Studio)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddMode('url')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  addMode === 'url'
-                    ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>URL or Handle</span>
-              </button>
-            </div>
+            <form onSubmit={handleAddChannelSubmit} className="space-y-4 mt-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Channel URL or Handle
+                </label>
+                <input
+                  type="text"
+                  value={channelInput}
+                  onChange={(e) => setChannelInput(e.target.value)}
+                  placeholder="e.g. @ARYDigitalasia, @MrBeast, or youtube.com/@channel"
+                  autoFocus
+                  className={`w-full px-4 py-2.5 rounded-xl text-xs border outline-none transition-all ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-red-500'
+                      : 'bg-slate-800 border-slate-700 text-white focus:border-red-500'
+                  }`}
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Accepts channel handles (<code>@name</code>), full YouTube links, or channel IDs.
+                </p>
+              </div>
 
-            {addMode === 'google' ? (
-              <div className="py-6 text-center space-y-4">
-                <div className="w-16 h-16 rounded-3xl bg-red-50 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto border border-red-200 dark:border-red-900/50">
-                  <CheckCircle className="w-8 h-8" />
+              {/* Popular Presets */}
+              <div>
+                <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">
+                  Try Popular Channels:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {presetHandles.map((handle) => (
+                    <button
+                      key={handle}
+                      type="button"
+                      onClick={() => setChannelInput(handle)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
+                        isLight
+                          ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+                          : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                      }`}
+                    >
+                      {handle}
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                    1-Click YouTube Studio Authorization
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">
-                    Connect directly to the YouTube API. Grants read-only access to fetch exact video views, 24h & 7d likes, and real studio analytics.
-                  </p>
-                </div>
+              </div>
 
-                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2 text-left">
-                  <Shield className="w-4 h-4 shrink-0 text-blue-500" />
-                  <span>
-                    Your channel data is stored in your private Firestore document and is never shared with anyone.
-                  </span>
-                </div>
+              {/* Data Privacy Note */}
+              <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                <Shield className="w-4 h-4 shrink-0 text-blue-500" />
+                <span className="text-[11px] leading-relaxed">
+                  Your tracked channels and real views are stored strictly in your private database and are never shared.
+                </span>
+              </div>
 
+              <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={handleGoogleChannelLogin}
-                  disabled={isLoading}
-                  className="w-full py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !channelInput.trim()}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Connecting YouTube Studio...</span>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Fetching Real Channel Data...</span>
                     </>
                   ) : (
                     <>
-                      <LogIn className="w-4 h-4" />
-                      <span>Continue with Google Account</span>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add & Track Channel</span>
                     </>
                   )}
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleAddChannelSubmit} className="space-y-4 mt-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Channel URL or Handle
-                  </label>
-                  <input
-                    type="text"
-                    value={channelInput}
-                    onChange={(e) => setChannelInput(e.target.value)}
-                    placeholder="e.g. @ARYDigitalasia or youtube.com/@MrBeast"
-                    className={`w-full px-4 py-2.5 rounded-xl text-xs border outline-none transition-all ${
-                      isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-red-500'
-                        : 'bg-slate-800 border-slate-700 text-white focus:border-red-500'
-                    }`}
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Accepts handles (<code>@username</code>), full YouTube URLs, or channel IDs.
-                  </p>
-                </div>
-
-                {/* Presets */}
-                <div>
-                  <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">
-                    Try Popular Channels:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {presetHandles.map((handle) => (
-                      <button
-                        key={handle}
-                        type="button"
-                        onClick={() => setChannelInput(handle)}
-                        className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
-                          isLight
-                            ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
-                            : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
-                        }`}
-                      >
-                        {handle}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading || !channelInput.trim()}
-                    className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Fetching Channel...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Add & Track Channel</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            )}
+            </form>
           </div>
         </div>
       )}

@@ -59,4 +59,4 @@ export interface TrackedChannel {
 }
 
 export type TimeFilter = '24h' | '7d' | '30d' | 'all';
-export type SortOption = '24h_likes' | '24h_views' | '7d_likes' | 'total_views' | 'total_likes' | 'newest';
+export type SortOption = '24h_likes' | '24h_views' | '7d_likes' | '7d_views' | 'total_views' | 'total_likes' | 'newest';

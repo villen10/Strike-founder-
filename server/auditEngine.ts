@@ -192,17 +192,78 @@ export function buildSafetyStrikeReport(params: {
 
 export async function runGeminiVideoAudit(params: {
   videoTitle: string;
+  videoUrl?: string;
   durationSec: number;
   durationFormatted: string;
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
   frames: FramePayload[];
 }) {
   const lowerTitle = (params.videoTitle || '').toLowerCase();
-  // Only explicitly adult pornography terms
+
+  // Extract YouTube video ID if URL or title has one
+  let ytVideoId = '';
+  const urlCandidate = params.videoUrl || (params.videoTitle.includes('http') ? params.videoTitle : '');
+  if (urlCandidate) {
+    const match = urlCandidate.match(/(?:v=|\/watch\?v=|\/embed\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_\-]{11})/);
+    if (match) ytVideoId = match[1];
+  }
+
+  let ytRemoved = false;
+  let ytDescription = '';
+  let ytThumbnailBase64 = '';
+
+  // If a YouTube video is provided, fetch its real status & high-res thumbnail
+  if (ytVideoId) {
+    try {
+      const pageRes = await fetch(`https://www.youtube.com/watch?v=${ytVideoId}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      });
+      if (pageRes.ok) {
+        const pageHtml = await pageRes.text();
+        if (
+          pageHtml.includes('This video has been removed for violating YouTube') ||
+          pageHtml.includes('removed for violating YouTube') ||
+          pageHtml.includes('Terms of Service') ||
+          pageHtml.includes('account associated with this video has been terminated')
+        ) {
+          ytRemoved = true;
+        }
+        const descMatch = pageHtml.match(/"shortDescription":"(.*?)"/);
+        if (descMatch) {
+          ytDescription = descMatch[1].slice(0, 800);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not inspect YouTube watch page:', e);
+    }
+
+    try {
+      const thumbRes = await fetch(`https://i.ytimg.com/vi/${ytVideoId}/hqdefault.jpg`);
+      if (thumbRes.ok) {
+        const buf = Buffer.from(await thumbRes.arrayBuffer());
+        ytThumbnailBase64 = buf.toString('base64');
+      }
+    } catch (e) {
+      console.warn('Could not fetch YouTube thumbnail:', e);
+    }
+  }
+
+  // If the video was already struck down or removed by YouTube, issue verified 100% strike report!
+  if (ytRemoved) {
+    return buildSafetyStrikeReport({
+      videoTitle: params.videoTitle,
+      durationSec: params.durationSec,
+      durationFormatted: params.durationFormatted,
+      reason: 'GENERAL_POLICY_BLOCK',
+      frames: params.frames,
+    });
+  }
+
+  // Explicit pornography keywords
   const adultKeywords = [
     'xhamster', 'pornhub', 'xnxx', 'xvideos', 'porn', 'xxx', 'hentai', 'onlyfans leak',
   ];
-  // Severe illegal acts (NOT normal gaming, strikes, stunts, or tech vlogs)
+  // Severe illegal acts
   const severeIllegalKeywords = [
     'ghostgun', 'fentanyl sale', 'crack cocaine', 'carding fraud', 'darkweb marketplace',
   ];
@@ -222,7 +283,7 @@ export async function runGeminiVideoAudit(params: {
   const hasKidWord = kidKeywords.some((w) => lowerTitle.includes(w));
   const hasChildHazard = childHazardTerms.some((w) => lowerTitle.includes(w));
 
-  // Heuristic override for explicit child safety hazard or adult content in title
+  // Heuristic override for explicit child safety hazard in title
   if (hasKidWord && hasChildHazard) {
     return buildSafetyStrikeReport({
       videoTitle: params.videoTitle,
@@ -237,76 +298,62 @@ export async function runGeminiVideoAudit(params: {
     (p) => `[${p.category} - ${p.title}]: ${p.shortSummary}. Detection heuristics: ${p.detectionMechanisms.join(' ')}. Ingestion rule: ${p.publicVsUnlistedVsPrivateBehavior}. Rules: ${p.fullPolicyRules.join(' ')}`
   ).join('\n\n');
 
-  const systemInstruction = `You are Strike Founder AI, the YouTube Official Algorithmic Ingest & Strike Moderation Engine.
-Your mission is to perform strict, accurate, and fair compliance analysis of user-submitted video footage before publication on YouTube.
+  const systemInstruction = `You are Strike Founder AI — the Master YouTube Trust & Safety Neural Ingestion and Strike Moderation Engine.
+Your mission is to perform strict, high-precision compliance and strike-risk analysis of videos submitted by YouTube creators.
+You are powered by Gemini 3.8 Flash multimodal reasoning.
 
-CRITICAL ACCURACY & FALSE-POSITIVE PREVENTION RULES (VERY IMPORTANT):
+CRITICAL POLICY KNOWLEDGE & STRIKE ENFORCEMENT RULES:
 
-1. CLEAN VIDEOS MUST BE MARKED 100% SAFE (ZERO FALSE POSITIVES):
-- If the video depicts normal daily activities, safe family moments, safe gameplay, tech reviews, tutorials, cooking, sports, educational videos, talking heads, travel, or nature:
-  * DO NOT invent, assume, or hallucinate strikes or violations!
-  * Set safetyGrade: "SAFE_TO_UPLOAD"
-  * Set overallRiskScore: 0 to 5
-  * Set strikeProbabilityPct: 0 to 2%
-  * Set demonetizationProbabilityPct: 0 to 5%
-  * Set totalIssuesCount: 0, criticalIssuesCount: 0, warningsCount: 0
-  * Set timelineViolations: [] (empty array)
-  * Set mainIssueHeadline: "No Strike Issues Detected (100% Clean & Safe)"
-  * Set mainIssueDetail: "Video complies with all YouTube Community Guidelines. Safe to monetize and publish without strikes."
-  * Set mainIssueSeverity: "CLEAN"
+1. COMPREHENSIVE STRIKE CATEGORIES (CRITICAL_STRIKE / HIGH_STRIKE_RISK):
+YouTube immediately issues Community Guidelines Strikes, channel warnings, or video takedowns for:
+  A) CHILD SAFETY & MINOR ENDANGERMENT (ZERO TOLERANCE):
+     - Minors handling dangerous items (knives, blades, fire, fireworks, deep water without life-jackets, heights/roofs, predatory animals).
+     - Any child or toddler nudity, diaper exposure, bathing videos, undergarments, or sexualization of minors.
+     - Inflicting severe distress or panic on minors (frightening pranks, extreme screaming/crying, fake parental loss).
+     - Underage vehicle driving or hazardous viral stunts involving minors.
+  B) COPYRIGHT & REUSED / STOLEN CONTENT:
+     - Unlicensed broadcast TV serials, drama episodes (e.g. Pakistani/Indian dramas, anime episodes, movie scenes) re-uploaded without original commentary or transformative value.
+     - Re-uploaded viral TikToks/Shorts compilations without license.
+     - Unlicensed commercial music tracks.
+  C) DANGEROUS CONTENT & HARMFUL ACTIVITIES:
+     - Software cracking tutorials, keygens, game hacks, bypass tools, cyber attack instructions, piracy guides.
+     - Lethal viral challenges, choking games, DIY explosives/fireworks, illicit drug manufacturing/use.
+  D) VIOLENCE & GRAPHIC CONTENT:
+     - Real street brawls, graphic injuries, blood/gore, severe accidents, animal cruelty or fighting.
+  E) SEXUAL CONTENT & NUDITY:
+     - Explicit adult exposure, provocative thumbnails, fetish material, suggestive nudity.
+  F) HARASSMENT, CYBERBULLYING & HATE SPEECH:
+     - Doxxing (sharing phone numbers, home addresses, private credentials), malicious targeted harassment, slurs attacking protected groups.
+  G) SCAMS, IMPERSONATION & DECEPTIVE PRACTICES:
+     - Fake giveaways, crypto pump schemes, misleading metadata/thumbnails, phishing links.
 
-2. MINOR / SMALL ISSUES MUST BE MARKED AS 'MINOR WARNING' (CHOTI SI WARNING - NOT A STRIKE!):
-- A YouTube Community Guidelines Strike terminates or suspends channels. Minor issues DO NOT cause strikes!
-- If the video only contains small things like:
-  * Mild profanity or casual slang (outside extreme vulgarity)
-  * Fast camera transitions, motion blur, rapid cuts, or dynamic editing
-  * Mild clickbait, mild jump scare, or borderline advertiser suitability (Yellow Dollar limited ads)
-  * Background music or minor volume spike
-  * ACTION TO TAKE:
-    * DO NOT give a Community Guidelines Strike!
-    * Set safetyGrade: "MONETIZATION_AT_RISK"
-    * Set overallRiskScore: 20 to 45
-    * Set strikeProbabilityPct: 2 to 10% (The channel is 100% SAFE from strikes!)
-    * Set demonetizationProbabilityPct: 35 to 60%
-    * Set mainIssueSeverity: "MINOR_WARNING"
-    * Set mainIssueHeadline: "Minor Caution: [Brief issue name] (Channel Safe - Not a Strike)"
-    * Set mainIssueDetail: "Choti si warning: This is a minor ad-suitability notice, not a strike. Your channel is safe from penalties."
-    * In timelineViolations, set severity: "DEMONETIZATION_WARNING" or "MILD_CAUTION" (NEVER "CRITICAL_STRIKE").
+2. ADVERTISER-SUITABILITY WARNINGS (MONETIZATION_AT_RISK / MINOR_WARNING):
+- If the content does not warrant a full channel strike, but risks limited or no ads (Yellow Dollar icon):
+  * Excessive profanity in the opening 7 seconds
+  * Controversial social issues or sensitive themes without graphic details
+  * Borderline clickbait or dramatic sound effects
+  * Set safetyGrade: "MONETIZATION_AT_RISK", strikeProbabilityPct: 10-25%, demonetizationProbabilityPct: 50-80%.
 
-3. MAJOR REAL VIOLATIONS GET A FULL STRIKE (CRITICAL_STRIKE / HIGH_STRIKE_RISK):
-- YouTube strictly issues immediate Community Guidelines Strikes for:
-  A) CHILD SAFETY & MINOR ENDANGERMENT (ZERO TOLERANCE POLICY):
-     - Unsupervised minors placed in dangerous situations (handling sharp knives/blades, fire/matches/stoves, fireworks, deep water without life-vests, climbing dangerous heights/roofs, wild predatory animals).
-     - Any child/minor nudity, unclothed toddlers/babies, bathing videos, diaper exposure, underwear exposure, or sexualization of minors (Zero Tolerance - immediate strike).
-     - Severe emotional distress inflicted on children (terrorizing pranks, scaring children to extreme panic/screaming/crying, fake parental abandonment).
-     - Dangerous stunts, viral eating/choking challenges, or underage motor vehicle driving (cars, motorbikes) involving minors.
-  B) SEXUAL CONTENT & NUDITY:
-     - Explicit adult exposure, genitalia, exposed breasts, or screen recordings of pornographic sites.
-  C) GRAPHIC VIOLENCE & DEADLY/ILLEGAL CONDUCT:
-     - Real physical brawls, brandishing lethal weapons, hard drugs (fentanyl, crack), bomb-making or illegal acts.
-  - IF ANY MAJOR VIOLATION IS PRESENT:
-     * Set safetyGrade: "HIGH_STRIKE_RISK"
-     * Set overallRiskScore: 90 to 100
-     * Set strikeProbabilityPct: 90 to 100%
-     * Set mainIssueSeverity: "CRITICAL_STRIKE"
-     * Set mainIssueHeadline: "Critical YouTube Strike Hazard: [Severe Violation Name]"
-     * Set mainIssueDetail: "Severe Community Guidelines violation detected. Trim or cut this segment before publishing."
-     * In timelineViolations, set category: "CHILD_SAFETY" (for minor issues) or "SEXUAL_CONTENT" or "DANGEROUS_CONTENT" and severity: "CRITICAL_STRIKE".
+3. 100% CLEAN VIDEOS (SAFE_TO_UPLOAD):
+- If the video depicts fully compliant, original content (tech reviews, coding tutorials, vlogs, cooking, sports, comedy without violations, educational content):
+  * Set safetyGrade: "SAFE_TO_UPLOAD", overallRiskScore: 0-5, strikeProbabilityPct: 0%.
 
-CRITICAL RESULTS TYPOGRAPHY & 1-2 LINES CLARITY RULE:
-- For mainIssueHeadline: Write 1 short, punchy line summarizing the finding.
-- For mainIssueDetail: Write 1-2 short, simple English lines explaining the issue clearly so the creator immediately understands if it is clean, a minor warning, or a full strike.
-- For primaryIssueBoldText: Express the issue in BOLD, CLEAR, EASY ENGLISH with VERY FEW PUNCHY WORDS (e.g. "CHILD SAFETY STRIKE: Minor endangerment detected", "PROHIBITED ADULT NUDITY: Explicit exposure", "CLEAN: 100% Compliant").
-- For aiGeneratedTitle: Provide a smart 3-6 word YouTube video title representing the actual video content.`;
+4. OUTPUT FORMATTING & LANGUAGE RULES:
+- mainIssueHeadline: 1 short, punchy line summarizing the core finding.
+- mainIssueDetail: 1-2 short, simple English lines explaining the violation or confirming safety.
+- summaryVerdictUrdu: Clear, accurate Roman Urdu summary explaining the exact issue (e.g., "YouTube Child Safety / Copyright policy ki khilaf warzi hai, is clip ko cut karein warna strike aye gi" or "Video mukammal safe hai, koi policy violation nahi mili").
+- primaryIssueBoldText: Bold, under-8-word punchy label (e.g. "CHILD SAFETY STRIKE HAZARD", "COPYRIGHT REUSED CONTENT RISK", "CLEAN & SAFE TO UPLOAD").`;
 
   const parts: any[] = [
     {
-      text: `VIDEO AUDIT TASK:
+      text: `YOUTUBE VIDEO STRIKE AUDIT TASK:
 Video Title: "${params.videoTitle}"
+${params.videoUrl ? `Video URL: ${params.videoUrl}` : ''}
+${ytDescription ? `Video Description Excerpt: "${ytDescription}"` : ''}
 Duration: ${params.durationFormatted} (${params.durationSec} seconds)
 Strictness Setting: ${
         params.strictnessMode === 'PARANOID_ZERO_RISK'
-          ? 'PARANOID ZERO-RISK (+20% strict buffer: proactively flag borderline frames, ambiguous props, and opening hook profanity)'
+          ? 'PARANOID ZERO-RISK (+20% strict buffer: flag borderline props, audio profanity, and sensitive themes)'
           : 'STANDARD YOUTUBE INGESTION MODERATION'
       }
 Total Extracted Keyframes: ${params.frames.length}
@@ -314,10 +361,24 @@ Total Extracted Keyframes: ${params.frames.length}
 POLICY CONTEXT REPOSITORY:
 ${policyContext}
 
-Inspect every keyframe image below sequentially. Correlate timestamps with visual evidence:`,
+Inspect all visual evidence, thumbnail, and title below:`,
     },
   ];
 
+  // If we fetched the official YouTube thumbnail, attach it as an image for visual inspection
+  if (ytThumbnailBase64) {
+    parts.push({
+      text: `\n[YOUTUBE OFFICIAL VIDEO THUMBNAIL & COVER FRAME]:`,
+    });
+    parts.push({
+      inlineData: {
+        mimeType: 'image/jpeg',
+        data: ytThumbnailBase64,
+      },
+    });
+  }
+
+  // Attach extracted keyframes
   for (let i = 0; i < params.frames.length; i++) {
     const f = params.frames[i];
     if (f.dataUrl && f.dataUrl.startsWith('data:image')) {
@@ -341,11 +402,11 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
   }
 
   parts.push({
-    text: `\nConduct the complete YouTube Community Guidelines and Strike audit based on the visual frames and metadata. Output the strict JSON evaluation adhering to the schema.`,
+    text: `\nConduct the complete YouTube Community Guidelines and Strike audit based on the visual frames, thumbnail, title, and metadata. Output the strict JSON evaluation adhering to the schema.`,
   });
 
   const ai = getAiClient();
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+  const modelsToTry = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
 
   for (const modelName of modelsToTry) {
     try {
@@ -469,44 +530,44 @@ Inspect every keyframe image below sequentially. Correlate timestamps with visua
       if (rawText.trim()) {
         const parsed = JSON.parse(rawText);
 
-        // Normalize safety grade based on detected risk and violations
-        const hasCritical = (parsed.timelineViolations || []).some(
-          (v: any) => v.severity === 'CRITICAL_STRIKE' || v.category === 'CHILD_SAFETY' || v.category === 'SEXUAL_CONTENT'
+        const violations = Array.isArray(parsed.timelineViolations) ? parsed.timelineViolations : [];
+        const hasCritical = violations.some(
+          (v: any) =>
+            v.severity === 'CRITICAL_STRIKE' ||
+            v.category === 'CHILD_SAFETY' ||
+            v.category === 'SEXUAL_CONTENT' ||
+            v.category === 'DANGEROUS_CONTENT' ||
+            v.category === 'VIOLENCE_GRAPHIC' ||
+            (v.confidencePct && v.confidencePct >= 80)
         );
-        const hasWarnings = (parsed.timelineViolations || []).some(
-          (v: any) => v.severity === 'DEMONETIZATION_WARNING' || v.severity === 'MILD_CAUTION'
-        );
+        const hasAnyViolations = violations.length > 0;
 
-        if (hasCritical || parsed.overallRiskScore >= 70) {
+        if (hasCritical || parsed.safetyGrade === 'HIGH_STRIKE_RISK' || parsed.overallRiskScore >= 55) {
           parsed.safetyGrade = 'HIGH_STRIKE_RISK';
-          parsed.strikeProbabilityPct = Math.max(85, parsed.strikeProbabilityPct || 90);
+          parsed.strikeProbabilityPct = Math.max(80, parsed.strikeProbabilityPct || 88);
           parsed.mainIssueSeverity = 'CRITICAL_STRIKE';
           parsed.mainIssueHeadline =
             parsed.mainIssueHeadline ||
-            `Critical Strike Hazard: ${parsed.timelineViolations?.[0]?.title || 'Policy Infraction'}`;
+            `Critical Strike Hazard: ${violations[0]?.title || 'YouTube Policy Infraction'}`;
           parsed.mainIssueDetail =
             parsed.mainIssueDetail ||
             'Severe YouTube Community Guidelines violation detected. Trim or cut this segment before publishing.';
-        } else if (hasWarnings || parsed.overallRiskScore >= 25) {
+        } else if (hasAnyViolations || parsed.safetyGrade === 'MONETIZATION_AT_RISK' || parsed.overallRiskScore >= 18) {
           parsed.safetyGrade = 'MONETIZATION_AT_RISK';
-          parsed.strikeProbabilityPct = Math.min(20, Math.max(5, parsed.strikeProbabilityPct || 10)); // Channel safe from strikes
+          parsed.strikeProbabilityPct = Math.min(35, Math.max(10, parsed.strikeProbabilityPct || 15));
           parsed.mainIssueSeverity = 'MINOR_WARNING';
           parsed.mainIssueHeadline =
             parsed.mainIssueHeadline ||
-            `Minor Caution: ${parsed.timelineViolations?.[0]?.title || 'Ad Suitability Warning'} (Not a Strike)`;
+            `Policy Caution: ${violations[0]?.title || 'Ad Suitability Notice'} (Review Advised)`;
           parsed.mainIssueDetail =
             parsed.mainIssueDetail ||
-            'This is a minor ad-suitability warning, not a Community Guidelines strike. Your channel is safe from penalties.';
+            'Ad-suitability or borderline guideline flag detected. Review recommended before publishing.';
         } else {
           // 100% Clean video
           parsed.safetyGrade = 'SAFE_TO_UPLOAD';
           parsed.overallRiskScore = Math.min(10, parsed.overallRiskScore || 0);
           parsed.strikeProbabilityPct = 0;
           parsed.demonetizationProbabilityPct = 0;
-          parsed.timelineViolations = [];
-          parsed.criticalIssuesCount = 0;
-          parsed.warningsCount = 0;
-          parsed.totalIssuesCount = 0;
           parsed.mainIssueSeverity = 'CLEAN';
           parsed.mainIssueHeadline =
             parsed.mainIssueHeadline || 'No Strike Issues Detected (100% Clean & Safe)';
