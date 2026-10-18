@@ -24,9 +24,11 @@ import {
   serverTimestamp,
   getDocFromServer,
   Timestamp,
+  deleteDoc,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { AuditReport } from '../types/audit';
+import type { TrackedChannel } from '../types/channelTracker';
 
 // Initialize Firebase App & Services
 const app = initializeApp(firebaseConfig);
@@ -114,8 +116,45 @@ export async function signInWithGoogle(): Promise<User | null> {
       await syncUserProfile(result.user);
     }
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
+    if (
+      error?.code === 'auth/popup-closed-by-user' ||
+      error?.code === 'auth/cancelled-popup-request' ||
+      error?.code === 'auth/popup-blocked'
+    ) {
+      console.warn('Google sign-in popup was closed or dismissed:', error.code);
+      throw error;
+    }
     console.error('Sign-in error:', error);
+    throw error;
+  }
+}
+
+// Google Authentication with YouTube Readonly Scope for Channel Stats & Real Studio Analytics
+export async function signInWithGoogleYouTube(): Promise<{ user: User; accessToken?: string }> {
+  const provider = new GoogleAuthProvider();
+  provider.addScope('https://www.googleapis.com/auth/youtube.readonly');
+  provider.setCustomParameters({
+    prompt: 'select_account',
+  });
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const accessToken = credential?.accessToken;
+    if (result.user) {
+      await syncUserProfile(result.user);
+    }
+    return { user: result.user, accessToken };
+  } catch (error: any) {
+    if (
+      error?.code === 'auth/popup-closed-by-user' ||
+      error?.code === 'auth/cancelled-popup-request' ||
+      error?.code === 'auth/popup-blocked'
+    ) {
+      console.warn('Google YouTube sign-in popup was closed or dismissed:', error.code);
+      throw error;
+    }
+    console.error('Google YouTube Sign-in error:', error);
     throw error;
   }
 }
@@ -259,6 +298,102 @@ export async function saveAppealToCloud(
     return appealId;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, path);
+  }
+}
+
+// Save Tracked YouTube Channel to Cloud Firestore (Strictly Isolated per User)
+export async function saveTrackedChannelToCloud(channel: TrackedChannel, user: User): Promise<void> {
+  const safeId = (channel.id || 'channel').replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+  const docId = safeId.startsWith('ch_') ? safeId : `ch_${safeId}`;
+  const path = `tracked_channels/${docId}`;
+  try {
+    const docRef = doc(db, 'tracked_channels', docId);
+    const existingSnap = await getDoc(docRef);
+    const isExisting = existingSnap.exists();
+
+    const channelPayload: Record<string, any> = {
+      userId: user.uid,
+      userEmail: user.email || 'creator@youtube.studio',
+      channelId: channel.id,
+      title: (channel.title || 'YouTube Channel').slice(0, 200),
+      handle: (channel.handle || '@channel').slice(0, 100),
+      url: (channel.customUrl || `https://www.youtube.com/${channel.handle}`).slice(0, 500),
+      avatar: channel.avatar || '',
+      bannerUrl: channel.banner || '',
+      subscribers: channel.subscriberCount || 0,
+      subscribersFormatted: channel.subscribers || '',
+      totalViews: channel.totalViewsCount || 0,
+      totalVideos: channel.videoCount || 0,
+      isGoogleConnected: Boolean(channel.isGoogleConnected),
+      videos: channel.videos || [],
+      snapshots: channel.historySnapshots || [],
+      lastSyncedAt: new Date().toISOString(),
+      updatedAt: serverTimestamp(),
+    };
+
+    if (!isExisting) {
+      channelPayload.createdAt = serverTimestamp();
+    }
+
+    await setDoc(docRef, channelPayload, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+// Fetch all tracked channels owned by the authenticated creator
+export async function fetchUserTrackedChannels(userId: string): Promise<TrackedChannel[]> {
+  const path = 'tracked_channels';
+  try {
+    const q = query(
+      collection(db, 'tracked_channels'),
+      where('userId', '==', userId),
+      orderBy('updatedAt', 'desc')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: data.channelId || d.id,
+        handle: data.handle || '@channel',
+        title: data.title || 'YouTube Channel',
+        customUrl: data.url || '',
+        avatar: data.avatar || '',
+        banner: data.bannerUrl || '',
+        subscribers: data.subscribersFormatted || `${data.subscribers || 0} subscribers`,
+        subscriberCount: data.subscribers || 0,
+        videoCount: data.totalVideos || (data.videos?.length || 0),
+        totalViews: data.totalViews ? data.totalViews.toLocaleString() : '0',
+        totalViewsCount: data.totalViews || 0,
+        description: data.description || '',
+        lastUpdated: Date.now(),
+        total24hLikes: (data.videos || []).reduce((acc: number, v: any) => acc + (v.likes24h || 0), 0),
+        total24hViews: (data.videos || []).reduce((acc: number, v: any) => acc + (v.views24h || 0), 0),
+        total7dLikes: (data.videos || []).reduce((acc: number, v: any) => acc + (v.likes7d || 0), 0),
+        total7dViews: (data.videos || []).reduce((acc: number, v: any) => acc + (v.views7d || 0), 0),
+        videos: data.videos || [],
+        historySnapshots: data.snapshots || [],
+        isGoogleConnected: Boolean(data.isGoogleConnected),
+        userId: data.userId,
+        userEmail: data.userEmail,
+        privacyProtected: true,
+      } as TrackedChannel;
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+  }
+}
+
+// Delete a tracked channel owned by the authenticated creator
+export async function deleteTrackedChannelFromCloud(channelId: string, user: User): Promise<void> {
+  const safeId = channelId.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+  const docId = safeId.startsWith('ch_') ? safeId : `ch_${safeId}`;
+  const path = `tracked_channels/${docId}`;
+  try {
+    const docRef = doc(db, 'tracked_channels', docId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
   }
 }
 

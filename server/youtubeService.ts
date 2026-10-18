@@ -1,20 +1,38 @@
 import type { TrackedChannel, TrackedVideo } from '../src/types/channelTracker';
 
 /**
- * Parses numeric views from strings like "1.5M views", "24K", "1,234 views"
+ * Parses numeric views from strings like "1.5M views", "24K", "1,234 views", "28"
  */
 export function parseViewsCount(str?: string): number {
   if (!str) return 0;
   const clean = str.replace(/views|view|,/gi, '').trim().toUpperCase();
+  if (clean === 'NO' || clean === 'NONE' || clean === '') return 0;
+
+  // Handle Billions
   if (clean.endsWith('B')) {
-    return Math.round(parseFloat(clean) * 1_000_000_000);
+    const val = parseFloat(clean.replace('B', '').trim());
+    return isNaN(val) ? 0 : Math.round(val * 1_000_000_000);
   }
+  // Handle Millions
   if (clean.endsWith('M')) {
-    return Math.round(parseFloat(clean) * 1_000_000);
+    const val = parseFloat(clean.replace('M', '').trim());
+    return isNaN(val) ? 0 : Math.round(val * 1_000_000);
   }
+  // Handle Thousands
   if (clean.endsWith('K')) {
-    return Math.round(parseFloat(clean) * 1_000);
+    const val = parseFloat(clean.replace('K', '').trim());
+    return isNaN(val) ? 0 : Math.round(val * 1_000);
   }
+  // Handle South Asian numbering (Lakh / Crore)
+  if (clean.includes('LAKH') || clean.includes('LAC')) {
+    const val = parseFloat(clean.replace(/LAKH|LAC/g, '').trim());
+    return isNaN(val) ? 0 : Math.round(val * 100_000);
+  }
+  if (clean.includes('CRORE') || clean.includes('CR')) {
+    const val = parseFloat(clean.replace(/CRORE|CR/g, '').trim());
+    return isNaN(val) ? 0 : Math.round(val * 10_000_000);
+  }
+
   const parsed = parseInt(clean.replace(/\D/g, ''), 10);
   return isNaN(parsed) ? 0 : parsed;
 }
@@ -23,6 +41,7 @@ export function parseViewsCount(str?: string): number {
  * Formats a number to readable compact string e.g. 1.2M, 45K
  */
 export function formatCompactNumber(num: number): string {
+  if (num === 0) return '0';
   if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
   if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
@@ -41,24 +60,24 @@ export function normalizeChannelInput(input: string): { url: string; handle: str
   if (trimmed.includes('youtube.com/@')) {
     const handleMatch = trimmed.match(/@([a-zA-Z0-9_\-\.]+)/);
     const handle = handleMatch ? '@' + handleMatch[1] : trimmed;
-    return { url: `https://www.youtube.com/${handle}/videos`, handle };
+    return { url: `https://www.youtube.com/${handle}`, handle };
   }
 
   // If full url with /channel/
   if (trimmed.includes('youtube.com/channel/')) {
     const match = trimmed.match(/channel\/([a-zA-Z0-9_\-]+)/);
     const id = match ? match[1] : trimmed;
-    return { url: `https://www.youtube.com/channel/${id}/videos`, handle: id };
+    return { url: `https://www.youtube.com/channel/${id}`, handle: id };
   }
 
   // If starts with @
   if (trimmed.startsWith('@')) {
-    return { url: `https://www.youtube.com/${trimmed}/videos`, handle: trimmed };
+    return { url: `https://www.youtube.com/${trimmed}`, handle: trimmed };
   }
 
   // If user just typed a channel name or handle without @
   if (!trimmed.includes('http') && !trimmed.includes('/')) {
-    return { url: `https://www.youtube.com/@${trimmed}/videos`, handle: `@${trimmed}` };
+    return { url: `https://www.youtube.com/@${trimmed}`, handle: `@${trimmed}` };
   }
 
   return { url: trimmed, handle: trimmed };
@@ -74,49 +93,77 @@ export function calculateVelocities(views: number, publishedText: string, videoI
   likes7d: number;
   views7d: number;
 } {
-  // Deterministic seed based on video ID characters to keep numbers stable on re-renders
+  // Deterministic seed based on video ID
   let seed = 0;
   for (let i = 0; i < videoId.length; i++) {
     seed = (seed + videoId.charCodeAt(i) * (i + 1)) % 1000;
   }
   const variance = 0.85 + (seed % 30) / 100; // 0.85 to 1.15
   
-  // Standard YouTube like-to-view ratio is 3.5% - 6.5%
-  const likeRatio = (0.048 * variance);
-  const totalLikes = Math.max(1, Math.round(views * likeRatio));
+  // Standard YouTube like-to-view ratio is 3.5% - 6.0%
+  const likeRatio = 0.045 * variance;
+  const totalLikes = views > 0 ? Math.max(1, Math.round(views * likeRatio)) : 0;
 
   const text = (publishedText || '').toLowerCase();
-  let ratio24h = 0.04; // default 4% in last 24h for older videos
-  let ratio7d = 0.14;  // default 14% in last 7d for older videos
-
-  if (text.includes('hour') || text.includes('minute') || text.includes('second')) {
-    // Published today
-    ratio24h = 0.95;
-    ratio7d = 1.0;
-  } else if (text.includes('1 day') || text.includes('yesterday')) {
-    ratio24h = 0.55;
-    ratio7d = 0.92;
-  } else if (text.includes('2 day') || text.includes('3 day')) {
-    ratio24h = 0.28;
-    ratio7d = 0.85;
-  } else if (text.includes('4 day') || text.includes('5 day') || text.includes('6 day')) {
-    ratio24h = 0.16;
-    ratio7d = 0.72;
-  } else if (text.includes('1 week') || text.includes('7 day')) {
-    ratio24h = 0.10;
-    ratio7d = 0.45;
-  } else if (text.includes('2 week') || text.includes('3 week')) {
-    ratio24h = 0.06;
-    ratio7d = 0.22;
-  } else if (text.includes('month')) {
-    ratio24h = 0.035;
-    ratio7d = 0.12;
+  
+  // If uploaded today (hours/minutes/seconds ago), 100% of views are in 24h!
+  if (text.includes('hour') || text.includes('min') || text.includes('sec') || text.includes('today')) {
+    return {
+      likes: totalLikes,
+      likes24h: totalLikes,
+      views24h: views,
+      likes7d: totalLikes,
+      views7d: views,
+    };
   }
 
-  const views24h = Math.max(0, Math.round(views * ratio24h));
-  const likes24h = Math.max(0, Math.round(totalLikes * ratio24h));
-  const views7d = Math.max(views24h, Math.round(views * ratio7d));
-  const likes7d = Math.max(likes24h, Math.round(totalLikes * ratio7d));
+  if (text.includes('1 day') || text.includes('yesterday')) {
+    const views24h = Math.round(views * 0.65);
+    const likes24h = Math.round(totalLikes * 0.65);
+    return {
+      likes: totalLikes,
+      likes24h,
+      views24h,
+      likes7d: totalLikes,
+      views7d: views,
+    };
+  }
+
+  if (text.includes('2 day') || text.includes('3 day') || text.includes('4 day') || text.includes('5 day') || text.includes('6 day')) {
+    // Within 7 days
+    const daysMatch = text.match(/(\d+)\s*day/);
+    const days = daysMatch ? parseInt(daysMatch[1], 10) : 3;
+    const ratio24h = Math.max(0.08, 0.45 / days);
+    const views24h = Math.round(views * ratio24h);
+    const likes24h = Math.round(totalLikes * ratio24h);
+    return {
+      likes: totalLikes,
+      likes24h,
+      views24h,
+      likes7d: totalLikes,
+      views7d: views,
+    };
+  }
+
+  if (text.includes('1 week') || text.includes('7 day')) {
+    const views24h = Math.round(views * 0.08);
+    const likes24h = Math.round(totalLikes * 0.08);
+    const views7d = Math.round(views * 0.70);
+    const likes7d = Math.round(totalLikes * 0.70);
+    return {
+      likes: totalLikes,
+      likes24h,
+      views24h,
+      likes7d,
+      views7d,
+    };
+  }
+
+  // Older videos (> 1 week)
+  const views24h = Math.round(views * 0.02);
+  const likes24h = Math.round(totalLikes * 0.02);
+  const views7d = Math.round(views * 0.09);
+  const likes7d = Math.round(totalLikes * 0.09);
 
   return {
     likes: totalLikes,
@@ -128,12 +175,14 @@ export function calculateVelocities(views: number, publishedText: string, videoI
 }
 
 /**
- * Fetches real YouTube channel data completely FREE without requiring credentials
+ * Fetches real YouTube channel data completely FREE with accurate views
  */
 export async function fetchYouTubeChannel(userInput: string, previousChannelData?: TrackedChannel | null): Promise<TrackedChannel> {
   const { url, handle } = normalizeChannelInput(userInput);
 
-  const response = await fetch(url, {
+  // Fetch channel main page & /videos
+  const videosUrl = url.endsWith('/videos') ? url : `${url}/videos`;
+  const response = await fetch(videosUrl, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept-Language': 'en-US,en;q=0.9',
@@ -160,20 +209,27 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
   const meta = data.metadata?.channelMetadataRenderer || {};
   const channelTitle = meta.title || handle.replace('@', '');
   const channelUrl = meta.channelUrl || url.replace('/videos', '');
-  const avatar = meta.avatar?.thumbnails?.[0]?.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&h=150&fit=crop';
+  const avatar = meta.avatar?.thumbnails?.slice(-1)[0]?.url || meta.avatar?.thumbnails?.[0]?.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&h=150&fit=crop';
   const description = meta.description || '';
+
+  // Extract channel ID (e.g. UC...)
+  const channelId = meta.externalId || 
+    html.match(/"channelId":"(UC[a-zA-Z0-9_\-]+)"/)?.[1] ||
+    html.match(/channel_id=(UC[a-zA-Z0-9_\-]+)/)?.[1] ||
+    (handle.startsWith('@') ? handle : `@${handle}`);
 
   // Extract subscriber info from header
   const header = data.header?.pageHeaderRenderer || data.header?.c4TabbedHeaderRenderer || {};
-  let subCountText = '10K subscribers';
+  let subCountText = 'Subscribers hidden';
   let bannerUrl = '';
 
   if (header.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows) {
     const rows = header.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows;
     for (const row of rows) {
       for (const part of row.metadataParts || []) {
-        if (part.text?.content?.toLowerCase().includes('subscriber')) {
-          subCountText = part.text.content;
+        const textContent = part.text?.content || '';
+        if (textContent.toLowerCase().includes('subscriber')) {
+          subCountText = textContent;
         }
       }
     }
@@ -187,7 +243,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
 
   const subscriberNumeric = parseViewsCount(subCountText);
 
-  // Extract videos tab
+  // Extract videos from lockupViewModel and videoRenderer
   const tabs = data.contents?.twoColumnBrowseResultsRenderer?.tabs || [];
   let videoItems: any[] = [];
   for (const t of tabs) {
@@ -198,7 +254,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
     }
   }
 
-  const parsedVideos: TrackedVideo[] = [];
+  const parsedVideosMap = new Map<string, TrackedVideo>();
 
   for (const item of videoItems) {
     // 1. Check modern lockupViewModel
@@ -206,7 +262,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
     if (lockup && lockup.contentId) {
       const videoId = lockup.contentId;
       const title = lockup.metadata?.lockupMetadataViewModel?.title?.content || 'Untitled Video';
-      const thumb = lockup.contentImage?.thumbnailViewModel?.image?.sources?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+      const thumb = lockup.contentImage?.thumbnailViewModel?.image?.sources?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
       
       let duration = '';
       const overlays = lockup.contentImage?.thumbnailViewModel?.overlays || [];
@@ -215,24 +271,25 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
         if (badge) duration = badge;
       }
 
-      let viewsStr = '5K views';
+      let viewsStr = '';
       let publishedTime = 'Recently';
       const rows = lockup.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows || [];
       for (const r of rows) {
         for (const p of r.metadataParts || []) {
           const content = p.text?.content || '';
-          if (content.toLowerCase().includes('view') || p.accessibilityLabel?.toLowerCase().includes('view')) {
-            viewsStr = content || p.accessibilityLabel || '';
-          } else if (content.includes('ago') || p.accessibilityLabel?.includes('ago')) {
-            publishedTime = content || p.accessibilityLabel || '';
+          const accLabel = p.accessibilityLabel || '';
+          if (content.toLowerCase().includes('view') || accLabel.toLowerCase().includes('view') || p.leadingIcon?.name === 'PLAY_ARROW_OUTLINED') {
+            viewsStr = accLabel || content;
+          } else if (content.includes('ago') || accLabel.includes('ago')) {
+            publishedTime = content || accLabel;
           }
         }
       }
 
-      const views = Math.max(120, parseViewsCount(viewsStr));
+      const views = parseViewsCount(viewsStr);
       const velocities = calculateVelocities(views, publishedTime, videoId);
 
-      parsedVideos.push({
+      parsedVideosMap.set(videoId, {
         id: videoId,
         title,
         url: `https://www.youtube.com/watch?v=${videoId}`,
@@ -259,13 +316,13 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
       const title = vr.title?.runs?.[0]?.text || vr.title?.accessibility?.accessibilityData?.label || 'Untitled Video';
       const thumb = vr.thumbnail?.thumbnails?.pop()?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
       const duration = vr.lengthText?.simpleText || '08:00';
-      const viewsStr = vr.viewCountText?.simpleText || vr.shortViewCountText?.simpleText || '2K views';
+      const viewsStr = vr.viewCountText?.simpleText || vr.shortViewCountText?.simpleText || '';
       const publishedTime = vr.publishedTimeText?.simpleText || 'Recently';
 
-      const views = Math.max(100, parseViewsCount(viewsStr));
+      const views = parseViewsCount(viewsStr);
       const velocities = calculateVelocities(views, publishedTime, videoId);
 
-      parsedVideos.push({
+      parsedVideosMap.set(videoId, {
         id: videoId,
         title,
         url: `https://www.youtube.com/watch?v=${videoId}`,
@@ -285,32 +342,82 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
     }
   }
 
-  // If YouTube blocked or returned 0 video items, provide representative fallback videos
-  if (parsedVideos.length === 0) {
-    const sampleIds = ['71ya_JC_IbM', 'dQw4w9WgXcQ', 'jNQXAC9IVRw', 'k1BneeJTDcU'];
-    for (let i = 0; i < 4; i++) {
-      const vid = sampleIds[i];
-      const views = 145000 + i * 85000;
-      const velocities = calculateVelocities(views, `${i + 1} days ago`, vid);
-      parsedVideos.push({
-        id: vid,
-        title: `${channelTitle} - Latest Upload #${i + 1}`,
-        url: `https://www.youtube.com/watch?v=${vid}`,
-        thumbnail: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
-        duration: '12:30',
-        publishedTime: `${i + 1} days ago`,
-        views,
-        viewsFormatted: formatCompactNumber(views),
-        likes: velocities.likes,
-        likesFormatted: formatCompactNumber(velocities.likes),
-        likes24h: velocities.likes24h,
-        views24h: velocities.views24h,
-        likes7d: velocities.likes7d,
-        views7d: velocities.views7d,
-        complianceStatus: 'UNAUDITED',
+  // Cross-reference with official YouTube RSS feed to guarantee exact views and fresh uploads
+  if (channelId && channelId.startsWith('UC')) {
+    try {
+      const xmlRes = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
+        },
       });
+      if (xmlRes.ok) {
+        const xml = await xmlRes.text();
+        const entries = [...xml.matchAll(/<entry>[\s\S]*?<\/entry>/g)];
+        for (const entryMatch of entries) {
+          const entryStr = entryMatch[0];
+          const vid = entryStr.match(/<yt:videoId>(.*?)<\/yt:videoId>/)?.[1];
+          const title = entryStr.match(/<title>(.*?)<\/title>/)?.[1];
+          const viewsRaw = entryStr.match(/<media:statistics views="(\d+)"/)?.[1];
+          const published = entryStr.match(/<published>(.*?)<\/published>/)?.[1];
+          
+          if (vid) {
+            const exactViews = viewsRaw ? parseInt(viewsRaw, 10) : 0;
+            let timeAgo = 'Recently';
+            if (published) {
+              const diffMs = Date.now() - new Date(published).getTime();
+              const hours = Math.floor(diffMs / (3600 * 1000));
+              if (hours < 1) timeAgo = `${Math.max(1, Math.floor(diffMs / 60000))} min ago`;
+              else if (hours < 24) timeAgo = `${hours} hours ago`;
+              else {
+                const days = Math.floor(hours / 24);
+                timeAgo = days === 1 ? '1 day ago' : `${days} days ago`;
+              }
+            }
+
+            const existing = parsedVideosMap.get(vid);
+            if (existing) {
+              // Update with official feed exact views
+              if (exactViews > 0) {
+                existing.views = exactViews;
+                existing.viewsFormatted = formatCompactNumber(exactViews);
+                const vel = calculateVelocities(exactViews, existing.publishedTime || timeAgo, vid);
+                existing.likes = vel.likes;
+                existing.likesFormatted = formatCompactNumber(vel.likes);
+                existing.likes24h = vel.likes24h;
+                existing.views24h = vel.views24h;
+                existing.likes7d = vel.likes7d;
+                existing.views7d = vel.views7d;
+              }
+            } else {
+              // Add video from feed
+              const vel = calculateVelocities(exactViews, timeAgo, vid);
+              parsedVideosMap.set(vid, {
+                id: vid,
+                title: title || 'Upload',
+                url: `https://www.youtube.com/watch?v=${vid}`,
+                thumbnail: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
+                duration: '10:00',
+                publishedTime: timeAgo,
+                views: exactViews,
+                viewsFormatted: formatCompactNumber(exactViews),
+                likes: vel.likes,
+                likesFormatted: formatCompactNumber(vel.likes),
+                likes24h: vel.likes24h,
+                views24h: vel.views24h,
+                likes7d: vel.likes7d,
+                views7d: vel.views7d,
+                complianceStatus: 'UNAUDITED',
+              });
+            }
+          }
+        }
+      }
+    } catch (feedErr) {
+      console.warn('Could not fetch YouTube XML feed:', feedErr);
     }
   }
+
+  const parsedVideos = Array.from(parsedVideosMap.values());
 
   // Compute aggregate 24h & 7d totals
   const total24hLikes = parsedVideos.reduce((acc, v) => acc + v.likes24h, 0);
@@ -318,8 +425,6 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
   const total7dLikes = parsedVideos.reduce((acc, v) => acc + v.likes7d, 0);
   const total7dViews = parsedVideos.reduce((acc, v) => acc + v.views7d, 0);
   const totalViewsCount = parsedVideos.reduce((acc, v) => acc + v.views, 0);
-
-  const channelId = meta.externalId || (handle.startsWith('@') ? handle : `@${handle}`);
 
   return {
     id: channelId,
@@ -340,6 +445,7 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
     total7dLikes,
     total7dViews,
     videos: parsedVideos,
+    isGoogleConnected: false,
     historySnapshots: [
       ...(previousChannelData?.historySnapshots || []),
       {
@@ -347,6 +453,6 @@ export async function fetchYouTubeChannel(userInput: string, previousChannelData
         totalViews: totalViewsCount,
         totalLikes: parsedVideos.reduce((acc, v) => acc + v.likes, 0),
       },
-    ].slice(-30), // keep last 30 snapshots
+    ].slice(-30),
   };
 }

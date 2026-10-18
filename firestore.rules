@@ -33,6 +33,10 @@ service cloud.firestore {
       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
+    function isValidChannelDocId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
     // Entity Validators
     function isValidUserProfile(data) {
       return data.keys().hasAll(['userId', 'email', 'createdAt', 'updatedAt']) &&
@@ -134,6 +138,37 @@ service cloud.firestore {
         incoming().updatedAt == request.time && 
         (incoming().diff(existing()).affectedKeys().hasOnly(['appealLetter', 'status', 'updatedAt']) || isAdmin());
       allow delete: if isValidId(appealId) && (isOwner(existing().userId) || isAdmin());
+    }
+
+    // 4. Tracked Channels Collection (Strict User Isolation - Saved exclusively per user)
+    function isValidTrackedChannel(data) {
+      return data.keys().hasAll(['userId', 'channelId', 'title', 'handle', 'url', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+        data.channelId is string && data.channelId.size() > 0 && data.channelId.size() <= 128 &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+        data.handle is string && data.handle.size() <= 100 &&
+        data.url is string && data.url.size() <= 500 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    match /tracked_channels/{channelId} {
+      // Strictly isolated: only the owning authenticated user can read or get their channel data
+      allow get: if isValidChannelDocId(channelId) && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isValidChannelDocId(channelId) && 
+        isSignedIn() && 
+        incoming().userId == request.auth.uid && 
+        isValidTrackedChannel(incoming()) && 
+        incoming().createdAt == request.time && 
+        incoming().updatedAt == request.time;
+      allow update: if isValidChannelDocId(channelId) && 
+        (isOwner(existing().userId) || isAdmin()) && 
+        isValidTrackedChannel(incoming()) && 
+        incoming().userId == existing().userId && 
+        incoming().createdAt == existing().createdAt && 
+        incoming().updatedAt == request.time;
+      allow delete: if isValidChannelDocId(channelId) && (isOwner(existing().userId) || isAdmin());
     }
   }
 }

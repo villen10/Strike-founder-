@@ -52,6 +52,10 @@ export interface TrackedChannel {
   total7dViews: number;
   videos: TrackedVideo[];
   historySnapshots?: ChannelHistorySnapshot[];
+  userId?: string;
+  userEmail?: string;
+  isGoogleConnected?: boolean;
+  privacyProtected?: boolean;
 }
 
 export type TimeFilter = '24h' | '7d' | '30d' | 'all';

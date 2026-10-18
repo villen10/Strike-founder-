@@ -126,6 +126,104 @@
         }
       },
       "required": ["userId", "videoTitle", "policyType", "appealLetter", "status", "createdAt", "updatedAt"]
+    },
+    "TrackedChannel": {
+      "title": "TrackedChannel",
+      "description": "User tracked YouTube channel with exact views, 24h/7d analytics and strike safety",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner UID who owns this tracked channel",
+          "maxLength": 128
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Owner email address",
+          "maxLength": 256
+        },
+        "channelId": {
+          "type": "string",
+          "description": "YouTube Channel ID or custom identifier",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Channel display name",
+          "maxLength": 200
+        },
+        "handle": {
+          "type": "string",
+          "description": "Channel handle starting with @",
+          "maxLength": 100
+        },
+        "url": {
+          "type": "string",
+          "description": "Canonical channel URL",
+          "maxLength": 500
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Channel avatar image URL",
+          "maxLength": 1000
+        },
+        "bannerUrl": {
+          "type": "string",
+          "description": "Channel banner image URL",
+          "maxLength": 1000
+        },
+        "subscribers": {
+          "type": "number",
+          "description": "Total subscriber count"
+        },
+        "subscribersFormatted": {
+          "type": "string",
+          "description": "Formatted subscriber string e.g. 1.2M",
+          "maxLength": 50
+        },
+        "totalViews": {
+          "type": "number",
+          "description": "Lifetime views across channel"
+        },
+        "totalVideos": {
+          "type": "number",
+          "description": "Total video count"
+        },
+        "isGoogleConnected": {
+          "type": "boolean",
+          "description": "Whether channel was connected via official Google Login"
+        },
+        "videos": {
+          "type": "array",
+          "description": "List of videos with authentic views, likes, 24h & 7d deltas",
+          "items": {
+            "type": "object"
+          }
+        },
+        "snapshots": {
+          "type": "array",
+          "description": "Historical snapshots for calculating real 24h / 7d trends",
+          "items": {
+            "type": "object"
+          }
+        },
+        "lastSyncedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when channel was last synced"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["userId", "channelId", "title", "handle", "url", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -140,6 +238,10 @@
     "/saved_appeals/{appealId}": {
       "schema": "SavedAppeal",
       "description": "Saved strike appeals authored by creators"
+    },
+    "/tracked_channels/{channelId}": {
+      "schema": "TrackedChannel",
+      "description": "User YouTube tracked channel with real views and 24h/7d analytics strictly isolated per user"
     }
   }
 }

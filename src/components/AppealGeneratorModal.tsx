@@ -91,7 +91,15 @@ export const AppealGeneratorModal: React.FC<AppealGeneratorModalProps> = ({
         setCloudSaved(true);
         setTimeout(() => setCloudSaved(false), 3500);
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request' ||
+        err?.code === 'auth/popup-blocked'
+      ) {
+        // User dismissed the popup
+        return;
+      }
       console.error('Error saving appeal to cloud:', err);
     } finally {
       setIsSavingCloud(false);
