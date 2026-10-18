@@ -23,11 +23,12 @@ import {
   X,
   Check,
   Lock,
+  Youtube,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
 
-export type NavView = 'overview' | 'scanner' | 'analytics' | 'violations' | 'appeal' | 'knowledge' | 'profile';
+export type NavView = 'overview' | 'scanner' | 'channels' | 'analytics' | 'violations' | 'appeal' | 'knowledge' | 'profile';
 
 export interface SidebarUser {
   uid: string;
@@ -112,6 +113,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: FileVideo,
       badge: pendingQueueCount > 0 ? `${pendingQueueCount}` : null,
       badgeColor: 'bg-amber-500 text-white',
+    },
+    {
+      id: 'channels' as NavView,
+      label: 'Channel Tracker',
+      icon: Youtube,
+      badge: '24h/7d',
+      badgeColor: 'bg-red-600 text-white',
     },
     {
       id: 'analytics' as NavView,
@@ -744,6 +752,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const items = [
     { id: 'overview' as NavView, label: 'Home', icon: LayoutDashboard },
     { id: 'scanner' as NavView, label: 'Scanner', icon: FileVideo },
+    { id: 'channels' as NavView, label: 'Tracker', icon: Youtube },
     { id: 'analytics' as NavView, label: 'Health', icon: Activity },
     { id: 'violations' as NavView, label: 'Flags', icon: AlertTriangle, badge: violationsCount > 0 ? violationsCount : null },
     { id: 'profile' as NavView, label: 'Profile', icon: User },

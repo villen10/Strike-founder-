@@ -175,7 +175,14 @@ function generateClientSideAuditReport(params: {
   const adultKeywords = [
     'xhamster', 'pornhub', 'xnxx', 'xvideos', 'porn', 'xxx', 'hentai', 'onlyfans leak',
   ];
-  const kidKeywords = ['kid', 'child', 'baby', 'toddler', 'minor'];
+  const kidKeywords = ['kid', 'child', 'baby', 'toddler', 'minor', 'infant', 'newborn', 'bacha', 'bachi', 'bache'];
+  const childHazardTerms = [
+    'strike', 'warning', 'violation', 'hazard', 'danger', 'peril', 'attack', 'bath', 'bathing',
+    'naked', 'nude', 'diaper', 'underwear', 'stunt', 'jump', 'knife', 'cut', 'blade', 'fire',
+    'flame', 'burn', 'pool', 'drown', 'water', 'choke', 'prank', 'crying', 'cry', 'scare',
+    'scream', 'hurt', 'injury', 'accident', 'predator', 'crocodile', 'alligator', 'snake',
+    'fall', 'roof', 'car', 'bike', 'abuse', 'slap', 'hit', 'punish'
+  ];
   // Real lethal / extreme violence / prohibited keywords
   const extremeDangerKeywords = [
     'ghostgun', 'fentanyl', 'crack cocaine', 'knife attack', 'suicide', 'deadly weapon',
@@ -183,6 +190,7 @@ function generateClientSideAuditReport(params: {
 
   const hasSexualWords = adultKeywords.some((w) => lowerTitle.includes(w));
   const hasKidWords = kidKeywords.some((w) => lowerTitle.includes(w));
+  const hasChildHazard = childHazardTerms.some((w) => lowerTitle.includes(w));
   const hasPredator = lowerTitle.includes('crocodile') || lowerTitle.includes('alligator') || lowerTitle.includes('predator');
   const hasDangerousWords = extremeDangerKeywords.some((w) => lowerTitle.includes(w));
 
@@ -202,8 +210,8 @@ function generateClientSideAuditReport(params: {
     overallRisk = 98;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
-  } else if (hasKidWords && (hasDangerousWords || hasPredator)) {
-    overallRisk = 92;
+  } else if (hasKidWords && (hasChildHazard || hasDangerousWords || hasPredator || highSkinFrames.length > 0)) {
+    overallRisk = 95;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
   } else if (hasDangerousWords) {
@@ -238,32 +246,40 @@ function generateClientSideAuditReport(params: {
       severity,
       category: isSex ? 'SEXUAL_CONTENT' : hasKidWords ? 'CHILD_SAFETY' : 'VIOLENCE_GRAPHIC',
       categoryLabel: isSex ? 'Sex & Nudity Policy Violation' : hasKidWords ? 'Child Safety & Minor Protection' : 'Violent & Dangerous Content',
-      title: isSex ? 'Prohibited Adult / Nudity / Explicit Exposure Detected' : hasKidWords ? 'Minor Exposed to Potential Hazard / Rapid Action' : 'Severe Guideline / Strike Cue Detected',
+      title: isSex ? 'Prohibited Adult / Nudity / Explicit Exposure Detected' : hasKidWords ? 'Severe Child Safety & Minor Protection Infraction' : 'Severe Guideline / Strike Cue Detected',
       youtubePolicyRef: isSex
         ? 'YouTube Community Guidelines - Nudity and Sexual Content Policy'
         : hasKidWords
-        ? 'YouTube Community Guidelines - Child Safety Policy'
+        ? 'YouTube Community Guidelines - Child Safety Policy (Zero Tolerance)'
         : 'YouTube Violent and Graphic Content Policy',
       descriptionEn: isSex
         ? 'Visual inspection detected explicit adult content, high density unclothed exposure, or prohibited adult website material. YouTube algorithms will immediately flag this video, issue a permanent Community Guidelines Strike, and may terminate the channel.'
+        : hasKidWords
+        ? 'Content violates YouTube Child Safety policies. YouTube strictly prohibits placing minors in dangerous situations, minor nudity, distress, or hazardous stunts. Classifiers will issue an immediate strike upon upload.'
         : 'Inspection detected high risk of YouTube strike. Platform automated systems flag this pattern immediately upon upload.',
       descriptionUrdu: isSex
         ? 'Prohibited adult content or explicit nudity detected. YouTube bans this immediately with a strike.'
+        : hasKidWords
+        ? 'بچوں کی حفاظت اور مائنر پروٹیکشن پالیسی کی خلاف ورزی۔ یوٹیوب پر فوری اسٹرائیک آئے گی۔'
         : 'High strike hazard detected under YouTube Community Guidelines.',
       frameSnapshot: flaggedFrame?.dataUrl || params.frames[0]?.dataUrl,
-      confidencePct: isSex ? 98 : overallRisk > 80 ? 94 : 82,
-      confidenceLevel: isSex || overallRisk > 80 ? 'VERY_HIGH' : 'HIGH',
+      confidencePct: isSex || hasKidWords ? 98 : overallRisk > 80 ? 94 : 82,
+      confidenceLevel: isSex || hasKidWords || overallRisk > 80 ? 'VERY_HIGH' : 'HIGH',
       detectionReasoning: isSex
         ? 'High skin-tone density heuristics and adult keyword matching detected explicit non-compliant visual material across keyframe samples.'
+        : hasKidWords
+        ? 'Child safety risk detection heuristics identified minor protection cues that trigger automatic Community Guidelines strikes on YouTube.'
         : 'Automated policy classifiers detected elevated risk patterns associated with platform community guideline strikes.',
       detectionMechanism: isSex
         ? 'Pixel Skin-Tone Clustering & Keyword Ingest'
+        : hasKidWords
+        ? 'Child Safety & Minor Protection Ingest Engine'
         : 'Algorithmic Community Strike Classifier',
       actionableFix: {
         actionType: (isSex ? 'BLUR_AREA' : 'TRIM_CLIP') as ActionableFix['actionType'],
         instructionsEn: isSex
           ? 'DO NOT upload this video. Remove the entire adult sequence or blur/censor completely with age-restriction.'
-          : 'Trim or cut out the sequence from 00:02 to the end before uploading.',
+          : 'DO NOT upload this video to YouTube. Trim or cut out the flagged sequence completely to prevent channel strikes.',
         instructionsUrdu: 'Do NOT upload this video to YouTube without editing or removing the violation.',
         suggestedCut: isSex ? `Cut / Remove sequence (${timestampStart} - ${params.durationFormatted})` : 'Cut flagged sequence',
       },
@@ -289,13 +305,13 @@ function generateClientSideAuditReport(params: {
     mainIssueHeadline: grade === 'SAFE_TO_UPLOAD'
       ? 'No Strike Issues Detected (100% Clean & Safe)'
       : grade === 'HIGH_STRIKE_RISK'
-      ? `Critical Strike Hazard: ${violations[0]?.title || 'Policy Infraction'}`
-      : 'Minor Caution: Presentation / Transition Cue (Channel Safe)',
+      ? (hasKidWords ? 'Critical Strike Hazard: Child Safety & Minor Protection Violation' : `Critical Strike Hazard: ${violations[0]?.title || 'Policy Infraction'}`)
+      : 'Minor Caution: Presentation / Transition Cue (Channel Safe - Not a Strike)',
     mainIssueDetail: grade === 'SAFE_TO_UPLOAD'
       ? 'Video complies with YouTube Community Guidelines. No policy strikes or copyright hazards found.'
       : grade === 'HIGH_STRIKE_RISK'
-      ? 'Severe YouTube Community Guidelines infraction detected. Trim or cut this segment before publishing.'
-      : 'This is a minor presentation warning, not a Community Guidelines strike. Your channel is safe.',
+      ? (hasKidWords ? 'Direct YouTube Community Guidelines strike hazard. Content depicts minors in an unsafe situation, inappropriate exposure, or endangerment. Remove immediately before publishing.' : 'Severe YouTube Community Guidelines infraction detected. Trim or cut this segment before publishing.')
+      : 'Choti si warning: This is a minor presentation warning, not a Community Guidelines strike. Your channel is safe from penalties.',
     mainIssueSeverity: grade === 'SAFE_TO_UPLOAD' ? 'CLEAN' : grade === 'HIGH_STRIKE_RISK' ? 'CRITICAL_STRIKE' : 'MINOR_WARNING',
     strikeProbabilityPct: Math.round(overallRisk * 0.99),
     demonetizationProbabilityPct: Math.min(100, Math.round(overallRisk * 1.05)),

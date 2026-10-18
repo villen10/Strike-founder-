@@ -15,6 +15,7 @@ import { PolicyKnowledgeBase } from './components/PolicyKnowledgeBase';
 import { AuthModal } from './components/AuthModal';
 import { ProfileView, AppUserProfile } from './components/ProfileView';
 import { FullScreenAnalysisModal } from './components/FullScreenAnalysisModal';
+import { ChannelTrackerDashboard } from './components/ChannelTrackerDashboard';
 import { COLOR_THEMES } from './services/themeConfig';
 import { SAMPLE_VIDEOS } from './services/sampleData';
 import { AuditReport, ColorThemeId, SampleVideoOption, QueuedVideoTask } from './types/audit';
@@ -626,6 +627,34 @@ export default function App() {
     setTimeout(() => {
       processQueue();
     }, 50);
+  };
+
+  // Run audit on a video directly from user's YouTube channel
+  const handleAuditVideoFromChannel = async (title: string, url: string) => {
+    setCurrentView('scanner');
+    setVideoTitle(title);
+    setCurrentVideoUrl(null);
+    setCurrentTime(0);
+    setIsFullScreenAnalysisOpen(true);
+    setIsScanning(true);
+    setScanProgress({ percent: 25, status: `Auditing channel video: "${title}"...` });
+
+    try {
+      const audit = await requestVideoAudit({
+        videoTitle: title,
+        durationSec: 60,
+        durationFormatted: '01:00',
+        strictnessMode: strictnessModeRef.current,
+        frames: [],
+      });
+      setReport(audit);
+      setIsScanning(false);
+      setScanProgress({ percent: 100, status: 'Audit complete!' });
+      updateHistoryWithReport(audit, title);
+    } catch (e: any) {
+      console.error('Audit from channel failed:', e);
+      setIsScanning(false);
+    }
   };
 
   // Instant 1-Click Load Scenario with snappy, delightful animation
@@ -1241,6 +1270,23 @@ export default function App() {
                       isLight={isLight}
                     />
                   )}
+                </motion.div>
+              )}
+
+              {/* View 2.5: YOUTUBE CHANNEL TRACKER (24H & 7D METRICS, LINKS, LIKES) */}
+              {currentView === 'channels' && (
+                <motion.div
+                  key="view-channels"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  <ChannelTrackerDashboard
+                    theme={theme}
+                    onAuditVideoFromChannel={handleAuditVideoFromChannel}
+                  />
                 </motion.div>
               )}
 
