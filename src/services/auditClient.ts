@@ -44,6 +44,9 @@ export async function requestVideoAudit(params: {
         totalIssuesCount: rep.totalIssuesCount ?? (rep.timelineViolations?.length || 0),
         criticalIssuesCount: rep.criticalIssuesCount ?? 0,
         warningsCount: rep.warningsCount ?? 0,
+        mainIssueHeadline: rep.mainIssueHeadline || (rep.safetyGrade === 'SAFE_TO_UPLOAD' ? 'No Strike Issues Detected (100% Clean & Safe)' : rep.safetyGrade === 'HIGH_STRIKE_RISK' ? 'Critical Strike Hazard Detected' : 'Minor Caution (Not a Strike)'),
+        mainIssueDetail: rep.mainIssueDetail || rep.summaryVerdictEn,
+        mainIssueSeverity: rep.mainIssueSeverity || (rep.safetyGrade === 'SAFE_TO_UPLOAD' ? 'CLEAN' : rep.safetyGrade === 'HIGH_STRIKE_RISK' ? 'CRITICAL_STRIKE' : 'MINOR_WARNING'),
         summaryVerdictEn: rep.summaryVerdictEn || 'Audit completed.',
         summaryVerdictUrdu: rep.summaryVerdictUrdu || rep.summaryVerdictEn || 'Audit completed.',
         timelineViolations: (rep.timelineViolations || []).map((v: any, index: number) => {
@@ -168,35 +171,30 @@ function generateClientSideAuditReport(params: {
   const isStrict = params.strictnessMode === 'PARANOID_ZERO_RISK';
   const lowerTitle = params.videoTitle.toLowerCase();
 
-  // Keyword flags covering non-mainstream formats, adult sites, and illegal acts
+  // Explicit pornography keywords
   const adultKeywords = [
-    'xhamster', 'pornhub', 'xnxx', 'xvideos', 'porn', 'sex', 'sexy', 'naked', 'nudity',
-    'nsfw', 'boobs', 'erotic', 'strip', 'adult', 'private', 'uncensored', 'ganda', 'onlyfans',
-    'webcam', 'cam4', 'chaturbate', 'leak', 'xxx', 'hentai', 'fetish', 'leaked', 'stripper', 'nude',
+    'xhamster', 'pornhub', 'xnxx', 'xvideos', 'porn', 'xxx', 'hentai', 'onlyfans leak',
   ];
   const kidKeywords = ['kid', 'child', 'baby', 'toddler', 'minor'];
-  const dangerousKeywords = [
-    'strike', 'banned', 'fight', 'knife', 'blood', 'stunt', 'accident', 'crash', 'weapon',
-    'gun', 'kill', 'ghostgun', 'hack', 'darkweb', 'carding', 'drugs', 'crack', 'cocaine', 'meth',
-    'theft', 'burglary', 'shoplifting',
+  // Real lethal / extreme violence / prohibited keywords
+  const extremeDangerKeywords = [
+    'ghostgun', 'fentanyl', 'crack cocaine', 'knife attack', 'suicide', 'deadly weapon',
   ];
 
   const hasSexualWords = adultKeywords.some((w) => lowerTitle.includes(w));
   const hasKidWords = kidKeywords.some((w) => lowerTitle.includes(w));
-  const hasDangerousWords = dangerousKeywords.some((w) => lowerTitle.includes(w));
+  const hasPredator = lowerTitle.includes('crocodile') || lowerTitle.includes('alligator') || lowerTitle.includes('predator');
+  const hasDangerousWords = extremeDangerKeywords.some((w) => lowerTitle.includes(w));
 
   // Inspect actual frame computer vision data & deep-pass anomalies
-  const highSkinFrames = params.frames.filter((f) => (f.skinToneRatio ?? 0) > 0.28 || f.isPotentialNudity);
+  const highSkinFrames = params.frames.filter((f) => (f.skinToneRatio ?? 0) > 0.65 || f.isPotentialNudity);
   const deepAnomalyFrames = params.frames.filter(
-    (f) => f.isDeepFrame && ((f.motionBlurScore || 0) > 0.65 || (f.rapidTransitionScore || 0) > 0.45)
+    (f) => f.isDeepFrame && ((f.motionBlurScore || 0) > 0.75 || (f.rapidTransitionScore || 0) > 0.60)
   );
-  const avgSkinRatio = params.frames.length > 0
-    ? params.frames.reduce((acc, f) => acc + (f.skinToneRatio ?? 0), 0) / params.frames.length
-    : 0;
 
-  const isVisuallySexual = hasSexualWords || highSkinFrames.length >= 2 || avgSkinRatio > 0.24;
+  const isVisuallySexual = hasSexualWords;
 
-  let overallRisk = 12;
+  let overallRisk = 0;
   let severity: RiskSeverity = 'CLEAN';
   let grade: AuditReport['safetyGrade'] = 'SAFE_TO_UPLOAD';
 
@@ -204,26 +202,28 @@ function generateClientSideAuditReport(params: {
     overallRisk = 98;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
-  } else if (hasKidWords && hasDangerousWords) {
-    overallRisk = isStrict ? 95 : 88;
-    severity = 'CRITICAL_STRIKE';
-    grade = 'HIGH_STRIKE_RISK';
-  } else if (deepAnomalyFrames.length > 0) {
-    overallRisk = isStrict ? 86 : 78;
+  } else if (hasKidWords && (hasDangerousWords || hasPredator)) {
+    overallRisk = 92;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
   } else if (hasDangerousWords) {
-    overallRisk = isStrict ? 84 : 72;
+    overallRisk = 85;
     severity = 'CRITICAL_STRIKE';
     grade = 'HIGH_STRIKE_RISK';
-  } else if (hasKidWords) {
-    overallRisk = isStrict ? 45 : 30;
+  } else if (deepAnomalyFrames.length > 0) {
+    // Minor presentation / transition caution - NOT a strike!
+    overallRisk = 25;
     severity = 'MILD_CAUTION';
+    grade = 'MONETIZATION_AT_RISK';
+  } else {
+    // 100% Clean video
+    overallRisk = 0;
+    severity = 'CLEAN';
     grade = 'SAFE_TO_UPLOAD';
   }
 
   const violations: PolicyViolation[] = [];
-  if (overallRisk > 50) {
+  if (overallRisk >= 60) {
     const isSex = isVisuallySexual;
     const flaggedFrame = highSkinFrames[0] || params.frames[0];
     const timestampStart = flaggedFrame ? flaggedFrame.timestamp : '00:02';
@@ -286,6 +286,17 @@ function generateClientSideAuditReport(params: {
     durationFormatted: params.durationFormatted,
     overallRiskScore: overallRisk,
     safetyGrade: grade,
+    mainIssueHeadline: grade === 'SAFE_TO_UPLOAD'
+      ? 'No Strike Issues Detected (100% Clean & Safe)'
+      : grade === 'HIGH_STRIKE_RISK'
+      ? `Critical Strike Hazard: ${violations[0]?.title || 'Policy Infraction'}`
+      : 'Minor Caution: Presentation / Transition Cue (Channel Safe)',
+    mainIssueDetail: grade === 'SAFE_TO_UPLOAD'
+      ? 'Video complies with YouTube Community Guidelines. No policy strikes or copyright hazards found.'
+      : grade === 'HIGH_STRIKE_RISK'
+      ? 'Severe YouTube Community Guidelines infraction detected. Trim or cut this segment before publishing.'
+      : 'This is a minor presentation warning, not a Community Guidelines strike. Your channel is safe.',
+    mainIssueSeverity: grade === 'SAFE_TO_UPLOAD' ? 'CLEAN' : grade === 'HIGH_STRIKE_RISK' ? 'CRITICAL_STRIKE' : 'MINOR_WARNING',
     strikeProbabilityPct: Math.round(overallRisk * 0.99),
     demonetizationProbabilityPct: Math.min(100, Math.round(overallRisk * 1.05)),
     first7SecondsStatus: overallRisk > 60 ? 'FLAGGED' : 'COMPLIANT',
@@ -293,7 +304,9 @@ function generateClientSideAuditReport(params: {
     criticalIssuesCount: violations.filter((v) => v.severity === 'CRITICAL_STRIKE').length,
     warningsCount: violations.filter((v) => v.severity !== 'CRITICAL_STRIKE').length,
     summaryVerdictEn: overallRisk > 60
-      ? 'CRITICAL STRIKE WARNING: High probability of YouTube automated strike or instant deletion due to policy violations (adult content/nudity/strikes).'
+      ? 'CRITICAL STRIKE WARNING: High probability of YouTube automated strike or instant deletion due to policy violations.'
+      : grade === 'MONETIZATION_AT_RISK'
+      ? 'Minor Caution: Video is safe from strikes, but has minor ad suitability cues.'
       : 'Clean audit. Video meets YouTube Community Guidelines and Advertiser-Friendly parameters.',
     summaryVerdictUrdu: overallRisk > 60
       ? 'CRITICAL STRIKE WARNING: High probability of YouTube automated strike or deletion.'

@@ -448,9 +448,21 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
                           </span>
                         )}
                       </div>
-                      <p className="font-sans text-xs text-slate-300 mt-1 line-clamp-2">
-                        {report.summaryVerdictEn}
-                      </p>
+
+                      {/* 1-2 Short Lines Main Issues Callout */}
+                      <div className="mt-2 rounded-xl bg-black/25 p-2.5 border border-white/10 font-public-sans">
+                        <h5 className="font-satoshi text-xs sm:text-sm font-bold text-white leading-tight">
+                          {report.mainIssueHeadline ||
+                            (isClean
+                              ? 'No Strike Issues Detected (100% Clean & Safe)'
+                              : isHighStrike
+                              ? 'Critical Strike Hazard Detected'
+                              : 'Minor Caution: Presentation / Ad Notice (Channel Safe - Not a Strike)')}
+                        </h5>
+                        <p className="font-public-sans text-[11.5px] text-slate-300 mt-0.5 leading-snug">
+                          {report.mainIssueDetail || report.summaryVerdictEn}
+                        </p>
+                      </div>
                     </div>
                   </div>
 

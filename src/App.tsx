@@ -1226,6 +1226,15 @@ export default function App() {
                   />
 
                   {report && (
+                    <AuditSummaryCard
+                      report={report}
+                      onOpenCutGuide={() => setIsCutGuideOpen(true)}
+                      onOpenAppealModal={() => setCurrentView('appeal')}
+                      isLight={isLight}
+                    />
+                  )}
+
+                  {report && (
                     <TimelineViolations
                       violations={report.timelineViolations}
                       onSeekToViolation={handleSeek}

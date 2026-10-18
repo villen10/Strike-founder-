@@ -314,12 +314,94 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
               <span className="font-display text-lg sm:text-xl font-black leading-none text-slate-900 dark:text-white">
                 {compliancePercent}%
               </span>
-              <span className="font-sans text-[9px] uppercase tracking-wider font-bold opacity-75 mt-0.5">
+              <span className="font-public-sans text-[9px] uppercase tracking-wider font-bold opacity-75 mt-0.5">
                 {isCritical ? 'RISK' : isCaution ? 'WARN' : 'SAFE'}
               </span>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 1-2 SHORT LINES MAIN ISSUES CALLOUT (EASILY IDENTIFIABLE FOR CREATORS) */}
+      <div
+        className={`rounded-2xl border p-4 sm:p-5 transition shadow-xs ${
+          isCritical
+            ? isLight
+              ? 'border-red-300 bg-red-50/80 text-slate-900 shadow-red-500/5'
+              : 'border-rose-500/40 bg-rose-950/25 text-slate-100'
+            : isCaution
+            ? isLight
+              ? 'border-amber-300 bg-amber-50/80 text-slate-900 shadow-amber-500/5'
+              : 'border-amber-500/40 bg-amber-950/25 text-slate-100'
+            : isLight
+            ? 'border-emerald-300 bg-emerald-50/80 text-slate-900 shadow-emerald-500/5'
+            : 'border-emerald-500/40 bg-emerald-950/25 text-slate-100'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-public-sans font-bold uppercase tracking-wider ${
+                isCritical
+                  ? 'bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30'
+                  : isCaution
+                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+              }`}
+            >
+              {isCritical ? (
+                <>
+                  <ShieldAlert className="h-3.5 w-3.5" />
+                  <span>Major YouTube Strike Hazard</span>
+                </>
+              ) : isCaution ? (
+                <>
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span>Choti Si Warning (Ad Notice - Channel Safe)</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>100% Clean Video (Zero Strikes)</span>
+                </>
+              )}
+            </span>
+            <span className="text-xs text-slate-400 hidden sm:inline">·</span>
+            <span className="text-xs text-slate-500 font-public-sans font-semibold hidden sm:inline">
+              Main Issue Summary
+            </span>
+          </div>
+
+          <span className="text-[11px] font-mono text-slate-500 font-semibold">
+            {report.totalIssuesCount === 0 ? '0 Strikes / Clean' : `${report.totalIssuesCount} Issue(s) Found`}
+          </span>
+        </div>
+
+        {/* 1-2 Short Lines Headline & Detail in Satoshi / Public Sans */}
+        <h4
+          className={`font-satoshi text-base sm:text-lg font-bold tracking-tight leading-snug ${
+            isCritical
+              ? 'text-red-700 dark:text-red-400'
+              : isCaution
+              ? 'text-amber-800 dark:text-amber-300'
+              : 'text-emerald-800 dark:text-emerald-300'
+          }`}
+        >
+          {report.mainIssueHeadline ||
+            (isClean
+              ? 'No Strike Issues Detected (100% Clean & Safe)'
+              : isCaution
+              ? 'Minor Caution: Presentation / Ad Suitability Notice (Channel Safe - Not a Strike)'
+              : `Critical Strike Hazard: ${report.timelineViolations?.[0]?.title || 'Policy Infraction'}`)}
+        </h4>
+
+        <p
+          className={`mt-1 font-public-sans text-xs sm:text-sm font-medium leading-relaxed ${
+            isLight ? 'text-slate-700' : 'text-slate-300'
+          }`}
+        >
+          {report.mainIssueDetail || report.summaryVerdictEn}
+        </p>
       </div>
 
       {/* 2. LOCKED ACCESS GATE OR UNLOCKED STATS */}

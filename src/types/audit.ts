@@ -90,6 +90,9 @@ export interface AuditReport {
   summaryVerdictEn: string;
   summaryVerdictUrdu: string;
   primaryIssueBoldText?: string; // Bold easy English summary of the main violation
+  mainIssueHeadline?: string; // 1 concise punchy line highlighting the main issue
+  mainIssueDetail?: string; // 1-2 short clear lines explaining the finding
+  mainIssueSeverity?: 'CLEAN' | 'MINOR_WARNING' | 'CRITICAL_STRIKE';
   timelineViolations: PolicyViolation[];
   categoryScores: {
     childSafety: number;

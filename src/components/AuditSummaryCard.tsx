@@ -144,7 +144,7 @@ Summary: ${report.summaryVerdictEn}`;
 
           <button
             onClick={handleCopySummary}
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 font-body text-xs font-semibold transition ${
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 font-sans text-xs font-semibold transition cursor-pointer ${
               isLight
                 ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                 : 'border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800'
@@ -157,8 +157,83 @@ Summary: ${report.summaryVerdictEn}`;
         </div>
       </div>
 
+      {/* 1-2 SHORT LINES MAIN ISSUES CALLOUT (EASILY IDENTIFIABLE FOR CREATORS) */}
+      <div
+        className={`rounded-2xl border p-4 sm:p-5 transition shadow-2xs font-public-sans ${
+          isSafe
+            ? isLight
+              ? 'border-emerald-200 bg-emerald-50/70 text-slate-900'
+              : 'border-emerald-500/30 bg-emerald-950/25 text-slate-100'
+            : isWarning
+            ? isLight
+              ? 'border-amber-200 bg-amber-50/70 text-slate-900'
+              : 'border-amber-500/30 bg-amber-950/25 text-slate-100'
+            : isLight
+            ? 'border-red-200 bg-red-50/70 text-slate-900'
+            : 'border-rose-500/30 bg-rose-950/30 text-slate-100'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-public-sans font-bold uppercase tracking-wider ${
+                isSafe
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                  : isWarning
+                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                  : 'bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30'
+              }`}
+            >
+              {isSafe && <CheckCircle2 className="h-3 w-3" />}
+              {isWarning && <AlertTriangle className="h-3 w-3" />}
+              {isCritical && <ShieldAlert className="h-3 w-3" />}
+              <span>
+                {isSafe
+                  ? '100% Clean Video (Zero Strikes)'
+                  : isWarning
+                  ? 'Choti Si Warning (Ad Notice - Channel Safe)'
+                  : 'Major YouTube Strike Hazard'}
+              </span>
+            </span>
+            <span className="text-xs text-slate-400 hidden sm:inline">·</span>
+            <span className="text-xs text-slate-500 font-public-sans font-semibold hidden sm:inline">
+              Main Issue Summary
+            </span>
+          </div>
+
+          <span className="text-[11px] font-mono text-slate-400 font-semibold">
+            {report.totalIssuesCount === 0 ? '0 Strikes / Safe' : `${report.totalIssuesCount} Issue(s)`}
+          </span>
+        </div>
+
+        {/* 1-2 Short Lines Headline & Detail in Public Sans / Satoshi */}
+        <h3
+          className={`font-satoshi text-sm sm:text-base font-bold tracking-tight leading-snug ${
+            isSafe
+              ? 'text-emerald-800 dark:text-emerald-300'
+              : isWarning
+              ? 'text-amber-800 dark:text-amber-300'
+              : 'text-red-700 dark:text-red-400'
+          }`}
+        >
+          {report.mainIssueHeadline ||
+            (isSafe
+              ? 'No Strike Issues Detected (100% Clean & Safe)'
+              : isWarning
+              ? 'Minor Caution: Presentation / Ad Suitability (Channel Safe - Not a Strike)'
+              : `Critical Strike Risk: ${report.timelineViolations?.[0]?.title || 'Policy Infraction'}`)}
+        </h3>
+        <p
+          className={`mt-1 text-xs sm:text-sm font-public-sans font-medium leading-relaxed ${
+            isLight ? 'text-slate-700' : 'text-slate-300'
+          }`}
+        >
+          {report.mainIssueDetail || report.summaryVerdictEn}
+        </p>
+      </div>
+
       {/* Metrics Row: 4 Studio Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 font-sans">
         {/* Metric 1: Strike Probability */}
         <div
           className={`flex flex-col justify-between rounded-2xl border p-4 transition ${

@@ -30,7 +30,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
   if (violations.length === 0) {
     return (
       <div
-        className={`flex flex-col items-center justify-center rounded-3xl border p-8 text-center transition shadow-2xs ${
+        className={`flex flex-col items-center justify-center rounded-3xl border p-8 text-center transition shadow-2xs font-public-sans ${
           isLight
             ? 'border-emerald-200/80 bg-emerald-50/70 text-emerald-950 shadow-emerald-500/5'
             : 'border-emerald-500/30 bg-emerald-950/20 text-emerald-300'
@@ -46,51 +46,77 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
           <CheckCircle2 className="h-8 w-8" />
         </div>
         <h3
-          className={`font-display text-base sm:text-xl font-black tracking-tight ${
+          className={`font-satoshi text-base sm:text-xl font-black tracking-tight ${
             isLight ? 'text-slate-950' : 'text-white'
           }`}
         >
-          Zero Community Guideline Violations Detected
+          Zero Community Guideline Violations (100% Clean)
         </h3>
         <p
-          className={`mt-1.5 max-w-lg font-sans text-xs sm:text-sm leading-relaxed ${
+          className={`mt-1.5 max-w-lg font-public-sans text-xs sm:text-sm leading-relaxed ${
             isLight ? 'text-slate-600' : 'text-slate-300'
           }`}
         >
-          All temporal keyframes meet YouTube automated moderation standards, child safety guidelines, and opening hook advertiser policies. Ready for safe scheduling.
+          All temporal keyframes meet YouTube automated moderation standards. No channel strikes, no demonetization hazards, fully safe to publish.
         </p>
       </div>
     );
   }
 
+  const hasCritical = violations.some((v) => v.severity === 'CRITICAL_STRIKE');
+
   return (
     <div
-      className={`rounded-3xl border p-5 sm:p-6 transition shadow-2xs ${
+      className={`rounded-3xl border p-5 sm:p-6 transition shadow-2xs font-public-sans ${
         isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
       }`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h3
-            className={`font-display text-lg sm:text-2xl font-black tracking-tight uppercase ${
+            className={`font-satoshi text-lg sm:text-2xl font-black tracking-tight uppercase ${
               isLight ? 'text-slate-950' : 'text-white'
             }`}
           >
             Detected Policy Issues & Frame Evidence
           </h3>
-          <p className="font-sans text-xs text-slate-500 mt-0.5">
-            Clear plain-English summary and exact camera frame snapshot for every flagged segment
+          <p className="font-public-sans text-xs text-slate-500 mt-0.5">
+            Detailed frame-by-frame analysis with exact timestamps and safe cut instructions
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span
-            className={`rounded-full px-3 py-1 font-mono text-xs font-bold ring-1 ring-inset ${
-              isLight
-                ? 'bg-red-50 text-red-700 ring-red-200 shadow-2xs'
-                : 'bg-rose-500/10 text-rose-300 ring-rose-500/30'
+            className={`rounded-full px-3 py-1 font-public-sans text-xs font-bold ring-1 ring-inset ${
+              hasCritical
+                ? isLight
+                  ? 'bg-red-50 text-red-700 ring-red-200 shadow-2xs'
+                  : 'bg-rose-500/10 text-rose-300 ring-rose-500/30'
+                : isLight
+                ? 'bg-amber-50 text-amber-700 ring-amber-200 shadow-2xs'
+                : 'bg-amber-500/10 text-amber-300 ring-amber-500/30'
             }`}
           >
-            {violations.length} {violations.length === 1 ? 'Issue Detected' : 'Issues Detected'}
+            {hasCritical
+              ? `${violations.length} ${violations.length === 1 ? 'Strike Hazard' : 'Strike Hazards'}`
+              : `${violations.length} ${violations.length === 1 ? 'Choti Si Warning' : 'Choti Si Warnings'}`}
+          </span>
+        </div>
+      </div>
+
+      {/* 1-2 Short Lines Overview Bar */}
+      <div
+        className={`rounded-xl p-3 mb-4 border font-public-sans ${
+          hasCritical
+            ? 'bg-red-500/10 border-red-500/25 text-red-700 dark:text-red-400'
+            : 'bg-amber-500/10 border-amber-500/25 text-amber-800 dark:text-amber-300'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          {hasCritical ? <ShieldAlert className="h-4 w-4 shrink-0" /> : <AlertTriangle className="h-4 w-4 shrink-0" />}
+          <span className="font-satoshi text-xs sm:text-sm font-bold">
+            {hasCritical
+              ? 'Main Issue: Major Community Guidelines Strike Risk - Action Required Before Upload'
+              : 'Main Issue: Choti Si Warning / Ad Notice (Channel is 100% Safe From Strikes)'}
           </span>
         </div>
       </div>
@@ -98,7 +124,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
       <div className="flex flex-col gap-4">
         {violations.map((violation, index) => {
           const isCritical = violation.severity === 'CRITICAL_STRIKE';
-          const isCaution = violation.severity === 'DEMONETIZATION_WARNING';
+          const isCaution = violation.severity === 'DEMONETIZATION_WARNING' || violation.severity === 'MILD_CAUTION';
           const confidence = violation.confidencePct ?? (isCritical ? 96 : 82);
           const confLevel = violation.confidenceLevel || (confidence >= 90 ? 'VERY_HIGH' : confidence >= 75 ? 'HIGH' : confidence >= 60 ? 'MEDIUM' : 'BORDERLINE');
           const issueHeadline = violation.primaryIssueBoldText || violation.title;
@@ -106,7 +132,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
           return (
             <div
               key={violation.id || index}
-              className={`flex flex-col overflow-hidden rounded-2xl border transition shadow-sm ${
+              className={`flex flex-col overflow-hidden rounded-2xl border transition shadow-sm font-public-sans ${
                 isCritical
                   ? isLight
                     ? 'border-red-300 bg-red-50/30 shadow-red-500/5'
@@ -130,7 +156,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
               >
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span
-                    className={`flex items-center gap-1.5 font-display text-xs font-black tracking-wide uppercase ${
+                    className={`flex items-center gap-1.5 font-satoshi text-xs font-black tracking-wide uppercase ${
                       isCritical ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
                     }`}
                   >
@@ -140,26 +166,22 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                       <AlertTriangle className="h-4 w-4 shrink-0" />
                     )}
                     <span>
-                      {isCritical ? 'YouTube Strike Violation' : 'Demonetization Alert'}
+                      {isCritical ? 'Major YouTube Strike Hazard' : 'Choti Si Warning (Not a Strike)'}
                     </span>
                   </span>
 
                   <span className={isLight ? 'text-slate-300' : 'text-slate-700'}>·</span>
 
-                  <span className="font-sans text-xs font-semibold text-slate-500">
+                  <span className="font-public-sans text-xs font-semibold text-slate-500">
                     {violation.categoryLabel}
                   </span>
 
                   {/* Algorithmic Confidence Level Badge */}
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold ring-1 ring-inset ${
-                      confLevel === 'VERY_HIGH'
+                      isCritical
                         ? 'bg-red-500/10 text-red-600 dark:text-red-400 ring-red-500/20'
-                        : confLevel === 'HIGH'
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
-                        : confLevel === 'MEDIUM'
-                        ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 ring-yellow-500/20'
-                        : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-slate-500/20'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
                     }`}
                     title={`Algorithmic certainty: ${confidence}%`}
                   >
@@ -179,18 +201,18 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                   }`}
                   title="Jump video playback to this timestamp"
                 >
-                  <Play className="h-3 w-3 fill-current text-red-600" />
+                  <Play className={`h-3 w-3 fill-current ${isCritical ? 'text-red-600' : 'text-amber-500'}`} />
                   <span>
                     {violation.timestampStart} - {violation.timestampEnd}
                   </span>
-                  <span className="text-[10px] font-normal text-slate-400">
+                  <span className="text-[10px] font-normal text-slate-400 font-sans">
                     (Jump)
                   </span>
                 </button>
               </div>
 
               {/* Main violation body */}
-              <div className="grid grid-cols-1 gap-5 p-4 sm:p-5 md:grid-cols-12">
+              <div className="grid grid-cols-1 gap-5 p-4 sm:p-5 md:grid-cols-12 font-sans">
                 {/* Visual Snapshot Frame Preview (Inspection Frame Viewfinder) (5 cols) */}
                 <div className="md:col-span-5 self-start">
                   <InspectionFrame
@@ -198,7 +220,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                     timestamp={violation.timestampStart}
                     severity={violation.severity}
                     confidencePct={confidence}
-                    label={isCritical ? 'STRIKE EVIDENCE' : 'FLAGGED SCENE'}
+                    label={isCritical ? 'STRIKE EVIDENCE' : 'CAUTION SCENE'}
                     isLight={isLight}
                     alt={violation.title}
                   />
@@ -207,7 +229,7 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                     <button
                       type="button"
                       onClick={() => onSeekToViolation(violation.secondsStart)}
-                      className="text-red-500 hover:underline font-bold cursor-pointer"
+                      className={`hover:underline font-bold cursor-pointer font-sans ${isCritical ? 'text-red-500' : 'text-amber-600'}`}
                     >
                       Inspect Frame
                     </button>
@@ -218,16 +240,32 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                 <div className="flex flex-col justify-between md:col-span-7 gap-3.5">
                   <div>
                     {/* BOLD, ATTRACTIVE FONT IN EASY ENGLISH ("mota sa pyara font ma clear easy English") */}
-                    <div className="rounded-xl bg-red-500/10 border border-red-500/25 p-3 mb-3">
+                    <div
+                      className={`rounded-xl p-3 mb-3 border ${
+                        isCritical
+                          ? 'bg-red-500/10 border-red-500/25'
+                          : 'bg-amber-500/10 border-amber-500/25'
+                      }`}
+                    >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
-                        <span className="font-mono text-[10px] font-black uppercase tracking-wider text-red-600 dark:text-red-400">
-                          Detected Issue Summary
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            isCritical ? 'bg-red-500 animate-ping' : 'bg-amber-500'
+                          }`}
+                        />
+                        <span
+                          className={`font-mono text-[10px] font-black uppercase tracking-wider ${
+                            isCritical ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
+                          }`}
+                        >
+                          {isCritical ? 'Critical Strike Infraction' : 'Minor Caution (Channel Safe)'}
                         </span>
                       </div>
                       <h4
-                        className={`font-display text-base sm:text-xl font-black tracking-tight leading-snug uppercase ${
-                          isLight ? 'text-red-950' : 'text-white'
+                        className={`font-display text-base sm:text-lg font-bold tracking-tight leading-snug ${
+                          isCritical
+                            ? isLight ? 'text-red-950' : 'text-white'
+                            : isLight ? 'text-amber-950' : 'text-amber-100'
                         }`}
                       >
                         {issueHeadline}
@@ -235,8 +273,8 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                     </div>
 
                     {/* Official YouTube Policy tag */}
-                    <div className="flex items-center gap-1.5 font-mono text-xs text-red-600 dark:text-red-400">
-                      <span className="font-semibold underline decoration-red-300 dark:decoration-red-700">
+                    <div className="flex items-center gap-1.5 font-sans text-xs font-semibold">
+                      <span className={`underline ${isCritical ? 'text-red-600 dark:text-red-400 decoration-red-300 dark:decoration-red-700' : 'text-amber-600 dark:text-amber-400 decoration-amber-300 dark:decoration-amber-700'}`}>
                         {violation.youtubePolicyRef}
                       </span>
                     </div>

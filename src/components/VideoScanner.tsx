@@ -658,6 +658,90 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 {videoDurationSec > 0 ? `${videoDurationSec}s total` : '0s'}
               </span>
             </div>
+
+            {/* 1-2 Short Lines Main Issues Summary Callout in Public Sans / Satoshi */}
+            {!isScanning && (videoDurationSec > 0 || currentVideoUrl) && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`rounded-2xl border p-3.5 sm:p-4 transition shadow-2xs font-public-sans mt-2 ${
+                  violations.some((v) => v.severity === 'CRITICAL_STRIKE')
+                    ? isLight
+                      ? 'border-red-300 bg-red-50/80 text-slate-900 shadow-red-500/5'
+                      : 'border-rose-500/40 bg-rose-950/25 text-slate-100'
+                    : violations.length > 0
+                    ? isLight
+                      ? 'border-amber-300 bg-amber-50/80 text-slate-900 shadow-amber-500/5'
+                      : 'border-amber-500/40 bg-amber-950/25 text-slate-100'
+                    : isLight
+                    ? 'border-emerald-300 bg-emerald-50/80 text-slate-900 shadow-emerald-500/5'
+                    : 'border-emerald-500/40 bg-emerald-950/25 text-slate-100'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-public-sans font-bold uppercase tracking-wider ${
+                        violations.some((v) => v.severity === 'CRITICAL_STRIKE')
+                          ? 'bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30'
+                          : violations.length > 0
+                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                          : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                      }`}
+                    >
+                      {violations.some((v) => v.severity === 'CRITICAL_STRIKE') ? (
+                        <>
+                          <ShieldAlert className="h-3 w-3" />
+                          <span>Major YouTube Strike Hazard</span>
+                        </>
+                      ) : violations.length > 0 ? (
+                        <>
+                          <AlertTriangle className="h-3 w-3" />
+                          <span>Choti Si Warning (Channel Safe)</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>100% Clean Video (Zero Strikes)</span>
+                        </>
+                      )}
+                    </span>
+                    <span className="text-[11px] font-public-sans text-slate-500 font-semibold hidden sm:inline">
+                      Main Issue Summary
+                    </span>
+                  </div>
+
+                  <span className="text-[11px] font-mono text-slate-500 font-semibold">
+                    {violations.length === 0 ? '0 Strikes / Clean' : `${violations.length} Flagged`}
+                  </span>
+                </div>
+
+                {/* 1-2 Short Lines Headline & Detail */}
+                <h4
+                  className={`font-satoshi text-xs sm:text-sm font-bold tracking-tight leading-snug ${
+                    violations.some((v) => v.severity === 'CRITICAL_STRIKE')
+                      ? 'text-red-700 dark:text-red-400'
+                      : violations.length > 0
+                      ? 'text-amber-800 dark:text-amber-300'
+                      : 'text-emerald-800 dark:text-emerald-300'
+                  }`}
+                >
+                  {violations.some((v) => v.severity === 'CRITICAL_STRIKE')
+                    ? `Critical Strike Hazard: ${violations.find((v) => v.severity === 'CRITICAL_STRIKE')?.title || 'Policy Infraction'}`
+                    : violations.length > 0
+                    ? `Minor Caution: ${violations[0]?.title || 'Presentation Cue'} (Channel Safe - Not a Strike)`
+                    : 'No Strike Issues Detected (100% Clean & Safe)'}
+                </h4>
+
+                <p className="mt-0.5 font-public-sans text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {violations.some((v) => v.severity === 'CRITICAL_STRIKE')
+                    ? 'Severe YouTube Community Guidelines violation detected. Trim or cut this segment before publishing.'
+                    : violations.length > 0
+                    ? 'Choti si warning: Minor ad-suitability notice. Your channel has 0 strikes and is completely safe.'
+                    : 'Video complies with all YouTube Community Guidelines. Safe to monetize and publish without strikes.'}
+                </p>
+              </motion.div>
+            )}
           </div>
         </div>
 
@@ -896,13 +980,18 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 font-sans text-[10px] text-slate-500 mt-0.5">
+                                <div className="flex items-center gap-2 font-public-sans text-[10px] text-slate-500 mt-0.5">
                                   {task.fileSizeFormatted && <span>{task.fileSizeFormatted}</span>}
                                   {task.durationFormatted && task.durationFormatted !== '--:--' && (
                                     <span>• {task.durationFormatted}</span>
                                   )}
                                   <span>• {task.progressStatus}</span>
                                 </div>
+                                {task.report?.mainIssueHeadline && (
+                                  <p className="font-public-sans text-[10.5px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-medium">
+                                    {task.report.mainIssueHeadline}
+                                  </p>
+                                )}
                               </div>
                             </div>
 
