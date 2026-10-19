@@ -542,38 +542,27 @@ Inspect all visual evidence, thumbnail, and title below:`,
         );
         const hasAnyViolations = violations.length > 0;
 
-        if (hasCritical || parsed.safetyGrade === 'HIGH_STRIKE_RISK' || parsed.overallRiskScore >= 55) {
+        // Honor Gemini model's native grading, adjusting only if inconsistent with detected critical violations
+        if (hasCritical && parsed.safetyGrade !== 'HIGH_STRIKE_RISK') {
           parsed.safetyGrade = 'HIGH_STRIKE_RISK';
           parsed.strikeProbabilityPct = Math.max(80, parsed.strikeProbabilityPct || 88);
           parsed.mainIssueSeverity = 'CRITICAL_STRIKE';
-          parsed.mainIssueHeadline =
-            parsed.mainIssueHeadline ||
-            `Critical Strike Hazard: ${violations[0]?.title || 'YouTube Policy Infraction'}`;
-          parsed.mainIssueDetail =
-            parsed.mainIssueDetail ||
-            'Severe YouTube Community Guidelines violation detected. Trim or cut this segment before publishing.';
-        } else if (hasAnyViolations || parsed.safetyGrade === 'MONETIZATION_AT_RISK' || parsed.overallRiskScore >= 18) {
-          parsed.safetyGrade = 'MONETIZATION_AT_RISK';
-          parsed.strikeProbabilityPct = Math.min(35, Math.max(10, parsed.strikeProbabilityPct || 15));
-          parsed.mainIssueSeverity = 'MINOR_WARNING';
-          parsed.mainIssueHeadline =
-            parsed.mainIssueHeadline ||
-            `Policy Caution: ${violations[0]?.title || 'Ad Suitability Notice'} (Review Advised)`;
-          parsed.mainIssueDetail =
-            parsed.mainIssueDetail ||
-            'Ad-suitability or borderline guideline flag detected. Review recommended before publishing.';
-        } else {
-          // 100% Clean video
-          parsed.safetyGrade = 'SAFE_TO_UPLOAD';
-          parsed.overallRiskScore = Math.min(10, parsed.overallRiskScore || 0);
-          parsed.strikeProbabilityPct = 0;
-          parsed.demonetizationProbabilityPct = 0;
-          parsed.mainIssueSeverity = 'CLEAN';
-          parsed.mainIssueHeadline =
-            parsed.mainIssueHeadline || 'No Strike Issues Detected (100% Clean & Safe)';
-          parsed.mainIssueDetail =
-            parsed.mainIssueDetail ||
-            'This video complies with all YouTube Community Guidelines. No policy strikes or copyright hazards found.';
+        } else if (!parsed.safetyGrade) {
+          if (hasCritical || parsed.overallRiskScore >= 55) {
+            parsed.safetyGrade = 'HIGH_STRIKE_RISK';
+            parsed.strikeProbabilityPct = Math.max(80, parsed.strikeProbabilityPct || 88);
+            parsed.mainIssueSeverity = 'CRITICAL_STRIKE';
+          } else if (hasAnyViolations || parsed.overallRiskScore >= 18) {
+            parsed.safetyGrade = 'MONETIZATION_AT_RISK';
+            parsed.strikeProbabilityPct = Math.min(35, Math.max(10, parsed.strikeProbabilityPct || 15));
+            parsed.mainIssueSeverity = 'MINOR_WARNING';
+          } else {
+            parsed.safetyGrade = 'SAFE_TO_UPLOAD';
+            parsed.overallRiskScore = parsed.overallRiskScore ?? 0;
+            parsed.strikeProbabilityPct = parsed.strikeProbabilityPct ?? 0;
+            parsed.demonetizationProbabilityPct = parsed.demonetizationProbabilityPct ?? 0;
+            parsed.mainIssueSeverity = 'CLEAN';
+          }
         }
 
         // Post-process violations and compute confidence summary
