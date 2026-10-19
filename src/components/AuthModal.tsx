@@ -142,9 +142,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {/* Header */}
           <div className="flex items-center gap-3.5 mb-5">
-            <div className="flex h-11 w-11 items-center justify-center shrink-0">
+            <div className="flex h-12 w-36 items-center justify-start shrink-0">
               <img
-                src="https://lh3.googleusercontent.com/d/10zb1xIfnKDUAaGkwY3G8HTkmZFsuupNM"
+                src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
                 alt="Striku Logo"
                 className="h-full w-full object-contain"
                 onError={(e) => {

@@ -39,9 +39,21 @@ export const Header: React.FC<HeaderProps> = ({
           : 'border-b border-slate-800/90 bg-slate-950/95 backdrop-blur-md text-slate-100 shadow-sm'
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6">
-        {/* Left Side: Mobile Menu Button + Brand Identity */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+      <div className="flex w-full items-center justify-between px-2 sm:px-4 py-2">
+        {/* Left Side: Brand Logo Banner + Mobile Menu Button */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Brand Logo Banner */}
+          <div className="flex h-9 w-32 sm:h-11 sm:w-40 items-center justify-start shrink-0">
+            <img
+              src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
+              alt="Striku Logo"
+              className="h-full w-full object-contain object-left"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+
           {/* Mobile Hamburger Toggle for Sidebar */}
           {onToggleMobileSidebar && (
             <button
@@ -57,49 +69,9 @@ export const Header: React.FC<HeaderProps> = ({
               <Menu className="h-5 w-5" />
             </button>
           )}
-
-          {/* Brand Logo & Name */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center shrink-0 transition-transform hover:scale-105">
-              <img
-                src="https://lh3.googleusercontent.com/d/10zb1xIfnKDUAaGkwY3G8HTkmZFsuupNM"
-                alt="Striku Logo"
-                className="h-full w-full object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h1
-                  className={`font-display text-base sm:text-lg font-black tracking-tight ${
-                    isLight ? 'text-slate-950' : 'text-white'
-                  }`}
-                >
-                  Stri<span className={theme.accentText}>ku</span>
-                </h1>
-                <span
-                  className={`font-mono hidden sm:inline-block rounded px-1.5 py-0.2 text-[9px] font-bold tracking-wider uppercase ring-1 ring-inset ${
-                    isLight
-                      ? 'bg-red-50 text-red-700 ring-red-200/80'
-                      : 'bg-rose-950/90 text-rose-300 ring-rose-500/30'
-                  }`}
-                >
-                  STUDIO SHIELD
-                </span>
-              </div>
-              <p
-                className={`font-sans hidden md:block text-[11px] font-normal ${
-                  isLight ? 'text-slate-500' : 'text-slate-400'
-                }`}
-              >
-                YouTube Algorithmic Strike Pre-Auditor & Ingestion Shield
-              </p>
-            </div>
-          </div>
         </div>
+
+
 
         {/* Right Side: Clean Status Bar & Quick Profile Avatar (No clustered buttons!) */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">

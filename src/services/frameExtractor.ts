@@ -5,6 +5,10 @@ export interface ExtractedFrame {
   clipIndex: number;
   skinToneRatio?: number;
   isPotentialNudity?: boolean;
+  bloodRedRatio?: number;
+  hasWatermarkOrLogo?: boolean;
+  hasTextOrSubtitles?: boolean;
+  isLetterboxed?: boolean;
   motionBlurScore?: number; // 0 to 1 (higher = more blur/smear)
   rapidTransitionScore?: number; // 0 to 1 (delta vs previous frame)
   isDeepFrame?: boolean; // extracted in secondary deep pass
@@ -176,7 +180,96 @@ export function calculateFrameDelta(prevData: Uint8ClampedArray | null, currData
     diffSum += Math.abs(currData[i] - prevData[i]) + Math.abs(currData[i + 1] - prevData[i + 1]) + Math.abs(currData[i + 2] - prevData[i + 2]);
     count += 3;
   }
-  return count > 0 ? Number(Math.min(1, (diffSum / count) / 120).toFixed(2)) : 0;
+}
+
+/**
+ * Detects high-saturation blood red pixels indicative of violent injuries or gore.
+ */
+export function calculateBloodRedRatio(ctx: CanvasRenderingContext2D, width: number, height: number): number {
+  try {
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+    let redPixels = 0;
+    let sampled = 0;
+
+    for (let i = 0; i < data.length; i += 16) {
+      sampled++;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      if (r > 135 && g < 75 && b < 75 && (r - Math.max(g, b)) > 55) {
+        redPixels++;
+      }
+    }
+    return sampled > 0 ? Number((redPixels / sampled).toFixed(3)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Checks for black letterboxing / pillarboxing bands typical of re-recorded TV broadcasts or cinema rips.
+ */
+export function checkLetterbox(ctx: CanvasRenderingContext2D, width: number, height: number): boolean {
+  try {
+    const topRow = ctx.getImageData(0, Math.floor(height * 0.04), width, 1).data;
+    const bottomRow = ctx.getImageData(0, Math.floor(height * 0.96), width, 1).data;
+    let topBlack = 0;
+    let bottomBlack = 0;
+    const step = 8;
+    let count = 0;
+
+    for (let i = 0; i < topRow.length; i += step * 4) {
+      count++;
+      if (topRow[i] < 28 && topRow[i + 1] < 28 && topRow[i + 2] < 28) topBlack++;
+      if (bottomRow[i] < 28 && bottomRow[i + 1] < 28 && bottomRow[i + 2] < 28) bottomBlack++;
+    }
+    return count > 0 && (topBlack / count > 0.85) && (bottomBlack / count > 0.85);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Detects static watermark/logo in top-right or top-left corner (TV channel broadcast watermarks like ARY, HUM, Geo, Sports).
+ */
+export function detectCornerWatermark(ctx: CanvasRenderingContext2D, width: number, height: number): boolean {
+  try {
+    const cornerW = Math.floor(width * 0.22);
+    const cornerH = Math.floor(height * 0.18);
+    const trData = ctx.getImageData(width - cornerW, 0, cornerW, cornerH).data;
+    let highContrastEdges = 0;
+    for (let i = 0; i < trData.length - 8; i += 16) {
+      const diff = Math.abs(trData[i] - trData[i + 4]);
+      if (diff > 75) highContrastEdges++;
+    }
+    return highContrastEdges > 40;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Detects high-contrast horizontal text lines in the lower third (subtitles, episode numbers, broadcast captions).
+ */
+export function detectSubtitleTextOverlay(ctx: CanvasRenderingContext2D, width: number, height: number): boolean {
+  try {
+    const startY = Math.floor(height * 0.72);
+    const scanH = Math.floor(height * 0.24);
+    const lowerData = ctx.getImageData(0, startY, width, scanH).data;
+    let textPeaks = 0;
+    for (let i = 0; i < lowerData.length - 16; i += 24) {
+      const lum1 = 0.299 * lowerData[i] + 0.587 * lowerData[i + 1] + 0.114 * lowerData[i + 2];
+      const lum2 = 0.299 * lowerData[i + 4] + 0.587 * lowerData[i + 5] + 0.114 * lowerData[i + 6];
+      if (Math.abs(lum1 - lum2) > 105 && Math.max(lum1, lum2) > 165) {
+        textPeaks++;
+      }
+    }
+    return textPeaks > 70;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -315,6 +408,10 @@ export async function extractVideoMetadataAndFrames(
           let skinRatio = 0;
           let motionBlur = 0;
           let delta = 0;
+          let bloodRatio = 0;
+          let hasWatermark = false;
+          let hasSubtitles = false;
+          let isLetterbox = false;
 
           if (ctx) {
             try {
@@ -322,6 +419,10 @@ export async function extractVideoMetadataAndFrames(
               dataUrl = canvas.toDataURL('image/jpeg', 0.78);
               skinRatio = calculateSkinRatio(ctx, targetWidth, targetHeight);
               motionBlur = calculateMotionBlurScore(ctx, targetWidth, targetHeight);
+              bloodRatio = calculateBloodRedRatio(ctx, targetWidth, targetHeight);
+              hasWatermark = detectCornerWatermark(ctx, targetWidth, targetHeight);
+              hasSubtitles = detectSubtitleTextOverlay(ctx, targetWidth, targetHeight);
+              isLetterbox = checkLetterbox(ctx, targetWidth, targetHeight);
 
               const currentImgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
               if (prevPixelData) {
@@ -348,7 +449,11 @@ export async function extractVideoMetadataAndFrames(
             dataUrl,
             clipIndex: i,
             skinToneRatio: Number(skinRatio.toFixed(3)),
-            isPotentialNudity: skinRatio > 0.65,
+            isPotentialNudity: skinRatio > 0.30,
+            bloodRedRatio: bloodRatio,
+            hasWatermarkOrLogo: hasWatermark,
+            hasTextOrSubtitles: hasSubtitles,
+            isLetterboxed: isLetterbox,
             motionBlurScore: motionBlur,
             rapidTransitionScore: delta,
             isDeepFrame: false,

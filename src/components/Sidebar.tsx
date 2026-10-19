@@ -167,15 +167,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Top Header & Logo */}
       <div>
         <div
-          className={`flex items-center justify-between p-4 border-b sticky top-0 z-20 backdrop-blur-md ${
+          className={`flex items-center justify-between px-2 py-4 border-b sticky top-0 z-20 backdrop-blur-md ${
             isLight ? 'border-slate-200/80 bg-white/95' : 'border-slate-800/80 bg-slate-950/95'
           }`}
         >
           {(!isCollapsed || isDrawer) ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="flex h-8 w-8 items-center justify-center shrink-0">
+              <div className="flex h-9 w-32 items-center justify-start shrink-0">
                 <img
-                  src="https://lh3.googleusercontent.com/d/10zb1xIfnKDUAaGkwY3G8HTkmZFsuupNM"
+                  src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
                   alt="Striku Logo"
                   className="h-full w-full object-contain"
                   onError={(e) => {
@@ -183,19 +183,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                 />
               </div>
-              <div className="flex flex-col truncate">
-                <span className="font-display font-black text-sm tracking-tight text-slate-900 dark:text-white">
-                  Stri<span className={theme.accentText}>ku</span>
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
-                  YouTube Auditor
-                </span>
-              </div>
             </div>
           ) : (
             <div className="flex h-8 w-8 mx-auto items-center justify-center shrink-0">
               <img
-                src="https://lh3.googleusercontent.com/d/10zb1xIfnKDUAaGkwY3G8HTkmZFsuupNM"
+                src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
                 alt="Striku Logo"
                 className="h-full w-full object-contain"
                 onError={(e) => {
