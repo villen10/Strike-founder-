@@ -1,13 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
-  ],
-  "routes": [
-    { "src": "/api/audit", "dest": "/api/audit" },
-    { "src": "/api/appeal", "dest": "/api/appeal" },
-    { "src": "/api/youtube/channel", "dest": "/api/youtube-channel" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/audit", "destination": "/api/audit" },
+    { "source": "/api/appeal", "destination": "/api/appeal" },
+    { "source": "/api/youtube/channel", "destination": "/api/youtube-channel" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

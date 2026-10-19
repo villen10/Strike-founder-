@@ -167,37 +167,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Top Header & Logo */}
       <div>
         <div
-          className={`flex items-center justify-between p-4 border-b sticky top-0 z-20 backdrop-blur-md ${
+          className={`flex items-center justify-between px-3 py-4 border-b sticky top-0 z-20 backdrop-blur-md ${
             isLight ? 'border-slate-200/80 bg-white/95' : 'border-slate-800/80 bg-slate-950/95'
           }`}
         >
           {(!isCollapsed || isDrawer) ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-xl p-0.5 shadow-xs shrink-0 ${
-                  isLight
-                    ? 'bg-red-600 text-white shadow-red-500/20'
-                    : 'bg-gradient-to-br from-rose-500 to-indigo-600 text-white shadow-rose-950/40'
-                }`}
-              >
-                <ShieldCheck className="h-4.5 w-4.5 text-white" />
-              </div>
-              <div className="flex flex-col truncate">
-                <span className="font-display font-black text-sm tracking-tight text-slate-900 dark:text-white">
-                  Strike <span className={theme.accentText}>Founder</span>
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
-                  YouTube Auditor
-                </span>
+              <div className="flex h-9 w-32 items-center justify-start shrink-0">
+                <img
+                  src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
+                  alt="Striku Logo"
+                  className="h-full w-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
               </div>
             </div>
           ) : (
-            <div
-              className={`flex h-8 w-8 mx-auto items-center justify-center rounded-xl p-0.5 shadow-xs ${
-                isLight ? 'bg-red-600 text-white' : 'bg-rose-600 text-white'
-              }`}
-            >
-              <ShieldCheck className="h-4.5 w-4.5 text-white" />
+            <div className="flex h-8 w-8 mx-auto items-center justify-center shrink-0">
+              <img
+                src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
+                alt="Striku Logo"
+                className="h-full w-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
             </div>
           )}
 

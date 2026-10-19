@@ -1628,7 +1628,7 @@ export default function App() {
                 isLight ? 'text-slate-800' : 'text-slate-300'
               }`}
             >
-              Strike Founder
+              Striku
             </span>
             <span>·</span>
             <span className="font-sans text-slate-500">
