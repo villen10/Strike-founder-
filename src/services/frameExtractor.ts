@@ -556,7 +556,7 @@ export async function extractVideoMetadataAndFrames(
 
         onProgress?.(
           50,
-          `Phase 2/3 · Complete: ${allFrames.length} keyframes ready for Gemini AI Video Synthesis...`
+          `Pass 2/3 · Complete: ${allFrames.length} keyframes ready for Multi-Agent Consensus Analysis...`
         );
 
         resolve({ metadata: metadataBase, frames: allFrames });

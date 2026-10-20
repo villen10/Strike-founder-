@@ -783,7 +783,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
                 {activeModal === 'privacy' && (
                   <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    <p>All video frames are processed locally inside your browser session and verified against YouTube guidelines via Google Gemini vision models.</p>
+                    <p>All video frames are processed locally inside your browser session and verified against YouTube guidelines via autonomous multi-agent vision models.</p>
                     <p>No video files are stored permanently on third-party servers without your explicit consent.</p>
                   </div>
                 )}

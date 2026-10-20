@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Film,
-  CheckCircle2,
-  AlertTriangle,
-  ShieldCheck,
-  ShieldAlert,
-  X,
-  Minimize2,
-  ArrowRight,
+  ArrowLeft,
+  MoreVertical,
+  Play,
+  Clock,
+  FileVideo,
+  FileText,
+  AlertCircle,
+  Layers,
   Activity,
   Check,
+  CheckCircle2,
   Loader2,
-  AlertOctagon,
-  Gauge,
   Cpu,
+  ShieldCheck,
+  ShieldAlert,
+  ArrowRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { AuditReport } from '../types/audit';
 import { ExtractedFrame } from '../services/frameExtractor';
@@ -31,30 +34,6 @@ interface FullScreenAnalysisModalProps {
   isLight?: boolean;
 }
 
-const ANALYSIS_STEPS = [
-  {
-    id: 1,
-    phase: 'Phase 1',
-    label: 'Frame-by-Frame Temporal Slicing (Timeline Times)',
-    desc: 'Scanning chronological timeline [00:00 → End], extracting frame timestamps',
-    badge: 'Times Scan',
-  },
-  {
-    id: 2,
-    phase: 'Phase 2',
-    label: 'Deep Frame-by-Frame Image & Blur Inspection',
-    desc: 'Analyzing each image frame for motion blur, rapid cut transitions & hidden content',
-    badge: 'Image Vision',
-  },
-  {
-    id: 3,
-    phase: 'Phase 3',
-    label: 'Gemini AI Full Video Audit & Strike Synthesis',
-    desc: 'Holistic multi-frame audit via Gemini API for Community Guidelines, strikes & safe cuts',
-    badge: 'Gemini API',
-  },
-];
-
 export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = ({
   isOpen,
   onClose,
@@ -64,505 +43,593 @@ export const FullScreenAnalysisModal: React.FC<FullScreenAnalysisModalProps> = (
   extractedFrames = [],
   report,
   onViewResults,
-  isLight = false,
 }) => {
   const [activeFrameIndex, setActiveFrameIndex] = useState(0);
 
+  // Cycle through extracted frames rapidly to create a live studio inspection feed
   useEffect(() => {
     if (!isOpen || extractedFrames.length === 0) return;
     const interval = setInterval(() => {
       setActiveFrameIndex((prev) => (prev + 1) % extractedFrames.length);
-    }, 500);
+    }, 450);
     return () => clearInterval(interval);
   }, [isOpen, extractedFrames.length]);
 
   if (!isOpen) return null;
 
   const currentStep =
-    progressPercent < 30
+    progressPercent < 35
       ? 1
-      : progressPercent < 60
+      : progressPercent < 70
       ? 2
-      : progressPercent < 100
-      ? 3
       : 3;
 
   const isCompleted = progressPercent >= 100;
   const isHighStrike = report?.safetyGrade === 'HIGH_STRIKE_RISK';
-  const isAtRisk = report?.safetyGrade === 'MONETIZATION_AT_RISK';
+  const isCaution = report?.safetyGrade === 'MONETIZATION_AT_RISK';
   const isClean = report?.safetyGrade === 'SAFE_TO_UPLOAD';
+
+  const currentFrame = extractedFrames[activeFrameIndex] || extractedFrames[0];
+  const durationText = report?.durationFormatted || currentFrame?.timestamp || '00:41';
+
+  // SVG Radial Ring Calculations (Radius: 46px -> Circumference ~289.02)
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+  const strokeOffset = circumference - (Math.min(100, Math.max(5, progressPercent)) / 100) * circumference;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
         {/* Fullscreen Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+          onClick={onClose}
+          className="fixed inset-0 bg-[#070b14]/90 backdrop-blur-md"
         />
 
-        {/* Modal Container */}
+        {/* Modal Main Frame matching user reference image */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
+          exit={{ opacity: 0, scale: 0.96, y: 12 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className={`relative flex flex-col w-full max-w-3xl max-h-[92vh] rounded-3xl border shadow-2xl overflow-hidden z-10 ${
-            isLight
-              ? 'bg-white border-slate-200 text-slate-900 shadow-slate-400/30'
-              : 'bg-slate-900 border-slate-800 text-slate-100 shadow-slate-950/50'
-          }`}
+          className="relative flex flex-col w-full max-w-[440px] sm:max-w-[480px] rounded-[28px] border border-[#1c2638] bg-[#0b101b] text-white shadow-2xl shadow-black/80 overflow-hidden z-10 my-auto"
         >
-          {/* Top Bar Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 shrink-0">
-            <div className="flex items-center gap-3 min-w-0">
-              <div
-                className={`flex h-9 w-9 items-center justify-center rounded-2xl text-white shadow-sm shrink-0 ${
-                  isCompleted && isHighStrike ? 'bg-red-600 animate-pulse' : 'bg-red-600'
-                }`}
+          {/* 1. Header Bar: [←] [Logo] Striku / Video Analysis [...] */}
+          <div className="flex items-center justify-between px-5 pt-4 pb-3">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer"
+                title="Back / Close"
               >
-                {isCompleted && isHighStrike ? (
-                  <AlertOctagon className="h-5 w-5" />
-                ) : (
-                  <Film className="h-4.5 w-4.5" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-red-600">
-                    Video Guidelines Audit
-                  </span>
-                  <span className="text-slate-400 hidden sm:inline">·</span>
-                  <span className="font-sans text-[11px] text-slate-500 hidden sm:inline">
-                    YouTube Strike & Adult Content Protection
-                  </span>
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+
+              <div className="flex items-center gap-2.5">
+                {/* Red Shield Logo */}
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-red-700 shadow-md shadow-red-900/40 shrink-0">
+                  <Play className="h-4 w-4 fill-white text-white ml-0.5" />
                 </div>
-                <h2 className="font-display text-sm sm:text-base font-bold truncate max-w-md">
-                  Analyzing: <span className="text-red-600">{videoTitle || 'Uploaded Video'}</span>
-                </h2>
+                <div>
+                  <h1 className="font-display text-base font-bold text-white tracking-tight leading-tight">
+                    Striku
+                  </h1>
+                  <p className="font-sans text-[11px] text-slate-400 font-medium">
+                    Video Analysis
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={onClose}
-                className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                  isLight
-                    ? 'border-slate-300 hover:bg-slate-100 text-slate-700'
-                    : 'border-slate-700 hover:bg-slate-800 text-slate-300'
-                }`}
-                title="Minimize and continue in background"
-              >
-                <Minimize2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Minimize</span>
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
-                title="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-800/60 transition cursor-pointer"
+              title="Options"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Modal Main Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
-            {/* Center Visual Progress Card */}
-            <div
-              className={`relative overflow-hidden rounded-3xl border p-5 sm:p-6 transition shadow-sm ${
-                isCompleted && isHighStrike
-                  ? 'border-red-500/50 bg-red-950/20 text-red-100 ring-2 ring-red-500/30'
-                  : isLight
-                  ? 'border-slate-200 bg-slate-50 text-slate-900'
-                  : 'border-slate-800 bg-slate-950 text-white'
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-                {/* Left: Frame Thumbnail */}
-                <div className="relative w-44 aspect-video rounded-2xl overflow-hidden border border-slate-700/60 shadow-md shrink-0 bg-black">
-                  {extractedFrames.length > 0 ? (
-                    <img
-                      src={extractedFrames[activeFrameIndex]?.dataUrl}
-                      alt="Analyzing keyframe"
-                      className="h-full w-full object-cover transition-all duration-300"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-500">
-                      <Film className="h-6 w-6 text-red-500" />
-                      <span className="text-[10px] font-sans">Extracting Frame</span>
-                    </div>
-                  )}
-
-                  {/* Timestamp badge */}
-                  <div className="absolute bottom-1.5 left-1.5 rounded-md bg-black/80 px-1.5 py-0.5 font-mono text-[9px] font-bold text-white">
-                    {extractedFrames[activeFrameIndex]?.timestamp || '00:04'}
+          {/* Main Scrollable Body */}
+          <div className="px-4 pb-4 space-y-3.5 overflow-y-auto max-h-[82vh] scrollbar-thin">
+            {/* 2. Video Preview Card */}
+            <div className="rounded-[22px] border border-[#1b263a] bg-[#101726] p-3.5 flex items-center gap-3.5 shadow-sm">
+              {/* Thumbnail Container */}
+              <div className="relative w-36 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden bg-black shrink-0 border border-slate-700/60 shadow-inner">
+                {currentFrame?.dataUrl ? (
+                  <img
+                    src={currentFrame.dataUrl}
+                    alt="Active Frame"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-slate-500 bg-slate-900">
+                    <FileVideo className="h-6 w-6 text-red-500" />
                   </div>
+                )}
 
-                  <div
-                    className={`absolute top-1.5 right-1.5 rounded-full px-2 py-0.5 font-sans text-[9px] font-bold text-white ${
-                      isCompleted
-                        ? isHighStrike
-                          ? 'bg-red-600 animate-pulse'
-                          : 'bg-emerald-600'
-                        : 'bg-indigo-600'
-                    }`}
+                {/* Bottom Left Duration Pill: ▶ 00:41 */}
+                <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-md bg-black/85 px-2 py-0.5 font-mono text-[10px] font-bold text-white backdrop-blur-xs">
+                  <Play className="h-2.5 w-2.5 fill-white text-white" />
+                  <span>{durationText}</span>
+                </div>
+              </div>
+
+              {/* Video Info Details */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-rose-600 to-red-500 shadow-xs shrink-0">
+                    <FileVideo className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <h3
+                    className="font-display text-sm font-bold text-white truncate max-w-[160px] sm:max-w-[180px]"
+                    title={videoTitle}
                   >
-                    {isCompleted ? (isHighStrike ? 'Strike Hazard' : 'Verified') : 'Auditing'}
+                    {videoTitle || 'Uploaded Video.mp4'}
+                  </h3>
+                </div>
+
+                {/* Meta details: Clock, MP4, HD */}
+                <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-slate-400" />
+                    <span>{durationText}</span>
+                  </span>
+                  <span className="text-slate-600">|</span>
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-3 w-3 text-slate-400" />
+                    <span>MP4</span>
+                  </span>
+                  <span className="rounded border border-slate-700 px-1 py-0.1 text-[9px] font-bold text-slate-400">
+                    HD
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Main Inspection & Radial Progress Card */}
+            <div className="rounded-[22px] border border-[#1b263a] bg-[#101726] p-4 sm:p-5 shadow-sm">
+              <div className="flex items-center gap-4 sm:gap-5">
+                {/* SVG Radial Ring */}
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+                  <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 104 104">
+                    {/* Background Track */}
+                    <circle
+                      cx="52"
+                      cy="52"
+                      r={radius}
+                      stroke="#182335"
+                      strokeWidth="9"
+                      fill="none"
+                    />
+                    {/* Active Progress Gradient Stroke */}
+                    <defs>
+                      <linearGradient id="multiAgentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#f43f5e" />
+                        <stop offset="100%" stopColor="#ff0055" />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx="52"
+                      cy="52"
+                      r={radius}
+                      stroke="url(#multiAgentGrad)"
+                      strokeWidth="9"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeOffset}
+                      strokeLinecap="round"
+                      fill="none"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+
+                  {/* Percentage in center */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="font-display text-2xl font-black text-white leading-tight">
+                      {progressPercent}%
+                    </span>
+                    <span className="font-sans text-[10px] text-slate-400 -mt-0.5">
+                      Match
+                    </span>
                   </div>
                 </div>
 
-                {/* Center: Live percentage & status message */}
-                <div className="flex-1 text-center sm:text-left min-w-0">
-                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 font-sans text-[11px] font-bold uppercase ${
-                        isCompleted
-                          ? isHighStrike
-                            ? 'bg-red-500/20 text-red-500'
-                            : 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-red-500/10 text-red-600'
-                      }`}
-                    >
-                      {isCompleted
-                        ? isHighStrike
-                          ? 'Critical Violations Found'
-                          : 'Audit Complete'
-                        : 'Auditing Guidelines'}
-                    </span>
-                    <span className="font-sans text-xs text-slate-400">
-                      Phase {currentStep} of 3
+                {/* Right Details */}
+                <div className="flex-1 min-w-0">
+                  {/* Status Pill: ! MULTI-AGENT INSPECTION */}
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-2.5 py-0.5 mb-1.5">
+                    <AlertCircle className="h-3 w-3 text-rose-400 shrink-0" />
+                    <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-rose-300">
+                      Multi-Agent Inspection
                     </span>
                   </div>
 
-                  <div className="flex items-baseline justify-center sm:justify-start gap-2">
-                    <span
-                      className={`font-display text-4xl sm:text-5xl font-black tracking-tight ${
-                        isCompleted && isHighStrike ? 'text-red-500' : ''
-                      }`}
-                    >
-                      {progressPercent}%
-                    </span>
-                    <span className="font-sans text-xs text-slate-500 font-medium truncate">
-                      {progressStatus}
-                    </span>
-                  </div>
+                  {/* Pass Title */}
+                  <h3 className="font-display text-xl font-black text-white tracking-tight">
+                    {isCompleted ? 'Pass 3/3' : `Pass ${currentStep}/3`}
+                  </h3>
 
-                  {/* Progress Bar */}
-                  <div className="mt-3.5 relative h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                  {/* Subtitle */}
+                  <p className="font-sans text-xs text-slate-400 line-clamp-1 mt-0.5">
+                    {isCompleted
+                      ? isHighStrike
+                        ? 'Strike hazard detected in consensus audit'
+                        : 'Content verified for YouTube compliance'
+                      : progressStatus || 'Analyzing content for policy compliance...'}
+                  </p>
+
+                  {/* Gradient Horizontal Bar */}
+                  <div className="mt-2.5 relative h-2 w-full rounded-full bg-[#182335] overflow-hidden">
                     <motion.div
-                      className={`h-full rounded-full ${isHighStrike ? 'bg-red-600' : 'bg-red-600'}`}
-                      style={{ width: `${progressPercent}%` }}
+                      className="h-full rounded-full bg-gradient-to-r from-[#f43f5e] via-[#fb7185] to-[#f59e0b]"
+                      style={{ width: `${Math.max(6, progressPercent)}%` }}
                       transition={{ ease: 'easeOut', duration: 0.3 }}
                     />
                   </div>
 
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-                    <span>{extractedFrames.length || 6} Keyframes Extracted</span>
-                    <span>
-                      {isCompleted
-                        ? isHighStrike
-                          ? 'Strike Alert ❌'
-                          : isAtRisk
-                          ? 'Monetization Caution ⚠️'
-                          : 'Safe to Upload ✅'
-                        : 'Gemini AI Multi-Pass Audit Active...'}
+                  {/* Bottom Stats: 7 Key Frames • Neural Consensus Sync */}
+                  <div className="mt-2 flex items-center gap-2 font-mono text-[11px] text-slate-400">
+                    <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+                      <Layers className="h-3.5 w-3.5 text-rose-500" />
+                      <span>{extractedFrames.length || 7} Key Frames</span>
                     </span>
+                    <span className="text-slate-600">•</span>
+                    <span className="truncate">Neural Consensus Sync</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 3-Phase Step-by-Step Checklist Pipeline */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <Activity className="h-4 w-4 text-red-500" />
-                  <span>3-Stage Unified Analysis Engine</span>
-                </h3>
-                <span className="font-sans text-xs text-slate-400 font-semibold">
-                  {isCompleted ? '3 of 3 Stages Finished' : `Stage ${currentStep} of 3 Active`}
-                </span>
+            {/* 4. Section: Multi-Agent Neural Pipeline */}
+            <div className="space-y-2.5 pt-1">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-rose-500" />
+                  <h3 className="font-display text-sm font-bold text-white tracking-tight">
+                    Multi-Agent Neural Pipeline
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-400 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>
+                    {isCompleted ? 'All Agents Complete' : `Agent ${currentStep} of 3 Active`}
+                  </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-2.5">
-                {ANALYSIS_STEPS.map((step) => {
-                  const isDone = isCompleted || step.id < currentStep;
-                  const isCurrent = !isCompleted && step.id === currentStep;
-
-                  // Check if this step failed in the final report
-                  const isStepFlagged =
-                    isCompleted &&
-                    ((step.id === 2 &&
-                      ((report?.categoryScores?.sexualContent ?? 0) > 40 ||
-                        (report?.categoryScores?.childSafety ?? 0) > 40)) ||
-                      (step.id === 3 && isHighStrike));
-
-                  return (
-                    <motion.div
-                      key={step.id}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: step.id * 0.04 }}
-                      className={`flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all ${
-                        isStepFlagged
-                          ? 'border-red-500/50 bg-red-950/20 text-red-200'
-                          : isDone
-                          ? isLight
-                            ? 'border-emerald-200 bg-emerald-50/70 text-slate-900 shadow-2xs'
-                            : 'border-emerald-500/30 bg-emerald-950/20 text-slate-100 shadow-2xs'
-                          : isCurrent
-                          ? isLight
-                            ? 'border-red-300 bg-red-50/70 text-slate-900 ring-2 ring-red-500/20'
-                            : 'border-red-500/40 bg-red-950/30 text-white ring-2 ring-red-500/20 shadow-sm'
-                          : isLight
-                          ? 'border-slate-200 bg-slate-50/50 text-slate-400'
-                          : 'border-slate-800/60 bg-slate-950/40 text-slate-500'
+              {/* Stage Cards (Pass 1, Pass 2, Pass 3) */}
+              <div className="space-y-2">
+                {/* PASS 1: AGENT ALPHA */}
+                <div
+                  className={`rounded-[18px] border p-3 sm:p-3.5 flex items-center justify-between transition-all ${
+                    isCompleted || currentStep > 1
+                      ? 'border-[#064e3b]/80 bg-[#0d2223] text-emerald-100 shadow-xs'
+                      : currentStep === 1
+                      ? 'border-rose-500/60 bg-[#22121e] text-rose-100 shadow-xs ring-1 ring-rose-500/30'
+                      : 'border-[#1b263a] bg-[#101726] text-slate-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* Circle Icon */}
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-white shrink-0 ${
+                        isCompleted || currentStep > 1
+                          ? 'bg-[#059669]'
+                          : currentStep === 1
+                          ? 'bg-rose-600 animate-pulse'
+                          : 'bg-slate-800 text-slate-400'
                       }`}
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-xl font-bold text-xs shrink-0 transition-transform ${
-                            isStepFlagged
-                              ? 'bg-red-600 text-white shadow-sm'
-                              : isDone
-                              ? 'bg-emerald-500 text-white shadow-sm'
-                              : isCurrent
-                              ? 'bg-red-600 text-white shadow-sm animate-pulse'
-                              : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
-                          }`}
-                        >
-                          {isStepFlagged ? (
-                            <AlertTriangle className="h-4 w-4" />
-                          ) : isDone ? (
-                            <Check className="h-4 w-4 stroke-[3]" />
-                          ) : isCurrent ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <span className="font-mono text-xs">{step.id}</span>
-                          )}
-                        </div>
+                      {isCompleted || currentStep > 1 ? (
+                        <Check className="h-4 w-4 stroke-[3]" />
+                      ) : currentStep === 1 ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <span className="font-mono text-xs">1</span>
+                      )}
+                    </div>
 
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                              {step.phase}
-                            </span>
-                            <span className="font-sans font-bold text-xs sm:text-sm truncate">
-                              {step.label}
-                            </span>
-                          </div>
-                          <p
-                            className={`text-xs truncate mt-1 ${
-                              isStepFlagged
-                                ? 'text-red-400 font-medium'
-                                : isDone
-                                ? isLight
-                                  ? 'text-slate-600'
-                                  : 'text-slate-300'
-                                : isCurrent
-                                ? 'text-red-600 dark:text-red-400 font-medium'
-                                : 'text-slate-400'
-                            }`}
-                          >
-                            {isCurrent ? progressStatus : step.desc}
-                          </p>
-                        </div>
+                    {/* Pass Badge Box */}
+                    <div
+                      className={`rounded-xl px-2.5 py-1 text-center shrink-0 border ${
+                        isCompleted || currentStep > 1
+                          ? 'bg-[#064e3b]/80 border-emerald-500/30 text-emerald-400'
+                          : 'bg-[#182335] border-slate-700/60 text-slate-300'
+                      }`}
+                    >
+                      <div className="font-mono text-[9px] font-bold tracking-wider uppercase">
+                        PASS 1
                       </div>
+                      <div className="font-display text-[10.5px] font-bold text-white tracking-tight">
+                        AGENT ALPHA
+                      </div>
+                    </div>
 
-                      {/* Status Badge */}
-                      <div className="shrink-0 ml-3">
-                        {isStepFlagged ? (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-red-500/20 border border-red-500/40 text-red-500 font-sans text-xs font-bold px-2.5 py-1">
-                            <AlertTriangle className="h-3.5 w-3.5" />
-                            <span>Strike Risk</span>
-                          </span>
-                        ) : isDone ? (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-sans text-xs font-bold px-2.5 py-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            <span>Verified</span>
-                          </span>
-                        ) : isCurrent ? (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-red-500/10 text-red-600 font-sans text-xs font-bold px-2.5 py-1 animate-pulse">
-                            <span>Processing...</span>
-                          </span>
-                        ) : (
-                          <span className="font-sans text-xs text-slate-400">
-                            Queued
-                          </span>
-                        )}
+                    {/* Details */}
+                    <div className="min-w-0">
+                      <h4 className="font-display text-xs sm:text-sm font-bold text-white truncate">
+                        4-Second Temporal Analysis
+                      </h4>
+                      <p className="font-sans text-[11px] text-slate-400 truncate">
+                        Splitting timeline into 4s intervals...
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Status Pill */}
+                  <div className="shrink-0 ml-2">
+                    {isCompleted || currentStep > 1 ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-[#064e3b]/60 px-3 py-1 font-sans text-xs font-bold text-emerald-400">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>Verified</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-[#4c0519]/60 px-3 py-1 font-sans text-xs font-bold text-rose-300 animate-pulse">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Analyzing...</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* PASS 2: AGENT BETA */}
+                <div
+                  className={`rounded-[18px] border p-3 sm:p-3.5 flex items-center justify-between transition-all ${
+                    isCompleted || currentStep > 2
+                      ? 'border-[#064e3b]/80 bg-[#0d2223] text-emerald-100 shadow-xs'
+                      : currentStep === 2
+                      ? 'border-rose-500/60 bg-[#22121e] text-rose-100 shadow-xs ring-1 ring-rose-500/30'
+                      : 'border-[#1b263a] bg-[#101726] text-slate-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-white shrink-0 ${
+                        isCompleted || currentStep > 2
+                          ? 'bg-[#059669]'
+                          : currentStep === 2
+                          ? 'bg-rose-600 animate-pulse'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {isCompleted || currentStep > 2 ? (
+                        <Check className="h-4 w-4 stroke-[3]" />
+                      ) : currentStep === 2 ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <span className="font-mono text-xs">2</span>
+                      )}
+                    </div>
+
+                    <div
+                      className={`rounded-xl px-2.5 py-1 text-center shrink-0 border ${
+                        currentStep === 2
+                          ? 'bg-[#4c0519]/80 border-rose-500/30 text-rose-400'
+                          : isCompleted || currentStep > 2
+                          ? 'bg-[#064e3b]/80 border-emerald-500/30 text-emerald-400'
+                          : 'bg-[#182335] border-slate-700/60 text-slate-300'
+                      }`}
+                    >
+                      <div className="font-mono text-[9px] font-bold tracking-wider uppercase">
+                        PASS 2
                       </div>
-                    </motion.div>
-                  );
-                })}
+                      <div className="font-display text-[10.5px] font-bold text-white tracking-tight">
+                        AGENT BETA
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <h4 className="font-display text-xs sm:text-sm font-bold text-white truncate">
+                        Fine Cutaways & Context
+                      </h4>
+                      <p className="font-sans text-[11px] text-slate-400 truncate">
+                        Cross-checking visual and audio cues...
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 ml-2">
+                    {isCompleted || currentStep > 2 ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-[#064e3b]/60 px-3 py-1 font-sans text-xs font-bold text-emerald-400">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>Verified</span>
+                      </span>
+                    ) : currentStep === 2 ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-[#4c0519]/60 px-3 py-1 font-sans text-xs font-bold text-rose-300 animate-pulse">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Analyzing...</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1 font-sans text-xs font-medium text-slate-400">
+                        <Clock className="h-3 w-3" />
+                        <span>Queued</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* PASS 3: AGENT OMEGA */}
+                <div
+                  className={`rounded-[18px] border p-3 sm:p-3.5 flex items-center justify-between transition-all ${
+                    isCompleted && isHighStrike
+                      ? 'border-red-500/70 bg-[#261019] text-red-100 shadow-xs'
+                      : isCompleted && isClean
+                      ? 'border-[#064e3b]/80 bg-[#0d2223] text-emerald-100 shadow-xs'
+                      : currentStep === 3
+                      ? 'border-rose-500/60 bg-[#22121e] text-rose-100 shadow-xs ring-1 ring-rose-500/30'
+                      : 'border-[#1b263a] bg-[#101726] text-slate-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-white shrink-0 ${
+                        isCompleted && isHighStrike
+                          ? 'bg-red-600 shadow-sm'
+                          : isCompleted && isClean
+                          ? 'bg-[#059669]'
+                          : currentStep === 3
+                          ? 'bg-rose-600 animate-pulse'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {isCompleted && isHighStrike ? (
+                        <AlertTriangle className="h-4 w-4" />
+                      ) : isCompleted && isClean ? (
+                        <Check className="h-4 w-4 stroke-[3]" />
+                      ) : currentStep === 3 ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Cpu className="h-4 w-4 text-slate-400" />
+                      )}
+                    </div>
+
+                    <div
+                      className={`rounded-xl px-2.5 py-1 text-center shrink-0 border ${
+                        isCompleted && isHighStrike
+                          ? 'bg-red-950/80 border-red-500/40 text-red-400'
+                          : isCompleted && isClean
+                          ? 'bg-[#064e3b]/80 border-emerald-500/30 text-emerald-400'
+                          : currentStep === 3
+                          ? 'bg-[#4c0519]/80 border-rose-500/30 text-rose-400'
+                          : 'bg-[#182335] border-slate-700/60 text-slate-300'
+                      }`}
+                    >
+                      <div className="font-mono text-[9px] font-bold tracking-wider uppercase">
+                        PASS 3
+                      </div>
+                      <div className="font-display text-[10.5px] font-bold text-white tracking-tight">
+                        AGENT OMEGA
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <h4 className="font-display text-xs sm:text-sm font-bold text-white truncate">
+                        Policy & Safety Check
+                      </h4>
+                      <p className="font-sans text-[11px] text-slate-400 truncate">
+                        Consolidating cross-agent findings...
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 ml-2">
+                    {isCompleted && isHighStrike ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-red-500/40 bg-red-950/60 px-3 py-1 font-sans text-xs font-bold text-red-400">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <span>Strike Risk</span>
+                      </span>
+                    ) : isCompleted && isClean ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-[#064e3b]/60 px-3 py-1 font-sans text-xs font-bold text-emerald-400">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>Verified</span>
+                      </span>
+                    ) : currentStep === 3 ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-[#4c0519]/60 px-3 py-1 font-sans text-xs font-bold text-rose-300 animate-pulse">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Analyzing...</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1 font-sans text-xs font-medium text-slate-400">
+                        <Clock className="h-3 w-3" />
+                        <span>Queued</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Completion Summary */}
+            {/* 5. Completion Result Callout (When audit finishes) */}
             {isCompleted && report && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`rounded-2xl border p-5 sm:p-6 transition shadow-md flex flex-col gap-4 ${
-                  isClean
-                    ? 'border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20 text-slate-900 dark:text-slate-100'
-                    : isHighStrike
-                    ? 'border-red-500/60 bg-red-950/40 text-red-100 ring-2 ring-red-500/40'
-                    : 'border-amber-500/40 bg-amber-950/20 text-amber-100'
+                className={`rounded-[20px] border p-4 sm:p-4.5 transition-all shadow-lg flex flex-col gap-2.5 ${
+                  isHighStrike
+                    ? 'border-red-600/70 bg-gradient-to-b from-red-950/50 to-[#101726] text-red-100 ring-1 ring-red-500/30'
+                    : isClean
+                    ? 'border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 to-[#101726] text-emerald-100'
+                    : 'border-amber-500/40 bg-gradient-to-b from-amber-950/40 to-[#101726] text-amber-100'
                 }`}
               >
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5 text-center sm:text-left">
-                    <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm shrink-0 ${
-                        isClean
-                          ? 'bg-emerald-600 text-white'
-                          : isHighStrike
-                          ? 'bg-red-600 text-white animate-pulse'
-                          : 'bg-amber-600 text-white'
-                      }`}
-                    >
-                      {isClean ? (
-                        <ShieldCheck className="h-7 w-7" />
-                      ) : (
-                        <ShieldAlert className="h-7 w-7" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-display text-sm sm:text-base font-bold">
-                          {isClean
-                            ? 'Safe to Publish to YouTube!'
-                            : isHighStrike
-                            ? `CRITICAL STRIKE RISK (${report.timelineViolations.length} Violations Flagged)`
-                            : `Monetization Caution (${report.timelineViolations.length} Issues)`}
-                        </h4>
-                        {report.averageConfidencePct && (
-                          <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold bg-black/20 text-white">
-                            <Gauge className="h-3 w-3" />
-                            {report.averageConfidencePct}% Certainty
-                          </span>
-                        )}
-                      </div>
-
-                      {/* 1-2 Short Lines Main Issues Callout */}
-                      <div className="mt-2 rounded-xl bg-black/25 p-2.5 border border-white/10 font-public-sans">
-                        <h5 className="font-satoshi text-xs sm:text-sm font-bold text-white leading-tight">
-                          {report.mainIssueHeadline ||
-                            (isClean
-                              ? 'No Strike Issues Detected (100% Clean & Safe)'
-                              : isHighStrike
-                              ? 'Critical Strike Hazard Detected'
-                              : 'Minor Caution: Presentation / Ad Notice (Channel Safe - Not a Strike)')}
-                        </h5>
-                        <p className="font-public-sans text-[11.5px] text-slate-300 mt-0.5 leading-snug">
-                          {report.mainIssueDetail || report.summaryVerdictEn}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onViewResults?.();
-                      onClose();
-                    }}
-                    className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl text-white px-5 py-2.5 font-sans text-xs font-bold transition shadow-sm cursor-pointer shrink-0 ${
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 mt-0.5 text-white ${
                       isHighStrike
-                        ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30 ring-2 ring-red-400'
-                        : 'bg-red-600 hover:bg-red-700'
+                        ? 'bg-red-600 shadow-md shadow-red-900/50 animate-pulse'
+                        : isClean
+                        ? 'bg-emerald-600 shadow-md shadow-emerald-900/40'
+                        : 'bg-amber-600'
                     }`}
                   >
-                    <span>View Audit Report</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
-
-                {/* Specific Violation Confidence & Reasoning Breakdown */}
-                {report.timelineViolations && report.timelineViolations.length > 0 && (
-                  <div className="mt-1 flex flex-col gap-2.5 border-t border-white/10 pt-3">
-                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300">
-                      Flagged Segments & Specific Algorithmic Confidence:
-                    </span>
-                    <div className="grid grid-cols-1 gap-2 max-h-52 overflow-y-auto pr-1">
-                      {report.timelineViolations.map((v) => {
-                        const confLevel = v.confidenceLevel || (v.confidencePct >= 90 ? 'VERY_HIGH' : v.confidencePct >= 75 ? 'HIGH' : v.confidencePct >= 60 ? 'MEDIUM' : 'BORDERLINE');
-                        return (
-                          <div
-                            key={v.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl bg-black/35 border border-white/10 p-2.5 text-xs"
-                          >
-                            <div className="flex items-start gap-2">
-                              <span className="font-mono text-xs font-bold text-red-400 shrink-0">
-                                {v.timestampStart} - {v.timestampEnd}
-                              </span>
-                              <div>
-                                <span className="font-bold text-white block">{v.title}</span>
-                                <span className="text-[11px] text-slate-300 font-sans block mt-0.5">
-                                  {v.detectionReasoning || v.descriptionEn}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0 sm:self-center">
-                              {v.detectionMechanism && (
-                                <span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-[10px] text-slate-300">
-                                  {v.detectionMechanism}
-                                </span>
-                              )}
-                              <span
-                                className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
-                                  confLevel === 'VERY_HIGH'
-                                    ? 'bg-red-500/20 text-red-300 ring-1 ring-red-500/40'
-                                    : confLevel === 'HIGH'
-                                    ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40'
-                                    : 'bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-500/40'
-                                }`}
-                              >
-                                {v.confidencePct}% ({confLevel === 'VERY_HIGH' ? 'Very High' : confLevel === 'HIGH' ? 'High' : 'Moderate'})
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {isHighStrike ? (
+                      <ShieldAlert className="h-5 w-5" />
+                    ) : (
+                      <ShieldCheck className="h-5 w-5" />
+                    )}
                   </div>
-                )}
+
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={`inline-block rounded-md px-2 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wider mb-1 ${
+                        isHighStrike
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      }`}
+                    >
+                      {isHighStrike ? 'Strike Hazard Detected' : 'Verified 100% Safe'}
+                    </span>
+
+                    <h4 className="font-display text-sm font-bold text-white leading-snug">
+                      {report.mainIssueHeadline || 'YouTube Guidelines Audit Verdict'}
+                    </h4>
+
+                    <p className="font-sans text-xs text-slate-300 mt-1 leading-relaxed">
+                      {report.mainIssueDetail || report.summaryVerdictEn}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
-          </div>
 
-          {/* Footer Bar */}
-          <div className="flex items-center justify-between px-6 py-3.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 text-xs font-sans">
-            <span className="text-slate-500 truncate">
-              {isCompleted
-                ? isHighStrike
-                  ? 'Severe policy violations detected. Do NOT publish directly to YouTube.'
-                  : 'Guidelines audit finished.'
-                : 'Auditing video file keyframes...'}
-            </span>
+            {/* 6. Bottom Bar: 3-Pass neural inspection active... / Dismiss or View Full Report */}
+            <div className="rounded-[18px] border border-[#1b263a] bg-[#101726] px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-400 font-sans text-xs truncate">
+                <Activity className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span className="truncate">
+                  {isCompleted
+                    ? 'Consensus analysis complete'
+                    : '3-Pass neural inspection active...'}
+                </span>
+              </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onViewResults) onViewResults();
-                  onClose();
-                }}
-                className={`rounded-xl px-4 py-1.5 font-bold transition cursor-pointer ${
-                  isCompleted
-                    ? 'bg-red-600 text-white hover:bg-red-700 shadow-sm'
-                    : isLight
-                    ? 'border border-slate-300 bg-white hover:bg-slate-100 text-slate-800'
-                    : 'border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200'
-                }`}
-              >
-                {isCompleted ? 'View Full Report' : 'Dismiss'}
-              </button>
+              {isCompleted ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onViewResults?.();
+                    onClose();
+                  }}
+                  className="rounded-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-display text-xs font-bold px-4 py-1.5 transition shadow-md shadow-red-900/30 cursor-pointer shrink-0 flex items-center gap-1.5"
+                >
+                  <span>View Full Report</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-full border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-display text-xs font-semibold px-4 py-1 transition cursor-pointer shrink-0"
+                >
+                  Dismiss
+                </button>
+              )}
             </div>
           </div>
         </motion.div>

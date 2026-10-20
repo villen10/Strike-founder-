@@ -56,3 +56,22 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.65);
 }
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); opacity: 0.2; }
+  50% { opacity: 0.85; }
+  100% { transform: translateY(600%); opacity: 0.1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.03); }
+}
+
+.animate-scanline {
+  animation: scanline 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}

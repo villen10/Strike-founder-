@@ -430,7 +430,7 @@ export default function App() {
                   extractedFrames: frames,
                   status: 'AUDITING',
                   progressPercent: 62,
-                  progressStatus: 'Phase 3/3 · Gemini AI: Synthesizing full video against Community Guidelines...',
+                  progressStatus: 'Pass 3/3 · Multi-Agent Consensus: Slicing and cross-examining visual evidence...',
                 }
               : t
           );
@@ -440,18 +440,18 @@ export default function App() {
             setVideoDurationSec(durationSec);
             setExtractedFrames(frames);
             setIsScanning(true);
-            setScanProgress({ percent: 62, status: 'Phase 3/3 · Gemini AI: Synthesizing full video against Community Guidelines...' });
+            setScanProgress({ percent: 62, status: 'Pass 3/3 · Multi-Agent Consensus: Slicing and cross-examining visual evidence...' });
           }
 
           let auditProgressTimer: any = null;
           let currentAuditPct = 62;
           const auditStatusMessages = [
-            'Phase 3/3 · Gemini AI: Multi-window keyframe temporal audit...',
-            'Phase 3/3 · Auditing Child Safety & Minor Endangerment zero-tolerance...',
-            'Phase 3/3 · Screening for predatory wildlife, dangerous stunts & peril...',
-            'Phase 3/3 · Auditing Graphic Violence, Weapons & Adult Exposure...',
-            'Phase 3/3 · Verifying opening 7-second hook & Advertiser Suitability...',
-            'Phase 3/3 · Synthesizing frame timestamps & calculating YouTube strike verdict...',
+            'Pass 3/3 · Multi-Agent Consensus: Multi-window keyframe temporal audit...',
+            'Pass 3/3 · Multi-Agent Consensus: Auditing Child Safety & Minor Protection zero-tolerance...',
+            'Pass 3/3 · Multi-Agent Consensus: Screening for dangerous stunts, weapons & copyright cues...',
+            'Pass 3/3 · Multi-Agent Consensus: Auditing Graphic Violence & Adult Exposure...',
+            'Pass 3/3 · Multi-Agent Consensus: Cross-model consensus running to eliminate false negatives...',
+            'Pass 3/3 · Multi-Agent Consensus: Synthesizing frame timestamps & final YouTube strike verdict...',
           ];
           let msgIdx = 0;
 
@@ -743,17 +743,17 @@ export default function App() {
       }
     }
 
-    setScanProgress({ percent: 52, status: 'Gemini Vision AI: Ingesting keyframe sequence...' });
+    setScanProgress({ percent: 52, status: 'Multi-Agent Vision Engine: Ingesting keyframe sequence...' });
 
     let auditTimer: any = null;
     let auditPct = 52;
     const auditStatusMessages = [
-      'Gemini Vision AI: Inspecting keyframe sequence...',
-      'Auditing Child Safety & Minor Endangerment zero-tolerance rules...',
-      'Screening for wild predators, dangerous stunts & physical peril...',
-      'Auditing Graphic Violence, Weapons & Adult Exposure...',
-      'Verifying opening 7-second hook & Advertiser Suitability...',
-      'Synthesizing frame timestamps & computing YouTube strike verdict...',
+      'Multi-Agent Vision Engine: Inspecting keyframe sequence...',
+      'Pass 1 & 2 Consensus: Auditing Child Safety & Minor Protection zero-tolerance...',
+      'Pass 2 & 3 Consensus: Screening for dangerous stunts, weapons & copyright cues...',
+      'Pass 3 Consensus: Cross-examining graphic violence & adult exposure...',
+      'Pass 3 Consensus: Verifying opening 7-second hook & Advertiser Suitability...',
+      'Pass 3 Consensus: Synthesizing frame timestamps & computing YouTube strike verdict...',
     ];
     let msgIdx = 0;
 

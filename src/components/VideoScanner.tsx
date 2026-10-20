@@ -498,11 +498,11 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-sans font-semibold text-slate-200 mb-2">
                   <Activity className="h-3.5 w-3.5 text-red-500 animate-pulse" />
                   <span>
-                    {scanProgress.percent < 30
-                      ? 'Phase 1/3: Temporal Frame Slicing'
-                      : scanProgress.percent < 60
-                      ? 'Phase 2/3: Deep Frame & Blur Inspection'
-                      : 'Phase 3/3: Gemini AI Full Video Audit'}
+                    {scanProgress.percent < 35
+                      ? 'Pass 1/3: 4s Temporal Slicing & Logo Detection'
+                      : scanProgress.percent < 70
+                      ? 'Pass 2/3: Fine Cutaways & Motion Inspection'
+                      : 'Pass 3/3: Multi-Agent Policy Consensus Engine'}
                   </span>
                 </div>
 
