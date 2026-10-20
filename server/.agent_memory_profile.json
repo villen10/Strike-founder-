@@ -1,5 +1,5 @@
 {
-  "totalAuditsRun": 36,
+  "totalAuditsRun": 38,
   "falseNegativeCorrections": 0,
   "policyConfidenceWeights": {
     "SEXUAL_CONTENT": 0.99,
@@ -13,5 +13,5 @@
     "Overlapping transition frame analysis (2-4s, 4-6s)",
     "Skin-tone density clustering & adult platform fingerprinting"
   ],
-  "lastCalibratedAt": "2026-10-19T16:32:44.848Z"
+  "lastCalibratedAt": "2026-10-20T08:11:30.298Z"
 }

@@ -180,6 +180,7 @@ export function calculateFrameDelta(prevData: Uint8ClampedArray | null, currData
     diffSum += Math.abs(currData[i] - prevData[i]) + Math.abs(currData[i + 1] - prevData[i + 1]) + Math.abs(currData[i + 2] - prevData[i + 2]);
     count += 3;
   }
+  return count > 0 ? Number(Math.min(1, diffSum / (count * 255)).toFixed(2)) : 0;
 }
 
 /**

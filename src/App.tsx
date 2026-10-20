@@ -16,6 +16,7 @@ import { AuthModal } from './components/AuthModal';
 import { ProfileView, AppUserProfile } from './components/ProfileView';
 import { FullScreenAnalysisModal } from './components/FullScreenAnalysisModal';
 import { ChannelTrackerDashboard } from './components/ChannelTrackerDashboard';
+import { SideBySideComparisonModal } from './components/SideBySideComparisonModal';
 import { COLOR_THEMES } from './services/themeConfig';
 import { SAMPLE_VIDEOS } from './services/sampleData';
 import { AuditReport, ColorThemeId, SampleVideoOption, QueuedVideoTask } from './types/audit';
@@ -51,6 +52,7 @@ import {
   CheckCircle2,
   User,
   Lock,
+  Scale,
 } from 'lucide-react';
 
 // Seed historical upload compliance records (Last 10 Uploads)
@@ -317,6 +319,7 @@ export default function App() {
   const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
   const [isCutGuideOpen, setIsCutGuideOpen] = useState(false);
   const [isKnowledgeBaseOpen, setIsKnowledgeBaseOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -874,6 +877,7 @@ export default function App() {
               setCurrentView('scanner');
               handleTriggerAudit();
             }}
+            onOpenCompare={() => setIsCompareModalOpen(true)}
           />
 
           {/* Main View Area (Clean view with no cluttered top button strip) */}
@@ -988,6 +992,18 @@ export default function App() {
                         <Scissors className="h-3.5 w-3.5 text-red-600" />
                         <span>Safe Cut Sheet</span>
                       </button>
+                      <button
+                        onClick={() => setIsCompareModalOpen(true)}
+                        className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 font-sans text-xs font-semibold transition cursor-pointer ${
+                          isLight
+                            ? 'border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700'
+                            : 'border-indigo-800 bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300'
+                        }`}
+                        title="Compare 2 videos side-by-side to detect policy violation patterns"
+                      >
+                        <Scale className="h-3.5 w-3.5 text-indigo-600" />
+                        <span>Compare 2 Videos</span>
+                      </button>
                     </div>
                   </div>
 
@@ -1007,6 +1023,7 @@ export default function App() {
                       videoDurationSec={videoDurationSec}
                       onOpenCutGuide={() => setIsCutGuideOpen(true)}
                       onOpenAppealModal={() => setCurrentView('appeal')}
+                      onOpenCompare={() => setIsCompareModalOpen(true)}
                       onRescan={() => setCurrentView('scanner')}
                       onJumpAndPlay={handleJumpAndPlay}
                       uploadHistory={uploadHistory}
@@ -1712,6 +1729,19 @@ export default function App() {
           setIsFullScreenAnalysisOpen(false);
           setCurrentView('overview');
         }}
+        isLight={isLight}
+      />
+
+      <SideBySideComparisonModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        availableReports={[
+          ...(report ? [report] : []),
+          ...queuedTasks.filter((t) => t.report).map((t) => t.report!),
+          ...SAMPLE_VIDEOS.map((s) => s.mockReport),
+        ]}
+        defaultVideoAId={report?.id || queuedTasks[0]?.report?.id || SAMPLE_VIDEOS[0]?.mockReport.id}
+        defaultVideoBId={queuedTasks[1]?.report?.id || queuedTasks[0]?.report?.id || SAMPLE_VIDEOS[1]?.mockReport.id}
         isLight={isLight}
       />
     </div>

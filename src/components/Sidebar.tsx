@@ -24,6 +24,7 @@ import {
   Check,
   Lock,
   Youtube,
+  Scale,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
@@ -58,6 +59,7 @@ interface SidebarProps {
   onRegister?: () => void;
   onSignOut?: () => void;
   onScanNewVideo?: () => void;
+  onOpenCompare?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -80,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRegister,
   onSignOut,
   onScanNewVideo,
+  onOpenCompare,
 }) => {
   const isLight = theme.isLight;
   const [searchQuery, setSearchQuery] = useState('');
@@ -413,6 +416,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </button>
                 );
               })}
+
+              {onOpenCompare && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenCompare();
+                    if (isOpenMobile && onCloseMobile) onCloseMobile();
+                  }}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
+                    isLight
+                      ? 'text-indigo-700 hover:bg-indigo-50/80 hover:text-indigo-900'
+                      : 'text-indigo-300 hover:bg-indigo-950/50 hover:text-indigo-100'
+                  }`}
+                  title="Compare 2 Videos Side-by-Side"
+                >
+                  <Scale className="h-4 w-4 shrink-0 text-indigo-500" />
+                  {(!isCollapsed || isDrawer) && (
+                    <div className="flex-1 text-left truncate flex items-center justify-between">
+                      <span className="truncate">Compare 2 Videos</span>
+                      <span className="rounded-full px-2 py-0.5 font-mono text-[9px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        Side-by-Side
+                      </span>
+                    </div>
+                  )}
+                </button>
+              )}
             </div>
           </div>
 

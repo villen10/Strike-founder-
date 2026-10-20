@@ -21,6 +21,7 @@ import {
   Lock,
   Zap,
   Gauge,
+  Scale,
 } from 'lucide-react';
 import { AuditReport, PolicyViolation } from '../types/audit';
 import { HistoricalUploadRecord } from './ChannelHealthTrend';
@@ -40,6 +41,7 @@ interface AuditResultsDashboardProps {
   videoDurationSec: number;
   onOpenCutGuide: () => void;
   onOpenAppealModal: () => void;
+  onOpenCompare?: () => void;
   onRescan: () => void;
   onJumpAndPlay: (seconds: number) => void;
   uploadHistory: HistoricalUploadRecord[];
@@ -55,6 +57,7 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
   videoDurationSec,
   onOpenCutGuide,
   onOpenAppealModal,
+  onOpenCompare,
   onRescan,
   onJumpAndPlay,
   uploadHistory,
@@ -265,6 +268,22 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>{isAuthenticated ? 'AI Appeal Kit' : 'Unlock Appeal 🔒'}</span>
+                </button>
+              )}
+
+              {onOpenCompare && (
+                <button
+                  type="button"
+                  onClick={onOpenCompare}
+                  className={`flex items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 font-sans text-xs font-semibold transition cursor-pointer hover:scale-102 ${
+                    isLight
+                      ? 'border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/80 text-indigo-700'
+                      : 'border-indigo-800/80 bg-indigo-950/50 hover:bg-indigo-900/60 text-indigo-300'
+                  }`}
+                  title="Side-by-Side Deep Audit Comparison between 2 videos"
+                >
+                  <Scale className="h-3.5 w-3.5 text-indigo-500" />
+                  <span>Compare 2 Videos</span>
                 </button>
               )}
 

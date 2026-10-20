@@ -62,6 +62,30 @@ export interface PolicyViolation {
   actionableFix: ActionableFix;
 }
 
+export interface DeepAuditPassResult {
+  passNumber: 1 | 2 | 3;
+  passName: string;
+  passDescription: string;
+  modelUsed: string;
+  windowSizeSeconds: string;
+  riskScore: number;
+  strikeRisk: boolean;
+  flaggedIssuesCount: number;
+  keyFindings: string[];
+  findingsUrdu: string;
+  status: 'COMPLETED' | 'FLAGGED_ISSUES' | 'CLEAN';
+}
+
+export interface DeepAuditConsolidation {
+  isDeepAuditEnabled: boolean;
+  passes: DeepAuditPassResult[];
+  consensusVerdict: 'STRIKE_CONFIRMED' | 'MONETIZATION_WARNING' | 'CLEAN_VERIFIED';
+  falseNegativeCorrectionApplied: boolean;
+  confidenceScore: number;
+  summaryExplanationEn: string;
+  summaryExplanationUrdu: string;
+}
+
 export interface AuditReport {
   id: string;
   videoTitle: string;
@@ -94,6 +118,7 @@ export interface AuditReport {
   mainIssueDetail?: string; // 1-2 short clear lines explaining the finding
   mainIssueSeverity?: 'CLEAN' | 'MINOR_WARNING' | 'CRITICAL_STRIKE';
   timelineViolations: PolicyViolation[];
+  deepAuditDetails?: DeepAuditConsolidation; // Multi-Pass Deep Audit Results
   categoryScores: {
     childSafety: number;
     violenceGore: number;
