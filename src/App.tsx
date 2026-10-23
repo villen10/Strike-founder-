@@ -163,6 +163,32 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  function getViewSlug(view: NavView): string {
+    switch (view) {
+      case 'overview': return 'overview';
+      case 'scanner': return 'home-video-scan';
+      case 'channels': return 'channel-tracker';
+      case 'analytics': return 'channel-analytics';
+      case 'violations': return 'strike-violations';
+      case 'appeal': return 'ai-appeal-generator';
+      case 'knowledge': return 'youtube-strike-checker';
+      case 'content-hub': return 'content-hub';
+      case 'profile': return 'creator-profile';
+      case 'subscription': return 'pricing-plans';
+      case 'admin': return 'super-admin-control';
+      case 'legal': return 'legal-faq';
+      default: return view;
+    }
+  }
+
+  const handleSelectView = (view: NavView) => {
+    setCurrentView(view);
+    const slug = getViewSlug(view);
+    if (typeof window !== 'undefined' && window.location.hash !== `#${slug}`) {
+      window.history.pushState(null, '', `#${slug}`);
+    }
+  };
+
   // SEO & Deep-link Hash Navigation
   useEffect(() => {
     const handleHash = () => {
@@ -170,6 +196,7 @@ export default function App() {
       if (!hash) return;
       if (
         hash === 'scanner' ||
+        hash === 'home-video-scan' ||
         hash === 'check-video-before-upload' ||
         hash === 'copyright-checker' ||
         hash === 'striku-video-analysis'
@@ -177,26 +204,30 @@ export default function App() {
         setCurrentView('scanner');
       } else if (hash === 'youtube-strike-checker' || hash === 'guidelines-auditor') {
         setCurrentView('knowledge');
-      } else if (hash === 'appeal-generator' || hash === 'appeal') {
+      } else if (hash === 'appeal-generator' || hash === 'appeal' || hash === 'ai-appeal-generator') {
         setCurrentView('appeal');
-      } else if (hash === 'violations' || hash === 'video-analysis-detect-strike') {
+      } else if (hash === 'violations' || hash === 'strike-violations' || hash === 'video-analysis-detect-strike') {
         setCurrentView('violations');
-      } else if (hash === 'pricing' || hash === 'subscription') {
+      } else if (hash === 'pricing' || hash === 'subscription' || hash === 'pricing-plans') {
         setCurrentView('subscription');
       } else if (hash === 'channel-tracker' || hash === 'channels') {
         setCurrentView('channels');
-      } else if (hash === 'legal-faq') {
+      } else if (hash === 'channel-analytics' || hash === 'analytics') {
+        setCurrentView('analytics');
+      } else if (hash === 'content-hub') {
+        setCurrentView('content-hub');
+      } else if (hash === 'creator-profile' || hash === 'profile') {
+        setCurrentView('profile');
+      } else if (hash === 'super-admin-control' || hash === 'admin') {
+        setCurrentView('admin');
+      } else if (hash === 'overview') {
+        setCurrentView('overview');
+      } else if (hash.startsWith('legal')) {
         setCurrentView('legal');
-        setActiveLegalTab('faq');
-      } else if (hash === 'legal-privacy') {
-        setCurrentView('legal');
-        setActiveLegalTab('privacy');
-      } else if (hash === 'legal-terms') {
-        setCurrentView('legal');
-        setActiveLegalTab('terms');
-      } else if (hash === 'legal-refund') {
-        setCurrentView('legal');
-        setActiveLegalTab('refund');
+        if (hash === 'legal-privacy') setActiveLegalTab('privacy');
+        else if (hash === 'legal-terms') setActiveLegalTab('terms');
+        else if (hash === 'legal-refund') setActiveLegalTab('refund');
+        else setActiveLegalTab('faq');
       }
     };
 
@@ -995,7 +1026,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen ${theme.bgClass} ${
+      className={`min-h-screen w-full max-w-full overflow-x-hidden ${theme.bgClass} ${
         isLight ? 'text-slate-900' : 'text-slate-100'
       } flex flex-col justify-between selection:bg-red-500/20 selection:text-red-900 transition-colors duration-200`}
     >
@@ -1003,11 +1034,11 @@ export default function App() {
       <ScrollProgressBar isLight={isLight} />
 
       {/* Main Container: Sidebar flush on the left (top-0 left-0) + Content area */}
-      <div className="flex w-full min-h-screen">
+      <div className="flex w-full max-w-full min-h-screen overflow-x-hidden relative">
         {/* Modern Sidebar (Desktop flush at top-left & Mobile Drawer) */}
         <Sidebar
           currentView={currentView}
-          onSelectView={setCurrentView}
+          onSelectView={handleSelectView}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           isOpenMobile={isMobileSidebarOpen}
