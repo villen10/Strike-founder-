@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Zap,
 } from 'lucide-react';
+import { ReadingProgressBar } from './ReadingProgressBar';
 
 interface ContentHubProps {
   isLight: boolean;
@@ -56,8 +57,8 @@ const ARTICLES: Article[] = [
       {
         heading: 'Why Pre-Upload Video Auditing is Crucial for Creators',
         paragraphs: [
-          'Uploading a video to YouTube without a pre-screening check is one of the rishest moves for modern content creators. When YouTube Content ID or automated community guideline filters flag a video after publishing, your channel can suffer immediate reach suppression, yellow monetization icons (limited ads), or a formal Community Guidelines strike.',
-          'With Striku (striku.cloud), creators can run an instant client-side frame-by-frame audit before uploading. This guarantees zero channel risk and gives you exact second-by-second timestamps of any risky frames.',
+          'Uploading a video to YouTube without a pre-screening check is one of the riskiest moves for modern content creators. When YouTube Content ID or automated community guideline filters flag a video after publishing, your channel can suffer immediate reach suppression, yellow monetization icons (limited ads), or a formal copyright strike.',
+          'With Striku (strikucloud@gmail.com), creators can run an instant client-side frame-by-frame audit before uploading. This guarantees zero channel risk and gives you exact second-by-second timestamps of any risky frames.',
         ],
         subheading: 'Top 3 Risks Avoided Before Publishing:',
         bulletPoints: [
@@ -70,7 +71,7 @@ const ARTICLES: Article[] = [
         heading: 'Step-by-Step Workflow Using Striku',
         paragraphs: [
           '1. Drop your final export (MP4, MOV, or WebM) into the Striku Video Scanner at striku.cloud.\n2. Allow the 3-Pass Multi-Agent Neural Consensus Engine to analyze your temporal frames locally in your browser memory.\n3. Review exact risk timestamps and export the CapCut / Premiere safe-cut guide.',
-          'By fixing flagged segments before uploading, you maintain 100% advertiser-friendly channel status and safeguard your upload streak.',
+          'By fixing flagged segments before uploading, you maintain 100% YouTube monetization status and safeguard your upload streak.',
         ],
       },
     ],
@@ -151,11 +152,47 @@ export const ContentHub: React.FC<ContentHubProps> = ({
 
   const activeArticle = ARTICLES.find((a) => a.id === selectedArticleId);
 
+  const renderLinkedParagraph = (text: string) => {
+    return (
+      <span className={`text-sm sm:text-base leading-relaxed whitespace-pre-line ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+        {text.split(/(copyright strike|YouTube monetization|check video before upload|Content ID)/gi).map((part, i) => {
+          const lower = part.toLowerCase();
+          if (lower === 'copyright strike' || lower === 'content id') {
+            return (
+              <button
+                key={i}
+                onClick={onNavigateKnowledge}
+                className="text-red-600 dark:text-red-400 font-bold underline decoration-dotted underline-offset-4 hover:text-red-500 cursor-pointer inline-flex items-center gap-0.5 mx-0.5"
+                title="View Knowledge Base Article"
+              >
+                {part}
+              </button>
+            );
+          }
+          if (lower === 'youtube monetization' || lower === 'check video before upload') {
+            return (
+              <button
+                key={i}
+                onClick={onNavigateScanner}
+                className="text-red-600 dark:text-red-400 font-bold underline decoration-dotted underline-offset-4 hover:text-red-500 cursor-pointer inline-flex items-center gap-0.5 mx-0.5"
+                title="Open Scanner Tool"
+              >
+                {part}
+              </button>
+            );
+          }
+          return part;
+        })}
+      </span>
+    );
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6">
       {activeArticle ? (
         /* Article View */
         <div className="flex flex-col gap-6">
+          <ReadingProgressBar />
           <button
             onClick={() => setSelectedArticleId(null)}
             className={`inline-flex items-center gap-2 self-start rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer border ${
@@ -199,9 +236,9 @@ export const ContentHub: React.FC<ContentHubProps> = ({
                     {section.heading}
                   </h3>
                   {section.paragraphs.map((p, pIdx) => (
-                    <p key={pIdx} className={`text-sm sm:text-base leading-relaxed whitespace-pre-line ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                      {p}
-                    </p>
+                    <div key={pIdx} className="my-1">
+                      {renderLinkedParagraph(p)}
+                    </div>
                   ))}
                   {section.subheading && (
                     <h4 className={`font-mono text-xs uppercase tracking-wider font-bold mt-2 text-red-600 dark:text-red-400`}>

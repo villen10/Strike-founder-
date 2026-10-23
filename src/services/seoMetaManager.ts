@@ -226,3 +226,142 @@ export function getReportShareUrl(reportId?: string): string {
   const id = reportId || 'latest';
   return `https://www.striku.cloud/?report=${encodeURIComponent(id)}`;
 }
+
+/**
+ * Returns unique SEO metadata (title, description, og:title, og:description) for each internal view/route.
+ */
+export function getViewMetadata(view: string): DynamicSeoMetadata {
+  const baseUrl = 'https://www.striku.cloud';
+  switch (view) {
+    case 'overview':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Striku Dashboard - YouTube Channel Compliance & Strike Prevention | striku.cloud',
+        description:
+          'Monitor your YouTube channel compliance score, pre-upload scan history, and active copyright risks on striku.cloud.',
+        ogTitle: 'Striku Dashboard - YouTube Channel Compliance & Strike Prevention',
+        ogDescription: 'Monitor your YouTube channel compliance score, pre-upload scan history, and active copyright risks on striku.cloud.',
+        canonicalUrl: `${baseUrl}/#overview`,
+        ogUrl: `${baseUrl}/#overview`,
+      };
+    case 'scanner':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Striku Video Scanner & Strike Checker - Check Video Before Upload | striku.cloud',
+        description:
+          'Check video before upload to YouTube. AI-powered frame scanner detects copyright claims, community guideline violations, and monetization risks with instant safe-cut timecodes.',
+        ogTitle: 'Striku Video Scanner & Strike Checker - Check Video Before Upload',
+        ogDescription: 'Check video before upload to YouTube with Striku. AI frame scanner detects copyright claims and safety violations instantly.',
+        canonicalUrl: `${baseUrl}/#scanner`,
+        ogUrl: `${baseUrl}/#scanner`,
+      };
+    case 'channels':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'YouTube Channel Tracker & Compliance History - Striku | striku.cloud',
+        description:
+          'Track historical upload compliance scores, active strike risks, and monetization warnings across your YouTube creator channel.',
+        ogTitle: 'YouTube Channel Tracker & Compliance History - Striku',
+        ogDescription: 'Track historical upload compliance scores, active strike risks, and monetization warnings across your YouTube creator channel.',
+        canonicalUrl: `${baseUrl}/#channels`,
+        ogUrl: `${baseUrl}/#channels`,
+      };
+    case 'analytics':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Channel Health & Violation Trends Analysis - Striku | striku.cloud',
+        description:
+          'Analyze multi-pass neural consensus metrics, temporal risk heatmaps, and safety trends for your uploaded video library.',
+        ogTitle: 'Channel Health & Violation Trends Analysis - Striku',
+        ogDescription: 'Analyze multi-pass neural consensus metrics, temporal risk heatmaps, and safety trends for your uploaded video library.',
+        canonicalUrl: `${baseUrl}/#analytics`,
+        ogUrl: `${baseUrl}/#analytics`,
+      };
+    case 'violations':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Frequent Community Guidelines & Content ID Violations - Striku',
+        description:
+          'Review frequent hazard alerts, copyright claim patterns, and automated policy flags to keep your YouTube channel safe.',
+        ogTitle: 'Frequent Community Guidelines & Content ID Violations - Striku',
+        ogDescription: 'Review frequent hazard alerts, copyright claim patterns, and automated policy flags to keep your YouTube channel safe.',
+        canonicalUrl: `${baseUrl}/#violations`,
+        ogUrl: `${baseUrl}/#violations`,
+      };
+    case 'appeal':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'AI Appeal Letter & Monetization Defense Generator - Striku | striku.cloud',
+        description:
+          'Generate professional YouTube creator appeal letters and dispute monetization claims with AI-backed policy citations.',
+        ogTitle: 'AI Appeal Letter & Monetization Defense Generator - Striku',
+        ogDescription: 'Generate professional YouTube creator appeal letters and dispute monetization claims with AI-backed policy citations.',
+        canonicalUrl: `${baseUrl}/#appeal`,
+        ogUrl: `${baseUrl}/#appeal`,
+      };
+    case 'knowledge':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'YouTube Policy Knowledge Base & Safety Guidelines - Striku | striku.cloud',
+        description:
+          'Explore comprehensive YouTube community guidelines, copyright rules, and safety documentation to prevent channel strikes.',
+        ogTitle: 'YouTube Policy Knowledge Base & Safety Guidelines - Striku',
+        ogDescription: 'Explore comprehensive YouTube community guidelines, copyright rules, and safety documentation to prevent channel strikes.',
+        canonicalUrl: `${baseUrl}/#knowledge`,
+        ogUrl: `${baseUrl}/#knowledge`,
+      };
+    case 'content-hub':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Creator SEO Guides & YouTube Strike Prevention Hub - Striku | striku.cloud',
+        description:
+          'Expert SEO guides and tutorials on how to check videos before upload, avoid copyright claims, and master YouTube compliance.',
+        ogTitle: 'Creator SEO Guides & YouTube Strike Prevention Hub - Striku',
+        ogDescription: 'Expert SEO guides and tutorials on how to check videos before upload, avoid copyright claims, and master YouTube compliance.',
+        canonicalUrl: `${baseUrl}/#content-hub`,
+        ogUrl: `${baseUrl}/#content-hub`,
+      };
+    case 'profile':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Creator Account Settings & Security - Striku | striku.cloud',
+        description: 'Manage your Striku creator account profile, cloud sync preferences, and Pro Shield subscription status.',
+        ogTitle: 'Creator Account Settings & Security - Striku',
+        ogDescription: 'Manage your Striku creator account profile, cloud sync preferences, and Pro Shield subscription status.',
+        canonicalUrl: `${baseUrl}/#profile`,
+        ogUrl: `${baseUrl}/#profile`,
+      };
+    case 'subscription':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Pro Shield & Enterprise Subscription Plans - Striku | striku.cloud',
+        description: 'Upgrade to Striku Pro Shield for unlimited video scans, priority neural consensus, and advanced copyright detection.',
+        ogTitle: 'Pro Shield & Enterprise Subscription Plans - Striku',
+        ogDescription: 'Upgrade to Striku Pro Shield for unlimited video scans, priority neural consensus, and advanced copyright detection.',
+        canonicalUrl: `${baseUrl}/#subscription`,
+        ogUrl: `${baseUrl}/#subscription`,
+      };
+    case 'admin':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Super Admin Compliance Control Center - Striku | striku.cloud',
+        description: 'Super admin management console for platform analytics, user verification, and global compliance monitoring.',
+        ogTitle: 'Super Admin Compliance Control Center - Striku',
+        ogDescription: 'Super admin management console for platform analytics, user verification, and global compliance monitoring.',
+        canonicalUrl: `${baseUrl}/#admin`,
+        ogUrl: `${baseUrl}/#admin`,
+      };
+    case 'legal':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Legal, Privacy Policy & Terms of Service - Striku | striku.cloud',
+        description: 'Read Striku privacy policy, terms of service, and zero-retention data security commitments.',
+        ogTitle: 'Legal, Privacy Policy & Terms of Service - Striku',
+        ogDescription: 'Read Striku privacy policy, terms of service, and zero-retention data security commitments.',
+        canonicalUrl: `${baseUrl}/#legal`,
+        ogUrl: `${baseUrl}/#legal`,
+      };
+    default:
+      return DEFAULT_SEO_METADATA;
+  }
+}

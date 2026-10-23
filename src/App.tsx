@@ -48,6 +48,7 @@ import {
   generateAuditReportMetadata,
   applyDynamicMetadata,
   resetToDefaultMetadata,
+  getViewMetadata,
 } from './services/seoMetaManager';
 import { ExtractedFrame, extractVideoMetadataAndFrames, formatTime } from './services/frameExtractor';
 import { requestVideoAudit } from './services/auditClient';
@@ -122,6 +123,12 @@ export default function App() {
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [isFullScreenAnalysisOpen, setIsFullScreenAnalysisOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Dynamic view-based SEO metadata generation for unique og:title, description, and tags per route
+  useEffect(() => {
+    const meta = getViewMetadata(currentView);
+    applyDynamicMetadata(meta);
+  }, [currentView]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
