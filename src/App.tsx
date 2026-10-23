@@ -1117,7 +1117,8 @@ export default function App() {
                   {/* Section: Comprehensive Audit Results Dashboard (Rising from Bottom) */}
                   {report && (
                     <ScrollReveal direction="bottom" delay={0.1}>
-                      <AuditResultsDashboard
+                      <div id="audit-results-section">
+                        <AuditResultsDashboard
                         report={report}
                         videoTitle={videoTitle}
                         videoDurationSec={videoDurationSec}
@@ -1132,6 +1133,7 @@ export default function App() {
                         onOpenAuth={handleOpenAuth}
                         onDemoLogin={handleDemoLogin}
                       />
+                      </div>
                     </ScrollReveal>
                   )}
 
@@ -1963,17 +1965,13 @@ export default function App() {
         isLight={isLight}
         videoTitle={videoTitle}
         safetyGrade={report?.safetyGrade}
+        isAuditActive={!!report}
         onScanClick={() => {
           setCurrentView('scanner');
           handleTriggerAudit();
         }}
         onCutSheetClick={() => setIsCutGuideOpen(true)}
         onCompareClick={() => setIsCompareModalOpen(true)}
-        onSampleClick={() => {
-          if (SAMPLE_VIDEOS.length > 0) {
-            handleSelectSample(SAMPLE_VIDEOS[0]);
-          }
-        }}
       />
 
       {/* Floating Scroll to Top Interactive Button */}

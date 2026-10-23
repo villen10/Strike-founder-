@@ -169,69 +169,23 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             </p>
           </div>
 
-          {/* 1-Click Interactive Demo Buttons with spring hover and tap */}
-          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 shrink-0">
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              type="button"
-              onClick={() => {
-                if (samples.length > 0) {
-                  onSelectSample(samples[0]);
-                  onNavigateScanner();
-                }
-              }}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 px-4 py-2.5 font-display text-xs font-bold text-white transition shadow-lg shadow-red-900/30 cursor-pointer"
-            >
-              <Play className="h-3.5 w-3.5 fill-current" />
-              <span>⚡ Try Live Strike Demo</span>
-            </motion.button>
-
+          {/* Upload Your Video Action Button */}
+          <div className="flex shrink-0">
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               type="button"
               onClick={onNavigateScanner}
-              className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 font-sans text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-display text-xs font-bold transition shadow-lg cursor-pointer ${
                 isLight
-                  ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
-                  : 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-white'
+                  ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/30'
+                  : 'bg-red-600 hover:bg-red-500 text-white shadow-rose-900/50'
               }`}
             >
-              <FileVideo className="h-3.5 w-3.5 text-indigo-500" />
-              <span>Scan Your Video</span>
+              <FileVideo className="h-4 w-4" />
+              <span>Upload & Scan Your Video</span>
             </motion.button>
           </div>
-        </div>
-
-        {/* 3 Quick Demo Pills */}
-        <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-mono text-[11px] text-slate-500 font-semibold mr-1">
-            Test Interactive Audits:
-          </span>
-          {samples.slice(0, 3).map((s, idx) => (
-            <motion.button
-              whileHover={{ scale: 1.06, y: -1 }}
-              whileTap={{ scale: 0.95 }}
-              key={s.id}
-              type="button"
-              onClick={() => {
-                onSelectSample(s);
-                onNavigateScanner();
-              }}
-              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 font-sans text-xs font-medium transition cursor-pointer ${
-                idx === 0
-                  ? 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
-                  : idx === 1
-                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-              }`}
-            >
-              <span>{idx === 0 ? '🔴' : idx === 1 ? '🟡' : '🟢'}</span>
-              <span className="truncate max-w-[160px] sm:max-w-none">{s.title}</span>
-              <ArrowRight className="h-3 w-3 opacity-60" />
-            </motion.button>
-          ))}
         </div>
       </motion.div>
 
