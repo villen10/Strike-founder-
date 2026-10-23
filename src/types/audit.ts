@@ -31,6 +31,96 @@ export type PolicyCategory =
   | 'ADVERTISER_FRIENDLY'
   | 'COPYRIGHT_FAIR_USE';
 
+export interface ReplacementFixDetail {
+  actionRequired: 'REPLACE_AUDIO' | 'REPLACE_VIDEO_CLIP' | 'TRIM_SEGMENT' | 'BLUR_FACE_OR_OBJECT' | 'BLEEP_AUDIO';
+  targetSegment: string; // e.g. "00:04 - 00:08 (4s)"
+  specificAssetToReplace: string; // e.g. "Background soundtrack 'Trap Anthem #3'" or "Unlicensed TV broadcast clip"
+  suggestedFreeAlternative: string; // e.g. "YouTube Audio Library: 'Sunny Horizons' (Free Commercial License) or CapCut Free Music #14"
+  visualAlternativeSuggestion?: string; // e.g. "Insert royalty-free B-roll of abstract city skyline or apply 25% blur"
+  editorSteps: {
+    capcut: string;
+    premiere: string;
+    davinci: string;
+  };
+}
+
+export interface EvidenceProof {
+  reasonTitle: string; // e.g. "Algorithmic Content ID Fingerprint & Child Safety Proximity"
+  algorithmicReason: string; // Detailed technical reason why YouTube's bot triggers
+  rawEvidence: string; // Exact match hash, detected OCR text, acoustic dB burst, or frame bounding box
+  evidenceType: 'VISUAL_BOUNDING_BOX' | 'ACOUSTIC_SPECTROGRAM' | 'OCR_TEXT' | 'CONTENT_ID_HASH' | 'METADATA';
+  confidencePct: number; // 98
+  confidenceLevel: ConfidenceLevel;
+  consensusAgents: string[]; // ['VisionAgent-Alpha', 'AcousticAgent-Beta', 'PolicyConsensus-Omega']
+}
+
+export interface SceneAnalysisItem {
+  sceneIndex: number;
+  timestampStart: string;
+  timestampEnd: string;
+  secondsStart: number;
+  secondsEnd: number;
+  visualSummary: string;
+  safetyStatus: 'SAFE' | 'CAUTION' | 'STRIKE_HAZARD';
+  visualTags: string[];
+  keyObjectsDetected: string[];
+  flaggedRisk?: string;
+  replacementAction?: string;
+}
+
+export interface AudioSegmentItem {
+  segmentIndex: number;
+  timestampStart: string;
+  timestampEnd: string;
+  secondsStart: number;
+  secondsEnd: number;
+  audioType: 'SPEECH' | 'BACKGROUND_MUSIC' | 'SOUND_EFFECT' | 'MIXED';
+  soundtrackIdentified?: string;
+  copyrightRisk: 'CLEAN_FREE' | 'CONTENT_ID_CLAIM' | 'STRIKE_RISK';
+  profanityOrShockDetected: boolean;
+  decibelSpikeDb?: number;
+  transcriptionExcerpt?: string;
+  safetyStatus: 'SAFE' | 'CAUTION' | 'STRIKE_HAZARD';
+  suggestedAction?: string;
+}
+
+export interface CopyrightAnalysisResult {
+  score: number; // 0-100 (100 = 100% clean)
+  status: 'CLEAN' | 'CONTENT_ID_CLAIM_POSSIBLE' | 'DMCA_STRIKE_HAZARD';
+  statusLabel: string;
+  audioMatchesCount: number;
+  visualMatchesCount: number;
+  matches: Array<{
+    type: 'AUDIO' | 'VISUAL' | 'REUSED_CONTENT';
+    title: string;
+    rightsHolder: string;
+    timestamp: string;
+    claimType: 'MONETIZATION_SHARE' | 'TAKEDOWN_STRIKE' | 'GEO_BLOCK';
+    suggestedFix: string;
+    replacementAudioOrClip?: string;
+  }>;
+  fairUseVerdict: 'STRONG_FAIR_USE' | 'WEAK_FAIR_USE' | 'NOT_FAIR_USE';
+  fairUseReason: string;
+}
+
+export interface MonetizationAnalysisResult {
+  score: number; // 0-100 (100 = full green dollar)
+  dollarStatus: 'GREEN_DOLLAR' | 'YELLOW_DOLLAR' | 'RED_DOLLAR';
+  statusLabel: string;
+  first8SecondsClean: boolean;
+  restrictedTopicsDetected: string[];
+  advertiserSuitabilityTier: 'ALL_ADVERTISERS' | 'LIMITED_ADVERTISERS' | 'NO_ADS';
+  recommendations: string[];
+}
+
+export interface CommunityStrikeResult {
+  score: number; // 0-100 (100 = zero risk)
+  strikeRisk: 'ZERO_RISK' | 'WARNING_ISSUED' | 'STRIKE_IMMINENT';
+  statusLabel: string;
+  flaggedCategories: string[];
+  actionRequiredImmediately: boolean;
+}
+
 export interface ActionableFix {
   actionType: 'TRIM_CLIP' | 'BLUR_AREA' | 'MUTE_AUDIO' | 'ADD_DISCLAIMER' | 'AGE_GATE' | 'NONE';
   instructionsEn: string;
@@ -60,6 +150,8 @@ export interface PolicyViolation {
   detectionMechanism?: string; // e.g. "Neural Vision Ingest", "Acoustic Spectral Analysis", "Kinetic Motion Vector"
   primaryIssueBoldText?: string; // Bold clear English summary in very few punchy words
   actionableFix: ActionableFix;
+  replacementFix?: ReplacementFixDetail; // Specific audio or clip replacement instructions
+  evidenceProof?: EvidenceProof; // Evidence, reason, and confidence proof
 }
 
 export interface DeepAuditPassResult {
@@ -135,6 +227,13 @@ export interface AuditReport {
   };
   scannedAt: string;
   strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
+  // Enhanced Deep Video Analysis Fields
+  sceneBreakdown?: SceneAnalysisItem[];
+  audioSegmentBreakdown?: AudioSegmentItem[];
+  copyrightAnalysis?: CopyrightAnalysisResult;
+  monetizationAnalysis?: MonetizationAnalysisResult;
+  communityStrikeResult?: CommunityStrikeResult;
+  isPrivateScan?: boolean;
 }
 
 export interface SampleVideoOption {

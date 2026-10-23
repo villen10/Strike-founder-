@@ -1,5 +1,6 @@
 import { AuditReport, RiskSeverity, PolicyViolation, ActionableFix } from '../types/audit';
 import { ExtractedFrame } from './frameExtractor';
+import { enrichWithDeepAnalysis } from './deepAnalysisEnhancer';
 
 export async function requestVideoAudit(params: {
   videoTitle: string;
@@ -32,7 +33,7 @@ export async function requestVideoAudit(params: {
     const data = await res.json();
     if (data.success && data.report) {
       const rep = data.report;
-      return {
+      const finalRep: AuditReport = {
         id: 'report-' + Date.now(),
         videoTitle: params.videoTitle,
         videoDurationSec: params.durationSec,
@@ -93,6 +94,7 @@ export async function requestVideoAudit(params: {
         scannedAt: 'Just now',
         strictnessMode: params.strictnessMode,
       };
+      return enrichWithDeepAnalysis(finalRep, { rawTitle: params.videoTitle });
     }
 
     throw new Error(data.error || 'Server returned invalid report format');
@@ -103,7 +105,8 @@ export async function requestVideoAudit(params: {
       throw new Error('Video audit took longer than 3 minutes. Please upload a shorter clip or verify network speed.');
     }
     // Fall back to client heuristic report only if server unreachable
-    return generateClientSideAuditReport(params);
+    const clientReport = generateClientSideAuditReport(params);
+    return enrichWithDeepAnalysis(clientReport, { rawTitle: params.videoTitle });
   }
 }
 

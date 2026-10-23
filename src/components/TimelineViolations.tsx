@@ -12,20 +12,27 @@ import {
   HelpCircle,
   Gauge,
   Sparkles,
+  Lock,
 } from 'lucide-react';
 import { PolicyViolation } from '../types/audit';
 import { InspectionFrame } from './InspectionFrame';
+import { SubscriptionTier } from '../services/subscriptionManager';
+import { ModerationDisclaimerNotice } from './ModerationDisclaimerNotice';
 
 interface TimelineViolationsProps {
   violations: PolicyViolation[];
   onSeekToViolation: (seconds: number) => void;
   isLight?: boolean;
+  currentTier?: SubscriptionTier;
+  onOpenPricing?: () => void;
 }
 
 export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
   violations,
   onSeekToViolation,
   isLight = false,
+  currentTier = 'free',
+  onOpenPricing,
 }) => {
   if (violations.length === 0) {
     return (
@@ -101,6 +108,11 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
               : `${violations.length} ${violations.length === 1 ? 'Choti Si Warning' : 'Choti Si Warnings'}`}
           </span>
         </div>
+      </div>
+
+      {/* Pre-Upload 85-90% YouTube Bot Alignment Disclaimer */}
+      <div className="mb-4">
+        <ModerationDisclaimerNotice isLight={isLight} compact={true} />
       </div>
 
       {/* 1-2 Short Lines Overview Bar */}
@@ -357,14 +369,64 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
                         )}
                         <span>Recommended Remediation:</span>
                       </div>
-                      <span className="font-mono text-xs font-bold text-red-600">
-                        {violation.actionableFix.suggestedCut}
-                      </span>
+                      {currentTier === 'free' ? (
+                        <div className="flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          <Lock className="h-3 w-3" />
+                          <span>Exact Cut Timecode Locked</span>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-xs font-bold text-red-600">
+                          {violation.actionableFix.suggestedCut}
+                        </span>
+                      )}
                     </div>
 
-                    <p className="mt-1.5 font-sans text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                      {violation.actionableFix.instructionsEn}
-                    </p>
+                    {currentTier === 'free' ? (
+                      <div className="relative mt-2.5 overflow-hidden rounded-xl border border-dashed border-amber-500/40 bg-slate-900/5 dark:bg-slate-950/80 p-3.5">
+                        <div className="select-none filter blur-xs text-xs text-slate-500 dark:text-slate-400">
+                          Trim keyframe range {violation.timestampStart} to {violation.timestampEnd} precisely. Insert 14dB ducking and 40px visual blur box on detected policy infraction coordinates.
+                        </div>
+                        <div className="absolute inset-0 flex flex-col sm:flex-row items-center justify-between gap-2 bg-slate-900/70 backdrop-blur-[2px] px-3 py-2 text-center sm:text-left">
+                          <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4 text-amber-400 shrink-0" />
+                            <div>
+                              <p className="font-satoshi text-xs font-black text-white">
+                                CapCut Frame Timecodes & EDL Cuts Locked
+                              </p>
+                              <p className="text-[10px] text-slate-300">
+                                Upgrade to Creator Shield ($19) to unlock second-by-second cuts
+                              </p>
+                            </div>
+                          </div>
+                          {onOpenPricing && (
+                            <button
+                              type="button"
+                              onClick={onOpenPricing}
+                              className="shrink-0 px-2.5 py-1 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white font-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-95 cursor-pointer shadow-xs"
+                            >
+                              Unlock Plan ($19) →
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="mt-1.5 font-sans text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                          {violation.actionableFix.instructionsEn}
+                        </p>
+                        {violation.replacementFix && (
+                          <div className="mt-2.5 rounded-xl border border-emerald-500/25 bg-emerald-950/15 p-2.5 space-y-1 text-xs">
+                            <div className="flex items-center gap-1.5 font-bold text-emerald-400 text-[11px]">
+                              <Sparkles className="h-3 w-3" />
+                              <span>Exact Replacement Recommendation</span>
+                            </div>
+                            <p className="text-[11px] text-slate-300">
+                              {violation.replacementFix.suggestedFreeAlternative}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

@@ -17,6 +17,29 @@ import { ProfileView, AppUserProfile } from './components/ProfileView';
 import { FullScreenAnalysisModal } from './components/FullScreenAnalysisModal';
 import { ChannelTrackerDashboard } from './components/ChannelTrackerDashboard';
 import { SideBySideComparisonModal } from './components/SideBySideComparisonModal';
+import { PricingSubscriptionModal } from './components/PricingSubscriptionModal';
+import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
+import { AdminPanelDashboard } from './components/AdminPanelDashboard';
+import { SubscriptionPlanView } from './components/SubscriptionPlanView';
+import { LegalTrustHub, LegalTabType } from './components/LegalTrustHub';
+import { SaaSFooter } from './components/SaaSFooter';
+import {
+  ScrollProgressBar,
+  ScrollToTopButton,
+  ScrollReveal,
+  ScrollHintPrompt,
+  ScrollTextReveal,
+  ScrollButtonReveal,
+  FloatingScrollHUD,
+} from './components/ScrollExperience';
+import {
+  SubscriptionTier,
+  getCurrentSubscriptionTier,
+  setCurrentSubscriptionTier,
+  getDeviceScanMetrics,
+  recordScanAttempt,
+} from './services/subscriptionManager';
+import { isUserSuperAdmin, ADMIN_EMAIL } from './services/adminService';
 import { COLOR_THEMES } from './services/themeConfig';
 import { SAMPLE_VIDEOS } from './services/sampleData';
 import { AuditReport, ColorThemeId, SampleVideoOption, QueuedVideoTask } from './types/audit';
@@ -71,6 +94,7 @@ const INITIAL_HISTORY: HistoricalUploadRecord[] = [
 
 export default function App() {
   const [currentView, setCurrentView] = useState<NavView>('overview');
+  const [activeLegalTab, setActiveLegalTab] = useState<LegalTabType>('faq');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [strictnessMode, setStrictnessMode] = useState<'STANDARD' | 'PARANOID_ZERO_RISK'>('STANDARD');
   const [currentTheme, setCurrentTheme] = useState<ColorThemeId>('YOUTUBE_STUDIO_LIGHT');
@@ -321,6 +345,45 @@ export default function App() {
   const [isKnowledgeBaseOpen, setIsKnowledgeBaseOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
+  // Subscription, Checkout & Admin states
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>(() => getCurrentSubscriptionTier());
+  const [deviceMetrics, setDeviceMetrics] = useState(() => getDeviceScanMetrics());
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutSelectedTier, setCheckoutSelectedTier] = useState<SubscriptionTier>('pro');
+  const [checkoutBillingCycle, setCheckoutBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [pricingUpgradeReason, setPricingUpgradeReason] = useState<string | undefined>();
+
+  useEffect(() => {
+    const handleSubChange = (e: any) => {
+      if (e.detail?.tier) {
+        setSubscriptionTier(e.detail.tier);
+      }
+      setDeviceMetrics(getDeviceScanMetrics());
+    };
+    const handleQuotaChange = () => {
+      setDeviceMetrics(getDeviceScanMetrics());
+    };
+
+    window.addEventListener('striku:subscription-changed', handleSubChange);
+    window.addEventListener('striku:quota-updated', handleQuotaChange);
+    return () => {
+      window.removeEventListener('striku:subscription-changed', handleSubChange);
+      window.removeEventListener('striku:quota-updated', handleQuotaChange);
+    };
+  }, []);
+
+  // Save current user email to storage for admin service sync
+  useEffect(() => {
+    if (currentUser?.email) {
+      localStorage.setItem('striku_current_user_email', currentUser.email);
+      if (isUserSuperAdmin(currentUser.email)) {
+        setCurrentSubscriptionTier('enterprise');
+        setSubscriptionTier('enterprise');
+      }
+    }
+  }, [currentUser]);
+
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Select a task from the queue to view / interact with
@@ -547,6 +610,16 @@ export default function App() {
   // Upload & Queue Multiple Files (Simultaneous Drag-and-Drop)
   const handleUploadFiles = (files: File[]) => {
     if (!files || files.length === 0) return;
+
+    if (subscriptionTier === 'free') {
+      const attempt = recordScanAttempt();
+      if (!attempt.allowed) {
+        setPricingUpgradeReason('Free Monthly Quota Reached (5/5 Videos Audited on this device). Upgrade to Creator Pro for Unlimited Scans!');
+        setIsPricingModalOpen(true);
+        return;
+      }
+      setDeviceMetrics(getDeviceScanMetrics());
+    }
 
     const newTasks: QueuedVideoTask[] = files.map((file, idx) => {
       const objectUrl = URL.createObjectURL(file);
@@ -842,11 +915,17 @@ export default function App() {
         isLight ? 'text-slate-900' : 'text-slate-100'
       } flex flex-col justify-between selection:bg-red-500/20 selection:text-red-900 transition-colors duration-200`}
     >
+      {/* Scroll-Driven Top Progress Bar Animation */}
+      <ScrollProgressBar isLight={isLight} />
+
       {/* Top Header */}
       <div>
         <Header
           currentTheme={currentTheme}
           currentUser={currentUser}
+          currentTier={subscriptionTier}
+          remainingFreeScans={deviceMetrics.remainingScans}
+          onOpenPricing={() => setIsPricingModalOpen(true)}
           onNavigateProfile={() => setCurrentView('profile')}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
@@ -878,6 +957,9 @@ export default function App() {
               handleTriggerAudit();
             }}
             onOpenCompare={() => setIsCompareModalOpen(true)}
+            currentTier={subscriptionTier}
+            remainingFreeScans={deviceMetrics.remainingScans}
+            onOpenPricing={() => setIsPricingModalOpen(true)}
           />
 
           {/* Main View Area (Clean view with no cluttered top button strip) */}
@@ -933,273 +1015,306 @@ export default function App() {
                     isLight={isLight}
                   />
 
-                  {/* Top Bar with Quick Actions (Clean, No Clutter Banner) */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
-                          <ShieldCheck className="h-3.5 w-3.5" />
-                          Algorithmic Pre-Upload Audit
-                        </span>
-                        <span className={isLight ? 'text-slate-300' : 'text-slate-600'}>·</span>
-                        <span className="font-mono text-[11px] text-slate-500">
-                          {videoTitle}
-                        </span>
-                      </div>
-                      <h2
-                        className={`mt-0.5 font-display text-xl sm:text-2xl font-black tracking-tight ${
-                          isLight ? 'text-slate-950' : 'text-white'
-                        }`}
-                      >
-                        Studio Compliance Verdict
-                      </h2>
-                    </div>
+                  {/* Scroll Hint Prompt */}
+                  <ScrollHintPrompt isLight={isLight} targetId="compliance-verdict-section" label="Scroll for Compliance Verdict & Audit" />
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={handleSaveToCloud}
-                        disabled={isSavingToCloud}
-                        className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 font-sans text-xs font-semibold transition ${
-                          isLight
-                            ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
-                            : 'border-emerald-800/80 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-200'
-                        }`}
-                        title="Sync current audit verdict to Firebase Firestore"
-                      >
-                        <Cloud className={`h-4 w-4 ${isSavingToCloud ? 'animate-bounce text-emerald-600' : 'text-emerald-500'}`} />
-                        <span>{isSavingToCloud ? 'Saving...' : 'Save to Cloud'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => setCurrentView('scanner')}
-                        className={`flex items-center gap-2 rounded-xl px-3.5 py-2 font-sans text-xs font-bold transition shadow-xs ${
-                          isLight
-                            ? 'bg-red-600 text-white hover:bg-red-700'
-                            : `${theme.accentBg} text-white`
-                        }`}
-                      >
-                        <FileVideo className="h-4 w-4" />
-                        <span>Scan Video</span>
-                      </button>
-                      <button
-                        onClick={() => setIsCutGuideOpen(true)}
-                        className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 font-sans text-xs font-semibold transition ${
-                          isLight
-                            ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
-                            : 'border-slate-800 bg-slate-800 hover:bg-slate-750 text-slate-200'
-                        }`}
-                      >
-                        <Scissors className="h-3.5 w-3.5 text-red-600" />
-                        <span>Safe Cut Sheet</span>
-                      </button>
-                      <button
-                        onClick={() => setIsCompareModalOpen(true)}
-                        className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 font-sans text-xs font-semibold transition cursor-pointer ${
-                          isLight
-                            ? 'border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700'
-                            : 'border-indigo-800 bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300'
-                        }`}
-                        title="Compare 2 videos side-by-side to detect policy violation patterns"
-                      >
-                        <Scale className="h-3.5 w-3.5 text-indigo-600" />
-                        <span>Compare 2 Videos</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Cloud save notification */}
-                  {cloudSaveMessage && (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 dark:border-emerald-800 p-3 text-xs text-emerald-800 dark:text-emerald-200">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span className="font-medium">{cloudSaveMessage}</span>
-                    </div>
-                  )}
-
-                  {/* Section: Comprehensive Audit Results Dashboard */}
-                  {report && (
-                    <AuditResultsDashboard
-                      report={report}
-                      videoTitle={videoTitle}
-                      videoDurationSec={videoDurationSec}
-                      onOpenCutGuide={() => setIsCutGuideOpen(true)}
-                      onOpenAppealModal={() => setCurrentView('appeal')}
-                      onOpenCompare={() => setIsCompareModalOpen(true)}
-                      onRescan={() => setCurrentView('scanner')}
-                      onJumpAndPlay={handleJumpAndPlay}
-                      uploadHistory={uploadHistory}
-                      isLight={isLight}
-                      isAuthenticated={!!currentUser}
-                      onOpenAuth={handleOpenAuth}
-                      onDemoLogin={handleDemoLogin}
-                    />
-                  )}
-
-                  {/* Section: Video Scanner Preview & Interactive Scrubber */}
-                  <VideoScanner
-                    currentVideoUrl={currentVideoUrl}
-                    videoTitle={videoTitle}
-                    videoDurationSec={videoDurationSec}
-                    isScanning={isScanning}
-                    scanProgress={scanProgress}
-                    violations={report?.timelineViolations || []}
-                    extractedFrames={extractedFrames}
-                    onUploadFile={handleUploadFile}
-                    onUploadFiles={handleUploadFiles}
-                    onSelectSample={handleSelectSample}
-                    onQueueSample={handleQueueSample}
-                    onTriggerAudit={handleTriggerAudit}
-                    videoRef={videoRef}
-                    currentTime={currentTime}
-                    onSeek={handleSeek}
-                    isLight={isLight}
-                    queuedTasks={queuedTasks}
-                    activeTaskId={activeTaskId}
-                    onSelectTask={handleSelectTask}
-                    onRemoveTask={handleRemoveTask}
-                    onClearCompletedTasks={handleClearCompletedTasks}
-                    onStartQueueAudit={processQueue}
-                    isQueueRunning={isQueueRunning}
-                  />
-
-                  {/* Section: Flagged Timeline Incidents */}
-                  {report && (
-                    <TimelineViolations
-                      violations={report.timelineViolations}
-                      onSeekToViolation={handleJumpAndPlay}
-                      isLight={isLight}
-                    />
-                  )}
-
-                  {/* Section: Most Frequent Historical Violation Type Summary Widget */}
-                  <FrequentViolationWidget
-                    history={uploadHistory}
-                    currentReport={report}
-                    isLight={isLight}
-                    onOpenCutGuide={() => setIsCutGuideOpen(true)}
-                    onOpenKnowledgeBase={() => setCurrentView('knowledge')}
-                  />
-
-                  {/* Section: Channel Health Historical Trend (10 Uploads) */}
-                  <ChannelHealthTrend
-                    history={uploadHistory}
-                    isLight={isLight}
-                  />
-
-                  {/* Section: Firebase Cloud Vault (Persistent Multi-Device Audits) */}
-                  <div
-                    className={`rounded-3xl border p-5 sm:p-7 transition shadow-2xs ${
-                      isLight
-                        ? 'border-slate-100 bg-white shadow-slate-200/50'
-                        : 'border-slate-800 bg-slate-900'
-                    }`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-4 mb-4 border-slate-100 dark:border-slate-800">
+                  {/* Top Bar with Quick Actions (Heavy bottom-left rotation animation) */}
+                  <ScrollReveal direction="bottom-left-rotate" delay={0.05}>
+                    <div id="compliance-verdict-section" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
-                            <Cloud className="h-3.5 w-3.5" />
-                            Firebase Firestore Database
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            Algorithmic Pre-Upload Audit
                           </span>
-                          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className={isLight ? 'text-slate-300' : 'text-slate-600'}>·</span>
+                          <span className="font-mono text-[11px] text-slate-500">
+                            {videoTitle}
+                          </span>
                         </div>
-                        <h3 className={`mt-0.5 font-display text-base sm:text-lg font-black ${isLight ? 'text-slate-950' : 'text-white'}`}>
-                          Cloud Audit Records
-                        </h3>
+                        <h2
+                          className={`mt-0.5 font-display text-xl sm:text-2xl font-black tracking-tight ${
+                            isLight ? 'text-slate-950' : 'text-white'
+                          }`}
+                        >
+                          Studio Compliance Verdict
+                        </h2>
                       </div>
 
-                      {currentUser ? (
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[11px] text-slate-500">
-                            Logged in as: <strong className="text-slate-700 dark:text-slate-300">{currentUser.email}</strong>
-                          </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <ScrollButtonReveal direction="bottom-left" delay={0.05}>
                           <button
                             onClick={handleSaveToCloud}
                             disabled={isSavingToCloud}
-                            className={`rounded-lg px-2.5 py-1 text-xs font-semibold border ${
+                            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 font-sans text-xs font-semibold transition ${
                               isLight
                                 ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
-                                : 'border-emerald-800 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-200'
+                                : 'border-emerald-800/80 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-200'
+                            }`}
+                            title="Sync current audit verdict to Firebase Firestore"
+                          >
+                            <Cloud className={`h-4 w-4 ${isSavingToCloud ? 'animate-bounce text-emerald-600' : 'text-emerald-500'}`} />
+                            <span>{isSavingToCloud ? 'Saving...' : 'Save to Cloud'}</span>
+                          </button>
+                        </ScrollButtonReveal>
+
+                        <ScrollButtonReveal direction="bottom" delay={0.1}>
+                          <button
+                            onClick={() => setCurrentView('scanner')}
+                            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 font-sans text-xs font-bold transition shadow-xs ${
+                              isLight
+                                ? 'bg-red-600 text-white hover:bg-red-700'
+                                : `${theme.accentBg} text-white`
                             }`}
                           >
-                            {isSavingToCloud ? 'Saving...' : '+ Sync Current'}
+                            <FileVideo className="h-4 w-4" />
+                            <span>Scan Video</span>
                           </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={handleSignIn}
-                          className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 shadow-xs hover:bg-slate-50 transition"
-                        >
-                          <svg className="h-3 w-3" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
-                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                          </svg>
-                          <span>Connect Google to View Cloud Audits</span>
-                        </button>
-                      )}
-                    </div>
+                        </ScrollButtonReveal>
 
-                    {currentUser ? (
-                      cloudReports.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {cloudReports.map((rec) => (
-                            <div
-                              key={rec.id}
-                              className={`rounded-xl border p-3.5 flex flex-col justify-between gap-2 ${
+                        <ScrollButtonReveal direction="bottom" delay={0.15}>
+                          <button
+                            onClick={() => setIsCutGuideOpen(true)}
+                            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 font-sans text-xs font-semibold transition ${
+                              isLight
+                                ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+                                : 'border-slate-800 bg-slate-800 hover:bg-slate-750 text-slate-200'
+                            }`}
+                          >
+                            <Scissors className="h-3.5 w-3.5 text-red-600" />
+                            <span>Safe Cut Sheet</span>
+                          </button>
+                        </ScrollButtonReveal>
+
+                        <ScrollButtonReveal direction="right" delay={0.2}>
+                          <button
+                            onClick={() => setIsCompareModalOpen(true)}
+                            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 font-sans text-xs font-semibold transition cursor-pointer ${
+                              isLight
+                                ? 'border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700'
+                                : 'border-indigo-800 bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300'
+                            }`}
+                            title="Compare 2 videos side-by-side to detect policy violation patterns"
+                          >
+                            <Scale className="h-3.5 w-3.5 text-indigo-600" />
+                            <span>Compare 2 Videos</span>
+                          </button>
+                        </ScrollButtonReveal>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+
+                  {/* Cloud save notification */}
+                  {cloudSaveMessage && (
+                    <ScrollReveal direction="bottom" delay={0.05}>
+                      <div className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 dark:border-emerald-800 p-3 text-xs text-emerald-800 dark:text-emerald-200">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <span className="font-medium">{cloudSaveMessage}</span>
+                      </div>
+                    </ScrollReveal>
+                  )}
+
+                  {/* Section: Comprehensive Audit Results Dashboard (Rising from Bottom) */}
+                  {report && (
+                    <ScrollReveal direction="bottom" delay={0.1}>
+                      <AuditResultsDashboard
+                        report={report}
+                        videoTitle={videoTitle}
+                        videoDurationSec={videoDurationSec}
+                        onOpenCutGuide={() => setIsCutGuideOpen(true)}
+                        onOpenAppealModal={() => setCurrentView('appeal')}
+                        onOpenCompare={() => setIsCompareModalOpen(true)}
+                        onRescan={() => setCurrentView('scanner')}
+                        onJumpAndPlay={handleJumpAndPlay}
+                        uploadHistory={uploadHistory}
+                        isLight={isLight}
+                        isAuthenticated={!!currentUser}
+                        onOpenAuth={handleOpenAuth}
+                        onDemoLogin={handleDemoLogin}
+                      />
+                    </ScrollReveal>
+                  )}
+
+                  {/* Section: Video Scanner Preview & Interactive Scrubber (Swooping from Right) */}
+                  <ScrollReveal direction="right" delay={0.1}>
+                    <VideoScanner
+                      currentVideoUrl={currentVideoUrl}
+                      videoTitle={videoTitle}
+                      videoDurationSec={videoDurationSec}
+                      isScanning={isScanning}
+                      scanProgress={scanProgress}
+                      violations={report?.timelineViolations || []}
+                      extractedFrames={extractedFrames}
+                      onUploadFile={handleUploadFile}
+                      onUploadFiles={handleUploadFiles}
+                      onSelectSample={handleSelectSample}
+                      onQueueSample={handleQueueSample}
+                      onTriggerAudit={handleTriggerAudit}
+                      videoRef={videoRef}
+                      currentTime={currentTime}
+                      onSeek={handleSeek}
+                      isLight={isLight}
+                      queuedTasks={queuedTasks}
+                      activeTaskId={activeTaskId}
+                      onSelectTask={handleSelectTask}
+                      onRemoveTask={handleRemoveTask}
+                      onClearCompletedTasks={handleClearCompletedTasks}
+                      onStartQueueAudit={processQueue}
+                      isQueueRunning={isQueueRunning}
+                      onOpenFullScreenAnalysis={() => setIsFullScreenAnalysisOpen(true)}
+                      onOpenPricing={() => setIsPricingModalOpen(true)}
+                      currentTier={subscriptionTier}
+                      remainingFreeScans={deviceMetrics.remainingScans}
+                    />
+                  </ScrollReveal>
+
+                  {/* Section: Flagged Timeline Incidents (Bottom-left rotation) */}
+                  {report && (
+                    <ScrollReveal direction="bottom-left-rotate" delay={0.1}>
+                      <TimelineViolations
+                        violations={report.timelineViolations}
+                        onSeekToViolation={handleJumpAndPlay}
+                        isLight={isLight}
+                      />
+                    </ScrollReveal>
+                  )}
+
+                  {/* Section: Most Frequent Historical Violation Type Summary Widget (Bottom-right rotation) */}
+                  <ScrollReveal direction="bottom-right-rotate" delay={0.1}>
+                    <FrequentViolationWidget
+                      history={uploadHistory}
+                      currentReport={report}
+                      isLight={isLight}
+                      onOpenCutGuide={() => setIsCutGuideOpen(true)}
+                      onOpenKnowledgeBase={() => setCurrentView('knowledge')}
+                    />
+                  </ScrollReveal>
+
+                  {/* Section: Channel Health Historical Trend (Rising from deep bottom) */}
+                  <ScrollReveal direction="bottom" delay={0.1}>
+                    <ChannelHealthTrend
+                      history={uploadHistory}
+                      isLight={isLight}
+                    />
+                  </ScrollReveal>
+
+                  {/* Section: Firebase Cloud Vault (3D Perspective Tilt Scroll Animation) */}
+                  <ScrollReveal direction="tilt-3d" delay={0.1}>
+                    <div
+                      className={`rounded-3xl border p-5 sm:p-7 transition shadow-2xs ${
+                        isLight
+                          ? 'border-slate-100 bg-white shadow-slate-200/50'
+                          : 'border-slate-800 bg-slate-900'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-4 mb-4 border-slate-100 dark:border-slate-800">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+                              <Cloud className="h-3.5 w-3.5" />
+                              Firebase Firestore Database
+                            </span>
+                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          </div>
+                          <h3 className={`mt-0.5 font-display text-base sm:text-lg font-black ${isLight ? 'text-slate-950' : 'text-white'}`}>
+                            Cloud Audit Records
+                          </h3>
+                        </div>
+
+                        {currentUser ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[11px] text-slate-500">
+                              Logged in as: <strong className="text-slate-700 dark:text-slate-300">{currentUser.email}</strong>
+                            </span>
+                            <button
+                              onClick={handleSaveToCloud}
+                              disabled={isSavingToCloud}
+                              className={`rounded-lg px-2.5 py-1 text-xs font-semibold border ${
                                 isLight
-                                  ? 'border-slate-200 bg-slate-50/70'
-                                  : 'border-slate-800 bg-slate-950/70'
+                                  ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
+                                  : 'border-emerald-800 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-200'
                               }`}
                             >
-                              <div>
-                                <div className="flex items-center justify-between gap-1 mb-1">
-                                  <span className="font-mono text-[10px] text-slate-500 truncate">
-                                    {rec.id}
-                                  </span>
-                                  <span
-                                    className={`rounded px-1.5 py-0.5 font-mono text-[9px] font-bold ${
-                                      rec.safetyGrade === 'SAFE_TO_UPLOAD'
-                                        ? 'bg-emerald-500/10 text-emerald-600'
-                                        : 'bg-red-500/10 text-red-600'
-                                    }`}
-                                  >
-                                    {rec.safetyGrade}
-                                  </span>
+                              {isSavingToCloud ? 'Saving...' : '+ Sync Current'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={handleSignIn}
+                            className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 shadow-xs hover:bg-slate-50 transition"
+                          >
+                            <svg className="h-3 w-3" viewBox="0 0 24 24">
+                              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+                              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                            </svg>
+                            <span>Connect Google to View Cloud Audits</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {currentUser ? (
+                        cloudReports.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {cloudReports.map((rec) => (
+                              <div
+                                key={rec.id}
+                                className={`rounded-xl border p-3.5 flex flex-col justify-between gap-2 ${
+                                  isLight
+                                    ? 'border-slate-200 bg-slate-50/70'
+                                    : 'border-slate-800 bg-slate-950/70'
+                                }`}
+                              >
+                                <div>
+                                  <div className="flex items-center justify-between gap-1 mb-1">
+                                    <span className="font-mono text-[10px] text-slate-500 truncate">
+                                      {rec.id}
+                                    </span>
+                                    <span
+                                      className={`rounded px-1.5 py-0.5 font-mono text-[9px] font-bold ${
+                                        rec.safetyGrade === 'SAFE_TO_UPLOAD'
+                                          ? 'bg-emerald-500/10 text-emerald-600'
+                                          : 'bg-red-500/10 text-red-600'
+                                      }`}
+                                    >
+                                      {rec.safetyGrade}
+                                    </span>
+                                  </div>
+                                  <h4 className="font-sans font-bold text-xs sm:text-sm line-clamp-1">
+                                    {rec.videoTitle}
+                                  </h4>
+                                  <p className="font-sans text-[11px] text-slate-500 line-clamp-2 mt-0.5">
+                                    {rec.summaryVerdictEn}
+                                  </p>
                                 </div>
-                                <h4 className="font-sans font-bold text-xs sm:text-sm line-clamp-1">
-                                  {rec.videoTitle}
-                                </h4>
-                                <p className="font-sans text-[11px] text-slate-500 line-clamp-2 mt-0.5">
-                                  {rec.summaryVerdictEn}
-                                </p>
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800 text-[11px] font-mono">
+                                  <span>Compliance: <strong className="text-slate-900 dark:text-white">{Math.max(0, 100 - rec.overallRiskScore)}%</strong></span>
+                                  <span>Flags: <strong className="text-red-500">{rec.totalIssuesCount}</strong></span>
+                                </div>
                               </div>
-                              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800 text-[11px] font-mono">
-                                <span>Compliance: <strong className="text-slate-900 dark:text-white">{Math.max(0, 100 - rec.overallRiskScore)}%</strong></span>
-                                <span>Flags: <strong className="text-red-500">{rec.totalIssuesCount}</strong></span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-slate-500 font-sans text-xs">
+                            <Cloud className="h-8 w-8 text-slate-400 mx-auto mb-2 opacity-60" />
+                            <p className="font-medium">No video audits saved in your Firebase Cloud yet.</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              Click &quot;Save to Cloud&quot; above to store this audit permanently to Firestore.
+                            </p>
+                          </div>
+                        )
                       ) : (
                         <div className="text-center py-6 text-slate-500 font-sans text-xs">
                           <Cloud className="h-8 w-8 text-slate-400 mx-auto mb-2 opacity-60" />
-                          <p className="font-medium">No video audits saved in your Firebase Cloud yet.</p>
+                          <p className="font-medium">Firebase cloud synchronization is active and ready.</p>
                           <p className="text-[11px] text-slate-400 mt-0.5">
-                            Click &quot;Save to Cloud&quot; above to store this audit permanently to Firestore.
+                            Sign in with Google to preserve audit histories and strike appeal documents in Firestore.
                           </p>
                         </div>
-                      )
-                    ) : (
-                      <div className="text-center py-6 text-slate-500 font-sans text-xs">
-                        <Cloud className="h-8 w-8 text-slate-400 mx-auto mb-2 opacity-60" />
-                        <p className="font-medium">Firebase cloud synchronization is active and ready.</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          Sign in with Google to preserve audit histories and strike appeal documents in Firestore.
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </ScrollReveal>
                 </motion.div>
               )}
 
@@ -1270,6 +1385,10 @@ export default function App() {
                     onClearCompletedTasks={handleClearCompletedTasks}
                     onStartQueueAudit={processQueue}
                     isQueueRunning={isQueueRunning}
+                    onOpenFullScreenAnalysis={() => setIsFullScreenAnalysisOpen(true)}
+                    onOpenPricing={() => setIsPricingModalOpen(true)}
+                    currentTier={subscriptionTier}
+                    remainingFreeScans={deviceMetrics.remainingScans}
                   />
 
                   {report && (
@@ -1286,6 +1405,8 @@ export default function App() {
                       violations={report.timelineViolations}
                       onSeekToViolation={handleSeek}
                       isLight={isLight}
+                      currentTier={subscriptionTier}
+                      onOpenPricing={() => setIsPricingModalOpen(true)}
                     />
                   )}
                 </motion.div>
@@ -1625,56 +1746,113 @@ export default function App() {
                   />
                 </motion.div>
               )}
+
+              {/* View 7: SUBSCRIPTION PLANS & UPGRADE PAGE */}
+              {currentView === 'subscription' && (
+                <motion.div
+                  key="view-subscription"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  <SubscriptionPlanView
+                    currentTier={subscriptionTier}
+                    isLight={isLight}
+                    onOpenCheckout={(tier, cycle) => {
+                      setCheckoutSelectedTier(tier);
+                      setCheckoutBillingCycle(cycle);
+                      setIsCheckoutModalOpen(true);
+                    }}
+                  />
+                </motion.div>
+              )}
+
+              {/* View 8: SUPERADMIN MISSION CONTROL (Protected for blendagent.online@gmail.com) */}
+              {currentView === 'admin' && (
+                <motion.div
+                  key="view-admin"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  {isUserSuperAdmin(currentUser?.email) ? (
+                    <AdminPanelDashboard
+                      isLight={isLight}
+                      onNavigateScanner={() => setCurrentView('scanner')}
+                    />
+                  ) : (
+                    <div className="rounded-3xl border border-red-500/40 bg-gradient-to-b from-red-950/40 to-slate-950 p-8 sm:p-12 text-center text-white max-w-xl mx-auto my-12 shadow-2xl">
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-900/50">
+                        <Lock className="h-7 w-7" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-black">
+                        Restricted Superadmin Access
+                      </h3>
+                      <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        This control panel is strictly reserved for the system owner (<strong>{ADMIN_EMAIL}</strong>). Log in with this administrator email to manage users and subscriptions.
+                      </p>
+                      <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleDemoLogin('Super Admin', ADMIN_EMAIL)}
+                          className="rounded-xl bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 font-sans text-xs font-bold transition shadow-lg cursor-pointer"
+                        >
+                          Sign In as Admin ({ADMIN_EMAIL})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentView('overview')}
+                          className="rounded-xl border border-slate-700 bg-slate-800 text-slate-300 px-5 py-2.5 font-sans text-xs font-semibold hover:text-white transition cursor-pointer"
+                        >
+                          Return to Dashboard
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* View 9: TRUST & LEGAL POLICIES HUB (FAQ, Refund Guarantee, Privacy, Terms, About, Contact) */}
+              {currentView === 'legal' && (
+                <motion.div
+                  key="view-legal"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  <LegalTrustHub
+                    initialTab={activeLegalTab}
+                    isLight={isLight}
+                    currentUserEmail={currentUser?.email}
+                    onOpenPricing={() => setIsPricingModalOpen(true)}
+                  />
+                </motion.div>
+              )}
             </AnimatePresence>
           </main>
         </div>
       </div>
 
-      {/* Clean Creator Footer */}
-      <footer
-        className={`border-t py-6 text-xs transition mb-14 md:mb-0 ${
-          isLight
-            ? 'border-slate-200 bg-white text-slate-500'
-            : 'border-slate-900 bg-slate-950/90 text-slate-500'
-        }`}
-      >
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2">
-            <span
-              className={`font-display font-bold ${
-                isLight ? 'text-slate-800' : 'text-slate-300'
-              }`}
-            >
-              Striku
-            </span>
-            <span>·</span>
-            <span className="font-sans text-slate-500">
-              YouTube Community Guidelines & Algorithmic Strike Pre-Auditor
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4 font-sans text-[11px]">
-            <button
-              onClick={() => setCurrentView('knowledge')}
-              className={`transition flex items-center gap-1 font-medium ${
-                isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Info className="h-3.5 w-3.5 text-red-600" />
-              <span>YouTube Rules & Guidelines</span>
-            </button>
-            <span>·</span>
-            <button
-              onClick={() => setCurrentView('appeal')}
-              className={`transition font-medium ${
-                isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Strike Appeal Kit
-            </button>
-          </div>
-        </div>
-      </footer>
+      {/* Comprehensive Multi-Column SaaS Footer (FAQ, 14-Day Refund, Privacy, Lemon Squeezy MoR Disclosures) */}
+      <SaaSFooter
+        isLight={isLight}
+        onNavigate={(view, legalTab) => {
+          if (legalTab) {
+            setActiveLegalTab(legalTab);
+          }
+          setCurrentView(view);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenPricing={() => setIsPricingModalOpen(true)}
+        onOpenCompare={() => setIsCompareModalOpen(true)}
+        isSuperAdmin={isUserSuperAdmin(currentUser?.email)}
+      />
 
       {/* Mobile Bottom Navigation Bar (Thumb-Friendly on Phones) */}
       <MobileBottomNav
@@ -1699,6 +1877,11 @@ export default function App() {
             onClose={() => setIsCutGuideOpen(false)}
             report={report}
             isLight={isLight}
+            currentTier={subscriptionTier}
+            onOpenPricing={() => {
+              setIsCutGuideOpen(false);
+              setIsPricingModalOpen(true);
+            }}
           />
         </>
       )}
@@ -1744,6 +1927,57 @@ export default function App() {
         defaultVideoBId={queuedTasks[1]?.report?.id || queuedTasks[0]?.report?.id || SAMPLE_VIDEOS[1]?.mockReport.id}
         isLight={isLight}
       />
+
+      <PricingSubscriptionModal
+        isOpen={isPricingModalOpen}
+        onClose={() => {
+          setIsPricingModalOpen(false);
+          setPricingUpgradeReason(undefined);
+        }}
+        currentTier={subscriptionTier}
+        isLight={isLight}
+        upgradeReason={pricingUpgradeReason}
+        onSelectPlan={(tier, cycle) => {
+          setIsPricingModalOpen(false);
+          setCheckoutSelectedTier(tier);
+          setCheckoutBillingCycle(cycle);
+          setIsCheckoutModalOpen(true);
+        }}
+      />
+
+      <PaymentCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        selectedTier={checkoutSelectedTier}
+        billingCycle={checkoutBillingCycle}
+        isLight={isLight}
+        onSuccess={(tier) => {
+          setSubscriptionTier(tier);
+          setCurrentSubscriptionTier(tier);
+          setDeviceMetrics(getDeviceScanMetrics());
+        }}
+      />
+
+      {/* Dynamic Floating Action Dock: Bottom-up animated font & buttons that fade in/out on scroll */}
+      <FloatingScrollHUD
+        isLight={isLight}
+        videoTitle={videoTitle}
+        safetyGrade={report?.safetyGrade}
+        onScanClick={() => {
+          setCurrentView('scanner');
+          handleTriggerAudit();
+        }}
+        onCutSheetClick={() => setIsCutGuideOpen(true)}
+        onCompareClick={() => setIsCompareModalOpen(true)}
+        onSampleClick={() => {
+          if (SAMPLE_VIDEOS.length > 0) {
+            handleSelectSample(SAMPLE_VIDEOS[0]);
+          }
+        }}
+      />
+
+      {/* Floating Scroll to Top Interactive Button */}
+      <ScrollToTopButton isLight={isLight} />
     </div>
   );
 }

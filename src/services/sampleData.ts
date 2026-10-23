@@ -1,6 +1,7 @@
 import { SampleVideoOption } from '../types/audit';
+import { enrichWithDeepAnalysis } from './deepAnalysisEnhancer';
 
-export const SAMPLE_VIDEOS: SampleVideoOption[] = [
+const RAW_SAMPLE_VIDEOS: SampleVideoOption[] = [
   {
     id: 'sample-child-safety-risk',
     title: 'Home Kitchen Prank with Toddler & Knife',
@@ -340,3 +341,8 @@ export const SAMPLE_VIDEOS: SampleVideoOption[] = [
     }
   }
 ];
+
+export const SAMPLE_VIDEOS: SampleVideoOption[] = RAW_SAMPLE_VIDEOS.map((item) => ({
+  ...item,
+  mockReport: enrichWithDeepAnalysis(item.mockReport, { rawTitle: item.title }),
+}));

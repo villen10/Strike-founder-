@@ -23,11 +23,16 @@ import {
   FolderOpen,
   Sparkles,
   Info,
+  Maximize2,
+  Lock,
+  Building2,
 } from 'lucide-react';
 import { SampleVideoOption, PolicyViolation, QueuedVideoTask } from '../types/audit';
 import { SAMPLE_VIDEOS } from '../services/sampleData';
 import { formatTime, ExtractedFrame } from '../services/frameExtractor';
 import { FrameAnalysisProgress } from './FrameAnalysisProgress';
+import { SubscriptionTier } from '../services/subscriptionManager';
+import { ModerationDisclaimerNotice } from './ModerationDisclaimerNotice';
 
 interface VideoScannerProps {
   currentVideoUrl: string | null;
@@ -63,6 +68,10 @@ interface VideoScannerProps {
   currentTime: number;
   onSeek: (seconds: number) => void;
   isLight?: boolean;
+  onOpenFullScreenAnalysis?: () => void;
+  onOpenPricing?: () => void;
+  currentTier?: SubscriptionTier;
+  remainingFreeScans?: number;
 }
 
 export const VideoScanner: React.FC<VideoScannerProps> = ({
@@ -99,6 +108,10 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
   currentTime,
   onSeek,
   isLight = false,
+  onOpenFullScreenAnalysis,
+  onOpenPricing,
+  currentTier = 'free',
+  remainingFreeScans = 5,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -483,40 +496,49 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               </div>
             )}
 
-            {/* Professional, Clean Scanning Overlay (No cheap AI slop or lasers) */}
+            {/* Multi-Agent Neural Pipeline Scanning Overlay (Matching InShot Reference) */}
             {isScanning && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md z-20 p-6 text-center"
+                className="absolute inset-0 flex flex-col items-center justify-center bg-[#070b14]/95 backdrop-blur-md z-20 p-5 sm:p-6 text-center text-white"
               >
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/30">
-                  <Loader2 className="h-7 w-7 animate-spin" />
-                </div>
-
-                <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-sans font-semibold text-slate-200 mb-2">
-                  <Activity className="h-3.5 w-3.5 text-red-500 animate-pulse" />
+                {/* Top Badge: Multi-Agent Neural Pipeline */}
+                <div className="flex items-center gap-2 rounded-full border border-rose-500/40 bg-rose-500/10 px-3.5 py-1 text-xs font-mono font-bold text-rose-300 mb-3 shadow-xs">
+                  <Activity className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
                   <span>
                     {scanProgress.percent < 35
-                      ? 'Pass 1/3: 4s Temporal Slicing & Logo Detection'
+                      ? 'PASS 1/3 • AGENT ALPHA (4s Slicing)'
                       : scanProgress.percent < 70
-                      ? 'Pass 2/3: Fine Cutaways & Motion Inspection'
-                      : 'Pass 3/3: Multi-Agent Policy Consensus Engine'}
+                      ? 'PASS 2/3 • AGENT BETA (Cutaway Context)'
+                      : 'PASS 3/3 • AGENT OMEGA (Policy Consensus)'}
                   </span>
                 </div>
 
-                <h4 className="font-display text-base font-bold text-white">
-                  Auditing Video & Audio Compliance
+                {/* Main Radial / Percentage Centerpiece */}
+                <div className="relative mb-3 flex h-20 w-20 items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-[#182335]" />
+                  <div className="absolute inset-0 rounded-full border-4 border-rose-500 border-t-transparent animate-spin" />
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <span className="font-display text-2xl font-black text-white leading-none">
+                      {scanProgress.percent}%
+                    </span>
+                    <span className="text-[10px] font-sans text-slate-400 mt-0.5">Match</span>
+                  </div>
+                </div>
+
+                <h4 className="font-display text-base sm:text-lg font-bold text-white tracking-tight">
+                  Multi-Agent Neural Inspection
                 </h4>
-                <p className="mt-1 max-w-sm font-sans text-xs text-slate-300 leading-relaxed min-h-[32px] flex items-center justify-center">
-                  {scanProgress.status || 'Extracting keyframes and testing against policy rules...'}
+                <p className="mt-1 max-w-sm font-sans text-xs text-slate-300 min-h-[36px] flex items-center justify-center leading-relaxed">
+                  {scanProgress.status || 'Cross-examining keyframes against YouTube Community Guidelines...'}
                 </p>
 
-                {/* Clean Progress Bar */}
-                <div className="mt-3 w-72 max-w-full overflow-hidden rounded-full bg-slate-800 p-0.5 ring-1 ring-white/10">
+                {/* Sleek Gradient Bar */}
+                <div className="mt-3 w-72 max-w-full overflow-hidden rounded-full bg-[#182335] p-0.5">
                   <motion.div
-                    className="h-2 rounded-full bg-red-600"
+                    className="h-2 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-500"
                     initial={{ width: '0%' }}
                     animate={{ width: `${Math.max(6, scanProgress.percent)}%` }}
                     transition={{ type: 'spring', stiffness: 60, damping: 15 }}
@@ -524,9 +546,21 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 </div>
 
                 <div className="mt-2 flex items-center justify-between w-72 max-w-full text-[11px] font-mono text-slate-400">
-                  <span className="font-bold text-red-400">{scanProgress.percent}% Complete</span>
-                  <span>Unified 3-Stage Pipeline</span>
+                  <span className="font-bold text-rose-400">{scanProgress.percent}% Audited</span>
+                  <span className="text-slate-400">Agent Consensus Active</span>
                 </div>
+
+                {/* Expand to Fullscreen Studio Inspection Button */}
+                {onOpenFullScreenAnalysis && (
+                  <button
+                    type="button"
+                    onClick={onOpenFullScreenAnalysis}
+                    className="mt-4 flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-950/60 hover:bg-rose-900/60 px-4 py-1.5 text-xs font-bold text-white transition cursor-pointer shadow-md shadow-rose-950/50 active:scale-95"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5 text-rose-400" />
+                    <span>Expand Full Inspection Studio</span>
+                  </button>
+                )}
               </motion.div>
             )}
           </div>
@@ -742,6 +776,11 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 </p>
               </motion.div>
             )}
+
+            {/* Pre-Upload 85-90% YouTube Bot Alignment Transparency Notice */}
+            <div className="mt-3">
+              <ModerationDisclaimerNotice isLight={isLight} compact={true} />
+            </div>
           </div>
         </div>
 
@@ -863,6 +902,12 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                   <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-600 font-bold">
                     Batch Support
                   </span>
+                </div>
+
+                {/* Creator-Friendly Workflow: Mobile Tap & Private Video Handling Guarantee */}
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                  <Lock className="h-3 w-3 text-emerald-500 shrink-0" />
+                  <span>100% Private Video Handling: Local sandboxed memory scan. No raw footage stored.</span>
                 </div>
               </div>
             </div>

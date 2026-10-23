@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Scissors, Copy, Check, Film, Clock, Download } from 'lucide-react';
+import { X, Scissors, Copy, Check, Film, Clock, Download, Lock, Sparkles, ArrowRight } from 'lucide-react';
 import { AuditReport } from '../types/audit';
+import { SubscriptionTier, isFeatureUnlocked } from '../services/subscriptionManager';
 
 interface SafeCutGuideModalProps {
   isOpen?: boolean;
@@ -8,6 +9,8 @@ interface SafeCutGuideModalProps {
   report: AuditReport;
   isEmbedded?: boolean;
   isLight?: boolean;
+  currentTier?: SubscriptionTier;
+  onOpenPricing?: () => void;
 }
 
 export const SafeCutGuideModal: React.FC<SafeCutGuideModalProps> = ({
@@ -16,10 +19,13 @@ export const SafeCutGuideModal: React.FC<SafeCutGuideModalProps> = ({
   report,
   isEmbedded = false,
   isLight = false,
+  currentTier = 'free',
+  onOpenPricing,
 }) => {
   if (!isEmbedded && !isOpen) return null;
 
   const [copied, setCopied] = useState(false);
+  const isLocked = currentTier === 'free';
 
   const cutSheetText = `STRIKE FOUNDER - VIDEO EDITING CUT SHEET
 Video Title: ${report.videoTitle}
@@ -38,6 +44,10 @@ ${report.timelineViolations
 Result after trims: 100% YouTube Community Guidelines Compliant.`;
 
   const handleCopy = () => {
+    if (isLocked) {
+      onOpenPricing?.();
+      return;
+    }
     navigator.clipboard.writeText(cutSheetText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -70,15 +80,27 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
             <Scissors className="h-5 w-5" />
           </div>
           <div>
-            <h3
-              className={`font-display text-sm font-bold sm:text-base ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              Video Editor Safe Cut Sheet
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3
+                className={`font-display text-sm font-bold sm:text-base ${
+                  isLight ? 'text-slate-900' : 'text-white'
+                }`}
+              >
+                Video Editor Safe Cut Sheet
+              </h3>
+              {isLocked ? (
+                <span className="flex items-center gap-1 rounded-full bg-rose-500/20 border border-rose-500/30 px-2 py-0.5 text-[9px] font-mono font-bold text-rose-300">
+                  <Lock className="h-2.5 w-2.5" />
+                  <span>TIMECODES LOCKED</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-mono font-bold text-emerald-400">
+                  <span>UNLOCKED</span>
+                </span>
+              )}
+            </div>
             <p className={`font-body text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              Exact timecodes to trim or blur in CapCut, Premiere Pro, or DaVinci Resolve
+              Exact second-by-second timecodes to trim in CapCut, Premiere Pro, or DaVinci Resolve
             </p>
           </div>
         </div>
@@ -125,24 +147,24 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
               </span>
               <p
                 className={`font-mono text-xs sm:text-sm font-bold mt-0.5 ${
-                  isLight ? 'text-red-600' : 'text-rose-400'
+                  isLocked ? 'blur-xs text-rose-400 select-none' : isLight ? 'text-red-600' : 'text-rose-400'
                 }`}
               >
-                -{report.safeCutSummary.removedSecondsTotal}s
+                {isLocked ? '-••s' : `-${report.safeCutSummary.removedSecondsTotal}s`}
               </p>
             </div>
             <div>
               <span className={`font-body text-[10px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 Target Safe Runtime
               </span>
-              <p className="font-mono text-xs sm:text-sm font-bold text-emerald-600 mt-0.5">
-                {report.safeCutSummary.safeDurationAfterCuts}
+              <p className={`font-mono text-xs sm:text-sm font-bold mt-0.5 ${isLocked ? 'blur-xs text-emerald-400 select-none' : 'text-emerald-500'}`}>
+                {isLocked ? '••:••' : report.safeCutSummary.safeDurationAfterCuts}
               </p>
             </div>
           </div>
 
-          {/* List of Cuts */}
-          <div className="flex flex-col gap-2">
+          {/* List of Cuts with Lock Overlay on Free Tier */}
+          <div className="relative flex flex-col gap-2">
             <h4
               className={`font-mono text-[10px] font-bold uppercase tracking-wider ${
                 isLight ? 'text-slate-500' : 'text-slate-400'
@@ -167,27 +189,16 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
                 >
                   {i + 1}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span
                       className={`font-mono text-xs font-bold ${
-                        isLight ? 'text-red-700' : 'text-rose-400'
+                        isLocked ? 'filter blur-[3px] select-none text-rose-400' : isLight ? 'text-red-700' : 'text-rose-400'
                       }`}
                     >
-                      {v.timestampStart} - {v.timestampEnd}
+                      {isLocked ? '00:14 - 00:28' : `${v.timestampStart} - ${v.timestampEnd}`}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      {v.confidencePct && (
-                        <span
-                          className={`rounded px-1.5 py-0.2 font-mono text-[9px] font-bold ${
-                            v.confidenceLevel === 'VERY_HIGH' || v.confidencePct >= 90
-                              ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                          }`}
-                        >
-                          {v.confidencePct}% Certainty
-                        </span>
-                      )}
                       <span
                         className={`rounded px-1.5 py-0.2 font-mono text-[10px] font-bold uppercase ${
                           isLight
@@ -201,31 +212,57 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
                   </div>
                   <p
                     className={`mt-1 font-body text-xs leading-relaxed ${
-                      isLight ? 'text-slate-700' : 'text-slate-300'
+                      isLocked ? 'filter blur-[2.5px] select-none' : isLight ? 'text-slate-700' : 'text-slate-300'
                     }`}
                   >
-                    {v.actionableFix.instructionsEn}
+                    {isLocked ? 'Trim exact 14 seconds from timeline to remove copyright audio stem and avoid strike.' : v.actionableFix.instructionsEn}
                   </p>
-                  {v.detectionReasoning && (
-                    <p className="mt-1 font-mono text-[10px] text-slate-400">
-                      Reason: {v.detectionReasoning}
-                    </p>
-                  )}
                 </div>
               </div>
             ))}
+
+            {/* Lock Overlay on Free Tier */}
+            {isLocked && (
+              <div className="absolute inset-0 top-6 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-[2px] rounded-2xl border border-rose-500/40 p-4 text-center z-10">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-900/50 mb-2">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <h4 className="font-display font-bold text-sm text-white">
+                  Exact Safe-Cut Timecodes Locked
+                </h4>
+                <p className="font-sans text-xs text-slate-300 max-w-xs mt-1 leading-relaxed">
+                  You know your video has policy risks! To see the exact second-by-second CapCut/Premiere cut timestamps, upgrade your plan.
+                </p>
+                <button
+                  type="button"
+                  onClick={onOpenPricing}
+                  className="mt-3 flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 px-4 py-2 font-display text-xs font-bold text-white shadow-lg shadow-red-900/40 transition cursor-pointer active:scale-95"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Unlock Exact Timecodes ($19/mo)</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Copy Cut Sheet Button */}
           <button
             onClick={handleCopy}
-            className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-xs font-bold transition shadow-xs active:scale-[0.99] ${
-              isLight
+            className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-xs font-bold transition shadow-xs active:scale-[0.99] cursor-pointer ${
+              isLocked
+                ? 'bg-slate-800 text-slate-300 hover:bg-slate-750'
+                : isLight
                 ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/20'
-                : 'bg-slate-800 text-white hover:bg-slate-700'
+                : 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-500 hover:to-rose-500'
             }`}
           >
-            {copied ? (
+            {isLocked ? (
+              <>
+                <Lock className="h-4 w-4 text-rose-400" />
+                <span>Upgrade to Copy Safe-Cut Sheet ($19)</span>
+              </>
+            ) : copied ? (
               <>
                 <Check className="h-4 w-4 text-emerald-300" />
                 <span>Cut Sheet Copied to Clipboard!</span>
@@ -267,7 +304,7 @@ Result after trims: 100% YouTube Community Guidelines Compliant.`;
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
       {modalContent}
     </div>
   );

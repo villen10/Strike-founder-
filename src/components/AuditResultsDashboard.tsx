@@ -34,6 +34,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
+import { ModerationDisclaimerNotice } from './ModerationDisclaimerNotice';
+import { DeepVideoAnalysisPanel } from './DeepVideoAnalysisPanel';
 
 interface AuditResultsDashboardProps {
   report: AuditReport | null;
@@ -341,6 +343,9 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
         </div>
       </div>
 
+      {/* Pre-Upload Diagnostic 85-90% YouTube Bot Alignment Transparency Notice */}
+      <ModerationDisclaimerNotice isLight={isLight} />
+
       {/* 1-2 SHORT LINES MAIN ISSUES CALLOUT (EASILY IDENTIFIABLE FOR CREATORS) */}
       <div
         className={`rounded-2xl border p-4 sm:p-5 transition shadow-xs ${
@@ -422,6 +427,16 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
           {report.mainIssueDetail || report.summaryVerdictEn}
         </p>
       </div>
+
+      {/* Deep Video & Audio Analysis (Separated Copyright & Monetization, Scenes, Audio Spectrum, Actionable Replacements) */}
+      <DeepVideoAnalysisPanel
+        report={report}
+        onJumpToTimestamp={onJumpAndPlay}
+        isLight={isLight}
+        currentTier={isAuthenticated ? 'pro' : 'free'}
+        onOpenCutGuide={onOpenCutGuide}
+        onOpenAppealModal={onOpenAppealModal}
+      />
 
       {/* 2. LOCKED ACCESS GATE OR UNLOCKED STATS */}
       {!isAuthenticated ? (

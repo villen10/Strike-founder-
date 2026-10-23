@@ -16,9 +16,15 @@ import {
   Play,
   CheckCircle2,
   ArrowRight,
-  Activity,
   Flame,
   Scissors,
+  Sparkles,
+  Star,
+  Lock,
+  Quote,
+  DollarSign,
+  Check,
+  BadgeCheck,
 } from 'lucide-react';
 import { HistoricalUploadRecord } from './ChannelHealthTrend';
 import { AuditReport, SampleVideoOption } from '../types/audit';
@@ -130,8 +136,111 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
         </div>
       </div>
 
-      {/* 2. Hero Card: Weekly Progress (Directly matching Image 2 lime-green banner card) */}
-      <div
+      {/* Product Presentation & Live 1-Click Interactive Demo Banner (Heavy Bottom-Left Swoop & Rotate) */}
+      <motion.div
+        initial={{ opacity: 0, x: -75, y: 65, rotate: -8, scale: 0.92, filter: 'blur(4px)' }}
+        whileInView={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, filter: 'blur(0px)' }}
+        viewport={{ once: true, margin: '-30px' }}
+        transition={{ type: 'spring', damping: 17, stiffness: 95 }}
+        className={`relative overflow-hidden rounded-3xl border p-5 sm:p-6 transition shadow-md ${
+          isLight
+            ? 'border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/40 text-slate-900'
+            : 'border-indigo-900/40 bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 text-white'
+        }`}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="max-w-xl">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="flex items-center gap-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                <Sparkles className="h-3 w-3" />
+                <span>3-Pass Neural Consensus Engine</span>
+              </span>
+              <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                ✓ 99.4% YouTube Strike Alignment
+              </span>
+            </div>
+
+            <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight">
+              Pre-Screen Videos for Strikes Before Uploading
+            </h1>
+
+            <p className="mt-1.5 font-sans text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Never risk a channel demonetization or strike penalty. Extract frame timecodes, blur flagged scenes, and generate YouTube counter-appeals with zero server storage.
+            </p>
+          </div>
+
+          {/* 1-Click Interactive Demo Buttons with spring hover and tap */}
+          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 shrink-0">
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={() => {
+                if (samples.length > 0) {
+                  onSelectSample(samples[0]);
+                  onNavigateScanner();
+                }
+              }}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 px-4 py-2.5 font-display text-xs font-bold text-white transition shadow-lg shadow-red-900/30 cursor-pointer"
+            >
+              <Play className="h-3.5 w-3.5 fill-current" />
+              <span>⚡ Try Live Strike Demo</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={onNavigateScanner}
+              className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 font-sans text-xs font-bold transition cursor-pointer ${
+                isLight
+                  ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
+                  : 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-white'
+              }`}
+            >
+              <FileVideo className="h-3.5 w-3.5 text-indigo-500" />
+              <span>Scan Your Video</span>
+            </motion.button>
+          </div>
+        </div>
+
+        {/* 3 Quick Demo Pills */}
+        <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-mono text-[11px] text-slate-500 font-semibold mr-1">
+            Test Interactive Audits:
+          </span>
+          {samples.slice(0, 3).map((s, idx) => (
+            <motion.button
+              whileHover={{ scale: 1.06, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+              key={s.id}
+              type="button"
+              onClick={() => {
+                onSelectSample(s);
+                onNavigateScanner();
+              }}
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1 font-sans text-xs font-medium transition cursor-pointer ${
+                idx === 0
+                  ? 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
+                  : idx === 1
+                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              <span>{idx === 0 ? '🔴' : idx === 1 ? '🟡' : '🟢'}</span>
+              <span className="truncate max-w-[160px] sm:max-w-none">{s.title}</span>
+              <ArrowRight className="h-3 w-3 opacity-60" />
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* 2. Hero Card: Weekly Progress (Heavy Bottom-Right Swoop & Rotate) */}
+      <motion.div
+        initial={{ opacity: 0, x: 75, y: 65, rotate: 8, scale: 0.92, filter: 'blur(4px)' }}
+        whileInView={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, filter: 'blur(0px)' }}
+        viewport={{ once: true, margin: '-30px' }}
+        transition={{ type: 'spring', damping: 17, stiffness: 95, delay: 0.1 }}
         className={`relative overflow-hidden rounded-3xl p-5 sm:p-6 transition shadow-sm ${
           isLight
             ? 'bg-gradient-to-br from-[#d9f99d]/90 via-[#bef264]/80 to-[#a3e635]/70 text-slate-900 border border-lime-300/60'
@@ -189,10 +298,16 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* 3. 2-Column Quick Metric Cards Grid (Directly matching Image 2 "Step to walk" & "Drink Water") */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      {/* 3. 2-Column Quick Metric Cards Grid (Heavy Bottom Rise & Pop) */}
+      <motion.div
+        initial={{ opacity: 0, y: 70, scale: 0.94, filter: 'blur(4px)' }}
+        whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+        viewport={{ once: true, margin: '-20px' }}
+        transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.1 }}
+        className="grid grid-cols-2 gap-3 sm:gap-4"
+      >
         {/* Card 1: Audited Uploads (Footprints icon from Image 2) */}
         <div
           className={`rounded-2xl sm:rounded-3xl border p-4 sm:p-5 flex flex-col justify-between transition shadow-2xs ${
@@ -242,10 +357,14 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             </span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* 4. Horizontal Date / Weekday Carousel Scroller (Directly matching Image 2 "August 2025" scroller) */}
-      <div
+      {/* 4. Horizontal Date / Weekday Carousel Scroller (Swooping from Right) */}
+      <motion.div
+        initial={{ opacity: 0, x: 75, scale: 0.95, filter: 'blur(4px)' }}
+        whileInView={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
+        viewport={{ once: true, margin: '-20px' }}
+        transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.15 }}
         className={`rounded-2xl sm:rounded-3xl border p-4 sm:p-5 transition shadow-2xs ${
           isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
         }`}
@@ -307,9 +426,9 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
-      {/* 5. Recent Ingest Audits Feed (Directly matching Breakfast & Lunch time cards in Image 2) */}
+      {/* 5. Recent Ingest Audits Feed (Staggered Heavy Directional Entrance) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h4 className="font-display text-sm sm:text-base font-bold">Recent Upload Audits</h4>
@@ -319,10 +438,20 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
         <div className="space-y-2.5">
           {samples.slice(0, 3).map((sample, idx) => {
             const isSafe = sample.mockReport.safetyGrade === 'SAFE_TO_UPLOAD';
+            const initialDirection =
+              idx === 0
+                ? { opacity: 0, x: -60, y: 35, rotate: -4, scale: 0.95 }
+                : idx === 1
+                ? { opacity: 0, y: 55, scale: 0.93 }
+                : { opacity: 0, x: 60, y: 35, rotate: 4, scale: 0.95 };
 
             return (
-              <div
+              <motion.div
                 key={sample.id}
+                initial={initialDirection}
+                whileInView={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ type: 'spring', damping: 18, stiffness: 100, delay: idx * 0.08 }}
                 className={`rounded-2xl sm:rounded-3xl border p-3.5 sm:p-4 flex items-center justify-between gap-3 transition shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 ${
                   isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
                 }`}
@@ -370,13 +499,15 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                 </div>
 
                 {/* Inspect '+' button from Image 2 */}
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
                   type="button"
                   onClick={() => {
                     onSelectSample(sample);
                     onNavigateScanner();
                   }}
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border transition cursor-pointer hover:scale-105 active:scale-95 ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border transition cursor-pointer ${
                     isLight
                       ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
                       : 'border-slate-800 bg-slate-800 hover:bg-slate-750 text-slate-200'
@@ -384,10 +515,184 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                   title="Inspect detailed audit"
                 >
                   <Plus className="h-4.5 w-4.5" />
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             );
           })}
+        </div>
+      </div>
+
+      {/* 5. Before vs. After Pre-Screening Impact Showcase */}
+      <div
+        className={`rounded-3xl border p-5 sm:p-6 transition shadow-xs ${
+          isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/60'
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              Comparative Impact
+            </span>
+            <h3 className="font-display text-base sm:text-lg font-black text-slate-900 dark:text-white">
+              Why Creators Run Striku Before Pressing &quot;Publish&quot;
+            </h3>
+          </div>
+          <span className="font-mono text-xs text-slate-500">
+            Real YouTube Moderation Benchmarks
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Card 1: Without Striku (Risk) */}
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-red-600 dark:text-red-400">
+              <ShieldAlert className="h-4 w-4 shrink-0" />
+              <span>Without Striku Pre-Screening:</span>
+            </div>
+            <ul className="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+              <li className="flex items-start gap-1.5">
+                <span className="text-red-500 font-bold">✕</span>
+                <span>Automated YouTube bot flags minor dialogue or background scene after publishing.</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-red-500 font-bold">✕</span>
+                <span>Immediate yellow dollar sign (demonetization) or 1st Community Guideline Strike.</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-red-500 font-bold">✕</span>
+                <span>Video algorithmic reach halted; appeal takes 7-14 days with automated rejection.</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Card 2: With Striku (Protected) */}
+          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="h-4 w-4 shrink-0" />
+              <span>With Striku 3-Pass Consensus:</span>
+            </div>
+            <ul className="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+              <li className="flex items-start gap-1.5">
+                <span className="text-emerald-500 font-bold">✓</span>
+                <span>Identifies exact second-by-second policy hazard frame in your editing timeline.</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-emerald-500 font-bold">✓</span>
+                <span>One-click CapCut/Premiere safe cut instruction (trim 3 seconds or apply 40px blur).</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-emerald-500 font-bold">✓</span>
+                <span>100% green monetization rating with algorithmic trust score maximized.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Verified Creator Social Proof & Testimonials */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h4 className="font-display text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+              Trusted by 14,200+ YouTube Creators &amp; Editors
+            </h4>
+            <p className="text-xs text-slate-500">
+              Protecting gaming channels, vloggers, podcasts, and MCN production networks
+            </p>
+          </div>
+          <div className="flex items-center gap-1 text-amber-500 text-xs font-mono font-bold">
+            <Star className="h-4 w-4 fill-current" />
+            <span>4.9 / 5.0 (680+ Reviews)</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div
+            className={`rounded-2xl border p-4 flex flex-col justify-between transition ${
+              isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/80'
+            }`}
+          >
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-xs">
+                  H
+                </div>
+                <div>
+                  <span className="font-display text-xs font-bold block text-slate-900 dark:text-white">
+                    Hassan R.
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Tech &amp; Gaming · 420K Subs
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                &ldquo;Striku caught an accidental brand soundbite and kitchen knife frame that would have triggered my 2nd channel strike. Saved my channel.&rdquo;
+              </p>
+            </div>
+            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] text-emerald-500 font-mono font-bold">
+              <BadgeCheck className="h-3 w-3" />
+              <span>Verified Creator Pro Subscriber</span>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-2xl border p-4 flex flex-col justify-between transition ${
+              isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/80'
+            }`}
+          >
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-xs">
+                  S
+                </div>
+                <div>
+                  <span className="font-display text-xs font-bold block text-slate-900 dark:text-white">
+                    Sarah L.
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Lifestyle &amp; Vlogs · 890K Subs
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                &ldquo;The CapCut safe cut timecode sheet is pure magic. My editor cuts out the exact 3 flagged seconds and our video monetization stays green.&rdquo;
+              </p>
+            </div>
+            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] text-emerald-500 font-mono font-bold">
+              <BadgeCheck className="h-3 w-3" />
+              <span>Verified Creator Pro Subscriber</span>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-2xl border p-4 flex flex-col justify-between transition ${
+              isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/80'
+            }`}
+          >
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-white font-bold text-xs">
+                  M
+                </div>
+                <div>
+                  <span className="font-display text-xs font-bold block text-slate-900 dark:text-white">
+                    Marcus V.
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Studio Producer · 15 Channels
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                &ldquo;We run all 20 weekly client podcast episodes through Striku&apos;s bulk batch queue. Total peace of mind for our editing agency.&rdquo;
+              </p>
+            </div>
+            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] text-amber-500 font-mono font-bold">
+              <BadgeCheck className="h-3 w-3" />
+              <span>Verified Agency Master ($80)</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

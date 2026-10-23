@@ -25,11 +25,26 @@ import {
   Lock,
   Youtube,
   Scale,
+  Building2,
+  CreditCard,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
+import { SubscriptionTier } from '../services/subscriptionManager';
+import { isUserSuperAdmin } from '../services/adminService';
 
-export type NavView = 'overview' | 'scanner' | 'channels' | 'analytics' | 'violations' | 'appeal' | 'knowledge' | 'profile';
+export type NavView =
+  | 'overview'
+  | 'scanner'
+  | 'channels'
+  | 'analytics'
+  | 'violations'
+  | 'appeal'
+  | 'knowledge'
+  | 'profile'
+  | 'subscription'
+  | 'admin'
+  | 'legal';
 
 export interface SidebarUser {
   uid: string;
@@ -60,6 +75,9 @@ interface SidebarProps {
   onSignOut?: () => void;
   onScanNewVideo?: () => void;
   onOpenCompare?: () => void;
+  currentTier?: SubscriptionTier;
+  remainingFreeScans?: number;
+  onOpenPricing?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -83,6 +101,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSignOut,
   onScanNewVideo,
   onOpenCompare,
+  currentTier = 'free',
+  remainingFreeScans = 5,
+  onOpenPricing,
 }) => {
   const isLight = theme.isLight;
   const [searchQuery, setSearchQuery] = useState('');
@@ -149,7 +170,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
+  const isSuperAdmin = isUserSuperAdmin(currentUser?.email);
+
   const moreItems = [
+    {
+      id: 'subscription' as NavView,
+      label: 'Subscription Plans',
+      icon: CreditCard,
+      badge:
+        currentTier === 'enterprise'
+          ? 'AGENCY $80'
+          : currentTier === 'pro'
+          ? 'PRO'
+          : `${remainingFreeScans}/5 FREE`,
+      badgeColor:
+        currentTier === 'enterprise'
+          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+          : currentTier === 'pro'
+          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+          : 'bg-slate-800 text-slate-300',
+    },
     {
       id: 'knowledge' as NavView,
       label: 'Policy Encyclopedia',
@@ -157,12 +197,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: null,
     },
     {
+      id: 'legal' as NavView,
+      label: 'FAQ & Trust Hub',
+      icon: Scale,
+      badge: 'REFUND · FAQ',
+      badgeColor: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
+    },
+    {
       id: 'profile' as NavView,
       label: 'Creator Profile',
       icon: User,
-      badge: currentUser ? 'PRO' : null,
-      badgeColor: 'bg-emerald-500 text-slate-950 font-bold',
+      badge: currentUser ? (isSuperAdmin ? 'ADMIN' : 'PRO') : null,
+      badgeColor: isSuperAdmin ? 'bg-red-600 text-white font-bold' : 'bg-emerald-500 text-slate-950 font-bold',
     },
+    ...(isSuperAdmin
+      ? [
+          {
+            id: 'admin' as NavView,
+            label: 'Admin Mission Control',
+            icon: ShieldCheck,
+            badge: 'SUPERADMIN',
+            badgeColor: 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-xs',
+          },
+        ]
+      : []),
   ];
 
   const sidebarContent = (isDrawer = false) => (
@@ -516,40 +574,78 @@ export const Sidebar: React.FC<SidebarProps> = ({
             : 'border-slate-800/80 bg-slate-950 text-slate-200'
         }`}
       >
-        {/* Gorgeous Pro Upgrade Card */}
+        {/* Gorgeous Subscription Upgrade Card */}
         {(!isCollapsed || isDrawer) && (
           <div
             className={`rounded-2xl border p-3.5 flex flex-col gap-2.5 relative overflow-hidden ${
-              isLight
-                ? 'border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-blue-50/40 text-indigo-950 shadow-2xs'
-                : 'border-indigo-950/80 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 text-indigo-200 shadow-sm'
+              currentTier === 'enterprise'
+                ? 'border-amber-500/40 bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-950 text-amber-200 shadow-sm'
+                : currentTier === 'pro'
+                ? 'border-rose-500/40 bg-gradient-to-br from-rose-950/60 via-slate-900 to-slate-950 text-rose-200 shadow-sm'
+                : isLight
+                ? 'border-rose-100 bg-gradient-to-br from-rose-50/80 via-red-50/50 to-amber-50/40 text-slate-900 shadow-2xs'
+                : 'border-rose-950/80 bg-gradient-to-br from-rose-950/50 via-slate-900 to-slate-950 text-slate-200 shadow-sm'
             }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-xl text-white shadow-xs ${
+                    currentTier === 'enterprise'
+                      ? 'bg-amber-600'
+                      : 'bg-gradient-to-tr from-red-600 to-rose-600'
+                  }`}
+                >
+                  {currentTier === 'enterprise' ? (
+                    <Building2 className="h-3.5 w-3.5" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
-                    Current plan:
+                  <span className="font-mono text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                    Plan status:
                   </span>
-                  <span className="font-display text-xs font-black">Pro trial active</span>
+                  <span className="font-display text-xs font-black">
+                    {currentTier === 'enterprise'
+                      ? 'Agency Studio ($80/mo)'
+                      : currentTier === 'pro'
+                      ? 'Creator Pro ($29/mo)'
+                      : `Free (${remainingFreeScans}/5 Scans)`}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <p className="font-sans text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-              Upgrade to Pro to get the latest and exclusive features & automated strike defense.
+            <p className="font-sans text-[11px] text-slate-400 leading-relaxed">
+              {currentTier === 'enterprise'
+                ? 'Full MCN team access, AI legal appeals & 24/7 strike defense concierge.'
+                : currentTier === 'pro'
+                ? 'Unlimited scans, 3-Pass multi-agent neural consensus & safe cuts active.'
+                : 'Free tier includes 5 scans/month. Upgrade to unlock unlimited scans and EDL exports.'}
             </p>
 
             <button
               type="button"
-              onClick={() => handleItemClick('profile')}
-              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-sans text-xs font-bold py-2 px-3 shadow-xs transition cursor-pointer"
+              onClick={onOpenPricing || (() => handleItemClick('profile'))}
+              className={`w-full flex items-center justify-center gap-1.5 rounded-xl font-sans text-xs font-bold py-2 px-3 shadow-xs transition cursor-pointer ${
+                currentTier === 'enterprise'
+                  ? 'border border-amber-500/50 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
+                  : currentTier === 'pro'
+                  ? 'border border-rose-500/50 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
+                  : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white'
+              }`}
             >
-              <Zap className="h-3.5 w-3.5 fill-current" />
-              <span>Upgrade to Pro</span>
+              {currentTier === 'enterprise' ? (
+                <span>Manage Agency Plan</span>
+              ) : currentTier === 'pro' ? (
+                <span>Manage Creator Pro</span>
+              ) : (
+                <>
+                  <Zap className="h-3.5 w-3.5 fill-current" />
+                  <span>Upgrade to Pro ($29)</span>
+                </>
+              )}
             </button>
           </div>
         )}
