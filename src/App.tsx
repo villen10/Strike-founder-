@@ -22,6 +22,7 @@ import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { AdminPanelDashboard } from './components/AdminPanelDashboard';
 import { SubscriptionPlanView } from './components/SubscriptionPlanView';
 import { LegalTrustHub, LegalTabType } from './components/LegalTrustHub';
+import { ContentHub } from './components/ContentHub';
 import { SaaSFooter } from './components/SaaSFooter';
 import {
   ScrollProgressBar,
@@ -319,6 +320,7 @@ export default function App() {
         overview: 'Striku - striku.cloud | Striku Video Analysis & YouTube Strike Checker',
         scanner: 'Pre-Upload Video Scanner & Copyright Checker | Striku',
         knowledge: 'YouTube Community Guidelines & Strike Checker Guide | Striku',
+        'content-hub': 'SEO Content & Guides - YouTube Copyright & Strike Prevention | Striku',
         violations: 'CapCut Safe Cut Timecodes & Strike Prevention | Striku',
         appeal: 'YouTube Strike Counter-Appeal Kit | Striku',
         channels: 'YouTube Channel Health & Strike Tracker | Striku',
@@ -1042,6 +1044,28 @@ export default function App() {
 
             {/* View Render Area */}
             <AnimatePresence mode="wait">
+              {currentView === 'content-hub' && (
+                <motion.div
+                  key="view-content-hub"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ContentHub
+                    isLight={isLight}
+                    onNavigateScanner={() => {
+                      setCurrentView('scanner');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    onNavigateKnowledge={() => {
+                      setCurrentView('knowledge');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  />
+                </motion.div>
+              )}
+
               {currentView === 'profile' && (
                 <motion.div
                   key="view-profile"

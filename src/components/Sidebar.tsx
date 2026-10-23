@@ -41,6 +41,7 @@ export type NavView =
   | 'violations'
   | 'appeal'
   | 'knowledge'
+  | 'content-hub'
   | 'profile'
   | 'subscription'
   | 'admin'
@@ -195,6 +196,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Policy Encyclopedia',
       icon: BookOpen,
       badge: null,
+    },
+    {
+      id: 'content-hub' as NavView,
+      label: 'SEO Content & Guides',
+      icon: Sparkles,
+      badge: 'SEO',
+      badgeColor: 'bg-red-500/15 text-red-500 border border-red-500/30 font-bold',
     },
     {
       id: 'legal' as NavView,
