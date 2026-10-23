@@ -485,7 +485,7 @@ export const AuditResultsDashboard: React.FC<AuditResultsDashboardProps> = ({
               {onDemoLogin && (
                 <button
                   type="button"
-                  onClick={() => onDemoLogin('Studio Creator', 'blendagent.online@gmail.com')}
+                  onClick={() => onDemoLogin('Studio Creator', 'strikucloud@gmail.com')}
                   className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-red-600 hover:from-amber-600 hover:to-red-700 text-white px-5 py-3 font-sans text-xs font-bold shadow-lg shadow-rose-600/30 transition hover:scale-102 cursor-pointer"
                 >
                   <Zap className="h-4 w-4 fill-current" />

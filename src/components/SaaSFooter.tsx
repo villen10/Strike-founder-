@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Clock,
   Layers,
+  Check,
 } from 'lucide-react';
 import { NavView } from './Sidebar';
 import { LegalTabType } from './LegalTrustHub';
@@ -55,7 +56,7 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
                 </div>
                 <div className="flex flex-col">
                   <span className="font-satoshi text-lg font-black tracking-tight text-slate-950 dark:text-white">
-                    Striku<span className="text-red-600">.ai</span>
+                    Striku<span className="text-red-600">.cloud</span>
                   </span>
                   <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-slate-500">
                     YouTube Strike Defense &amp; Pre-Auditor
@@ -241,15 +242,15 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
                   onClick={() => onNavigate('legal', 'about')}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
                 >
-                  About Us (BlendAgent Media)
+                  About Striku (About Us)
                 </button>
               </li>
               <li className="pt-2">
                 <a
-                  href="mailto:blendagent.online@gmail.com"
+                  href="mailto:strikucloud@gmail.com"
                   className="font-mono text-[11px] font-bold text-slate-500 hover:text-indigo-600 transition truncate block"
                 >
-                  blendagent.online@gmail.com
+                  strikucloud@gmail.com
                 </a>
               </li>
               {isSuperAdmin && (
@@ -268,95 +269,96 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
           </div>
         </div>
 
-        {/* High-Intent SEO & AI Discovery Hub (Google & LLM Grounding Index) */}
+        {/* Why Choose Striku? Our Service Is Best For You (Creator Benefits & Core Capabilities) */}
         <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
-          <div className="flex flex-col gap-3 mb-6">
+          <div className="flex flex-col gap-2 mb-6">
             <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-red-600 animate-ping" />
-              <h4 className="font-satoshi text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                YouTube Compliance &amp; SEO Discovery Hub
+              <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />
+              <h4 className="font-satoshi text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
+                Why Choose Striku? Our Service Is Best For You
               </h4>
             </div>
             <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
-              Official reference portal for creators auditing videos before publishing. Indexed for Google Search and Generative AI engines (ChatGPT, Gemini, Claude, Perplexity).
+              Designed specifically for creators, video editors, and production studios. Audit your video files before publishing to YouTube to prevent channel strikes, copyright claims, and lost ad revenue with millisecond-accurate timestamps.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className={`p-3.5 rounded-xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
+            <div className={`p-4 rounded-2xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300 shadow-xs' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
               <button
                 type="button"
                 onClick={() => onNavigate('scanner')}
                 className="text-left group cursor-pointer w-full"
               >
-                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1">
-                  <span>Check Video Before Upload</span>
+                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1.5">
+                  <span>Pre-Upload Strike Defense</span>
                   <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Frame-by-frame pre-upload audit to identify strike risks, yellow dollar monetization limits, and age restrictions.
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Frame-by-frame temporal inspection catches community guidelines violations, dangerous stunts, and age restrictions before you upload.
                 </p>
               </button>
             </div>
 
-            <div className={`p-3.5 rounded-xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
+            <div className={`p-4 rounded-2xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300 shadow-xs' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
               <button
                 type="button"
                 onClick={() => onNavigate('knowledge')}
                 className="text-left group cursor-pointer w-full"
               >
-                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1">
-                  <span>YouTube Video Strike Checker</span>
+                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1.5">
+                  <span>YouTube Strike Checker</span>
                   <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Evaluates dangerous stunts, child safety hazards, graphic violence, and hate speech against YouTube 2026 rules.
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Evaluates dangerous acts, child safety hazards, graphic content, and hate speech against current YouTube policy rubrics.
                 </p>
               </button>
             </div>
 
-            <div className={`p-3.5 rounded-xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
+            <div className={`p-4 rounded-2xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300 shadow-xs' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
               <button
                 type="button"
                 onClick={() => onNavigate('scanner')}
                 className="text-left group cursor-pointer w-full"
               >
-                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1">
-                  <span>Copyright Claim Founder</span>
+                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1.5">
+                  <span>Copyright &amp; Claim Founder</span>
                   <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Audio &amp; visual matching to detect unlicensed music samples and copyrighted broadcasts before Content ID claims.
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Audio &amp; visual matching to detect unlicensed background tracks, audio loops, and broadcast clips before Content ID triggers.
                 </p>
               </button>
             </div>
 
-            <div className={`p-3.5 rounded-xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
+            <div className={`p-4 rounded-2xl border transition ${isLight ? 'bg-white border-slate-200 hover:border-red-300 shadow-xs' : 'bg-slate-900/60 border-slate-800 hover:border-red-900/50'}`}>
               <button
                 type="button"
                 onClick={() => onNavigate('violations')}
                 className="text-left group cursor-pointer w-full"
               >
-                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1">
-                  <span>CapCut Safe Cut Timecodes</span>
+                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center justify-between mb-1.5">
+                  <span>CapCut Safe-Cut Timecodes</span>
                   <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Frame-accurate millisecond timestamps to blur, jump-cut, or sanitize flagged moments without re-rendering everything.
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Frame-accurate millisecond timestamps tell you exactly where to blur, cut, or mute without having to re-edit your entire timeline.
                 </p>
               </button>
             </div>
           </div>
 
-          {/* Quick Keywords Cloud for Search Bots & Creators */}
-          <div className="mt-4 flex flex-wrap items-center gap-2 pt-2 text-[10px] font-mono text-slate-500">
-            <span className="font-bold text-slate-700 dark:text-slate-300">Target Solutions:</span>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">#check-video-before-upload</span>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">#youtube-video-strike-checker</span>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">#copyright-claim-founder</span>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">#video-analysis-detect-strike</span>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">#content-id-pre-screen</span>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">#zero-retention-privacy</span>
+          {/* Creator Benefits & Assurance Badges */}
+          <div className="mt-5 flex flex-wrap items-center gap-2 pt-2 text-[11px] font-sans text-slate-500">
+            <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Check className="h-3.5 w-3.5 text-emerald-500" />
+              Creator Advantages:
+            </span>
+            <span className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-1 text-slate-600 dark:text-slate-300 font-medium">Instant Pre-Upload Audit</span>
+            <span className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-1 text-slate-600 dark:text-slate-300 font-medium">Zero-Retention Privacy Guarantee</span>
+            <span className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-1 text-slate-600 dark:text-slate-300 font-medium">Millisecond Safe-Cut Export</span>
+            <span className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-1 text-slate-600 dark:text-slate-300 font-medium">Monetization Protection</span>
           </div>
         </div>
 
@@ -386,7 +388,7 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
         {/* Bottom Copyright & Disclaimer Row */}
         <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] text-slate-500">
           <p>
-            © {new Date().getFullYear()} BlendAgent Media · Striku AI. All worldwide rights reserved.
+            © {new Date().getFullYear()} Striku (striku.cloud). All worldwide rights reserved.
           </p>
           <p className="max-w-md text-[10px] leading-relaxed opacity-80">
             Striku is an independent pre-moderation SaaS application. YouTube, YouTube Studio, and related trademarks are properties of Google, LLC.

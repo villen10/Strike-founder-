@@ -99,7 +99,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleQuickDemo = () => {
     if (onDemoLogin) {
-      onDemoLogin('YouTube Creator', 'blendagent.online@gmail.com');
+      onDemoLogin('YouTube Creator', 'strikucloud@gmail.com');
     }
     onSuccess?.();
     onClose();

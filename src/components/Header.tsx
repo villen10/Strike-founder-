@@ -51,29 +51,16 @@ export const Header: React.FC<HeaderProps> = ({
       }`}
     >
       <div className="flex w-full items-center justify-between px-2 sm:px-4 py-2">
-        {/* Left Side: Brand Logo Banner + Mobile Menu Button */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Brand Logo Banner */}
-          <div className="flex h-9 w-32 sm:h-11 sm:w-40 items-center justify-start shrink-0">
-            <img
-              src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
-              alt="Striku Logo"
-              className="h-full w-full object-contain object-left"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-
-          {/* Mobile Hamburger Toggle for Sidebar */}
+        {/* Left Side: Sidebar Toggle Button (At the absolute top-left edge) */}
+        <div className="flex items-center shrink-0">
           {onToggleMobileSidebar && (
             <button
               type="button"
               onClick={onToggleMobileSidebar}
-              className={`md:hidden flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
                 isLight
-                  ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
+                  ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:border-slate-300'
+                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
               }`}
               title="Open Navigation Menu"
             >

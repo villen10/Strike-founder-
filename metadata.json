@@ -1,6 +1,6 @@
 {
   "name": "Striku",
-  "description": "Check video before upload with Striku. AI YouTube strike checker and copyright claim founder. Analyzes video frames to detect community guidelines strikes, copyright risks, and monetization issues with frame-accurate timestamps.",
+  "description": "Striku (striku.cloud) - Official Striku video analysis tool. Check video before upload to YouTube to detect strikes, copyright claims, and monetization risks with frame-accurate timestamps.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

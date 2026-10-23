@@ -426,8 +426,15 @@ export const FloatingScrollHUD: React.FC<FloatingScrollHUDProps> = ({
               <div className="flex items-center justify-between gap-2.5 sm:gap-4 p-2 sm:p-2.5 px-3 sm:px-4">
                 {/* Left: Info / Title Font */}
                 <div className="flex items-center gap-2.5 min-w-0 pr-1">
-                  <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-rose-600 text-white shadow-md shadow-red-900/35">
-                    <Zap className="h-4 w-4 animate-pulse" />
+                  <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-slate-700/70 overflow-hidden shadow-md shadow-red-900/35">
+                    <img
+                      src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
+                      alt="Striku"
+                      className="h-full w-full object-contain p-0.5"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
                   </div>
 
                   <div className="flex flex-col min-w-0">

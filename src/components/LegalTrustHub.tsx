@@ -63,7 +63,7 @@ const FAQ_ITEMS: FAQItem[] = [
     category: 'billing',
     question: 'What is the refund policy if I am not satisfied?',
     answer:
-      'We provide an unconditional 14-Day Money-Back Guarantee. If Striku does not meet your expectations or if you scanned fewer than 3 videos on a paid plan, simply email support@blendagent.online with your order receipt, and our team will issue a 100% full refund directly to your original payment method within 3 to 5 business days.',
+      'We provide an unconditional 14-Day Money-Back Guarantee. If Striku does not meet your expectations or if you scanned fewer than 3 videos on a paid plan, simply email strikucloud@gmail.com with your order receipt, and our team will issue a 100% full refund directly to your original payment method within 3 to 5 business days.',
   },
   {
     id: 'faq-4',
@@ -512,7 +512,7 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
                     1
                   </span>
                   <span>
-                    Email our billing desk at <strong className="text-indigo-600 dark:text-indigo-400">blendagent.online@gmail.com</strong> or submit a ticket in our Contact tab.
+                    Email our billing desk at <strong className="text-indigo-600 dark:text-indigo-400">strikucloud@gmail.com</strong> or submit a ticket in our Contact tab.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -687,7 +687,7 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
                 Striku Terms of Service & Acceptable Use
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mb-6">
-                Last modified: October 2026 · Governs all web, mobile, and API access to the Striku AI platform.
+                Last modified: October 2026 · Governs all web, mobile, and API access to the Striku (striku.cloud) platform.
               </p>
 
               <div className="flex flex-col gap-5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -821,13 +821,13 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
               }`}
             >
               <div>
-                <h4 className="font-satoshi text-sm font-bold">BlendAgent Media &amp; Striku Technologies</h4>
+                <h4 className="font-satoshi text-sm font-bold">Striku Technologies Inc.</h4>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Official Operator · Headquartered for global creators with authorized Merchant of Record billing.
                 </p>
               </div>
               <div className="text-xs font-mono text-slate-500">
-                Official Contact: blendagent.online@gmail.com
+                Official Contact: strikucloud@gmail.com
               </div>
             </div>
           </motion.div>
@@ -857,10 +857,10 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
                   <div>
                     <span className="text-slate-500 block mb-0.5 font-medium">Direct Support Email</span>
                     <a
-                      href="mailto:blendagent.online@gmail.com"
+                      href="mailto:strikucloud@gmail.com"
                       className="font-mono font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
-                      blendagent.online@gmail.com
+                      strikucloud@gmail.com
                     </a>
                   </div>
                   <div>

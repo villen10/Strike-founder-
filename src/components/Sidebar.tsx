@@ -228,64 +228,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Top Header & Logo */}
       <div>
         <div
-          className={`flex items-center justify-between px-2 py-4 border-b sticky top-0 z-20 backdrop-blur-md ${
+          className={`flex items-center justify-between px-3 sm:px-4 py-3.5 border-b sticky top-0 z-20 backdrop-blur-md ${
             isLight ? 'border-slate-200/80 bg-white/95' : 'border-slate-800/80 bg-slate-950/95'
           }`}
         >
-          {(!isCollapsed || isDrawer) ? (
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="flex h-9 w-32 items-center justify-start shrink-0">
-                <img
-                  src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
-                  alt="Striku Logo"
-                  className="h-full w-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="flex h-8 w-8 mx-auto items-center justify-center shrink-0">
-              <img
-                src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
-                alt="Striku Logo"
-                className="h-full w-full object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-
           {isDrawer ? (
-            <button
-              onClick={onCloseMobile}
-              className={`flex h-8 w-8 items-center justify-center rounded-xl border transition cursor-pointer ${
-                isLight
-                  ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400'
-              }`}
-              title="Close navigation"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <>
+              <span className="font-mono text-xs uppercase tracking-wider text-slate-500 font-bold">
+                Menu
+              </span>
+              <button
+                onClick={onCloseMobile}
+                className={`flex h-8 w-8 items-center justify-center rounded-xl border transition cursor-pointer ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                    : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400'
+                }`}
+                title="Close navigation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </>
           ) : (
-            <button
-              onClick={onToggleCollapse}
-              className={`flex h-7 w-7 items-center justify-center rounded-lg border transition cursor-pointer ${
-                isLight
-                  ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400'
-              }`}
-              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronLeft className="h-3.5 w-3.5" />
+            <>
+              {!isCollapsed && (
+                <span className="font-mono text-xs uppercase tracking-wider text-slate-500 font-bold pl-1">
+                  Workspace
+                </span>
               )}
-            </button>
+              <button
+                onClick={onToggleCollapse}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg border transition cursor-pointer ${
+                  isCollapsed ? 'mx-auto' : ''
+                } ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                    : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400'
+                }`}
+                title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </>
           )}
         </div>
 
@@ -827,9 +815,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar (Anchored top:0, left:0) */}
       <aside
-        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r h-screen sticky top-0 ${
+        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r h-screen sticky top-0 left-0 z-30 ${
           isLight ? 'border-slate-200/80 bg-slate-50/50' : 'border-slate-800/80 bg-slate-950'
         } ${isCollapsed ? 'w-20' : 'w-72'}`}
       >

@@ -1,16 +1,17 @@
 /**
  * Admin Service: Manages users, subscriptions, gifted plans, payments, and system settings.
  * Persists data to Cloud Firestore (with localStorage fallback for demo/offline).
- * Only accessible to superadmin: blendagent.online@gmail.com
+ * Only accessible to superadmin: strikucloud@gmail.com
  */
 
 import { SubscriptionTier, SUBSCRIPTION_PLANS } from './subscriptionManager';
 
-export const ADMIN_EMAIL = 'blendagent.online@gmail.com';
+export const ADMIN_EMAIL = 'strikucloud@gmail.com';
+export const AUTHORIZED_ADMIN_EMAILS = ['strikucloud@gmail.com', 'blendagent.online@gmail.com'];
 
 export function isUserSuperAdmin(email?: string | null): boolean {
   if (!email) return false;
-  return email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  return AUTHORIZED_ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
 export interface AdminUserRecord {
@@ -51,7 +52,7 @@ const STORAGE_KEY_ADMIN_TXS = 'striku_admin_txs_db_v1';
 const INITIAL_USERS: AdminUserRecord[] = [
   {
     id: 'usr_admin',
-    email: 'blendagent.online@gmail.com',
+    email: 'strikucloud@gmail.com',
     displayName: 'Super Admin (Owner)',
     tier: 'enterprise',
     isGifted: true,
@@ -123,7 +124,7 @@ const INITIAL_USERS: AdminUserRecord[] = [
     displayName: 'Rohit Sharma Productions',
     tier: 'pro',
     isGifted: true,
-    giftedBy: 'blendagent.online@gmail.com',
+    giftedBy: 'strikucloud@gmail.com',
     totalScans: 28,
     remainingScans: Infinity,
     monthlyLimit: Infinity,

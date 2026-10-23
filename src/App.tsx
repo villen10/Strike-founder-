@@ -43,6 +43,11 @@ import { isUserSuperAdmin, ADMIN_EMAIL } from './services/adminService';
 import { COLOR_THEMES } from './services/themeConfig';
 import { SAMPLE_VIDEOS } from './services/sampleData';
 import { AuditReport, ColorThemeId, SampleVideoOption, QueuedVideoTask } from './types/audit';
+import {
+  generateAuditReportMetadata,
+  applyDynamicMetadata,
+  resetToDefaultMetadata,
+} from './services/seoMetaManager';
 import { ExtractedFrame, extractVideoMetadataAndFrames, formatTime } from './services/frameExtractor';
 import { requestVideoAudit } from './services/auditClient';
 import {
@@ -155,7 +160,12 @@ export default function App() {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (!hash) return;
-      if (hash === 'scanner' || hash === 'check-video-before-upload' || hash === 'copyright-checker') {
+      if (
+        hash === 'scanner' ||
+        hash === 'check-video-before-upload' ||
+        hash === 'copyright-checker' ||
+        hash === 'striku-video-analysis'
+      ) {
         setCurrentView('scanner');
       } else if (hash === 'youtube-strike-checker' || hash === 'guidelines-auditor') {
         setCurrentView('knowledge');
@@ -165,6 +175,20 @@ export default function App() {
         setCurrentView('violations');
       } else if (hash === 'pricing' || hash === 'subscription') {
         setCurrentView('subscription');
+      } else if (hash === 'channel-tracker' || hash === 'channels') {
+        setCurrentView('channels');
+      } else if (hash === 'legal-faq') {
+        setCurrentView('legal');
+        setActiveLegalTab('faq');
+      } else if (hash === 'legal-privacy') {
+        setCurrentView('legal');
+        setActiveLegalTab('privacy');
+      } else if (hash === 'legal-terms') {
+        setCurrentView('legal');
+        setActiveLegalTab('terms');
+      } else if (hash === 'legal-refund') {
+        setCurrentView('legal');
+        setActiveLegalTab('refund');
       }
     };
 
@@ -173,25 +197,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  // Sync document title with active keyword intent
-  useEffect(() => {
-    const titles: Record<NavView, string> = {
-      overview: 'Striku - Check Video Before Upload | YouTube Strike Checker & Copyright Founder',
-      scanner: 'Pre-Upload Video Scanner & Copyright Checker | Striku',
-      knowledge: 'YouTube Community Guidelines & Strike Checker Guide | Striku',
-      violations: 'CapCut Safe Cut Timecodes & Strike Prevention | Striku',
-      appeal: 'YouTube Strike Counter-Appeal Kit | Striku',
-      channels: 'YouTube Channel Health & Strike Tracker | Striku',
-      analytics: 'Channel Compliance Trend & Upload History | Striku',
-      profile: 'Creator Studio Profile | Striku',
-      subscription: 'Striku Pro Shield - YouTube Pre-Upload Protection Plans | Striku',
-      legal: 'Legal Trust & Terms | Striku',
-      admin: 'Mission Control Admin | Striku',
-    };
-    if (titles[currentView]) {
-      document.title = titles[currentView];
-    }
-  }, [currentView]);
+
 
   const handleOpenAuth = (mode: 'login' | 'register') => {
     setAuthModalMode(mode);
@@ -205,7 +211,7 @@ export default function App() {
   const handleDemoLogin = (name?: string, email?: string) => {
     const demoProfile: AppUserProfile = {
       uid: 'creator-demo-01',
-      email: email || 'blendagent.online@gmail.com',
+      email: email || 'strikucloud@gmail.com',
       displayName: name || 'YouTube Creator',
       photoURL: null,
       tier: 'Pro Shield',
@@ -224,7 +230,7 @@ export default function App() {
         {
           id: 'cloud-demo-audit-01',
           userId: 'creator-demo-01',
-          userEmail: demoProfile.email || 'blendagent.online@gmail.com',
+          userEmail: demoProfile.email || 'strikucloud@gmail.com',
           videoTitle: 'Kitchen Prank with Toddler & Sharp Cutlery',
           safetyGrade: 'HIGH_STRIKE_RISK',
           overallRiskScore: 92,
@@ -302,6 +308,32 @@ export default function App() {
   const [extractedFrames, setExtractedFrames] = useState<ExtractedFrame[]>([]);
   const [report, setReport] = useState<AuditReport | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
+
+  // Sync document title and OpenGraph metadata dynamically for crawlers and social share previews
+  useEffect(() => {
+    if (report && (currentView === 'scanner' || currentView === 'overview' || currentView === 'violations')) {
+      const reportMeta = generateAuditReportMetadata(report);
+      applyDynamicMetadata(reportMeta);
+    } else {
+      const titles: Record<NavView, string> = {
+        overview: 'Striku - striku.cloud | Striku Video Analysis & YouTube Strike Checker',
+        scanner: 'Pre-Upload Video Scanner & Copyright Checker | Striku',
+        knowledge: 'YouTube Community Guidelines & Strike Checker Guide | Striku',
+        violations: 'CapCut Safe Cut Timecodes & Strike Prevention | Striku',
+        appeal: 'YouTube Strike Counter-Appeal Kit | Striku',
+        channels: 'YouTube Channel Health & Strike Tracker | Striku',
+        analytics: 'Channel Compliance Trend & Upload History | Striku',
+        profile: 'Creator Studio Profile | Striku',
+        subscription: 'Striku Pro Shield - YouTube Pre-Upload Protection Plans | Striku',
+        legal: 'Legal Trust & Terms | Striku',
+        admin: 'Mission Control Admin | Striku',
+      };
+      if (titles[currentView]) {
+        document.title = titles[currentView];
+      }
+      resetToDefaultMetadata();
+    }
+  }, [report, currentView]);
 
   // Multi-Video Task Queue State - Starts completely empty for new users
   const [queuedTasks, setQueuedTasks] = useState<QueuedVideoTask[]>([]);
@@ -961,48 +993,48 @@ export default function App() {
       {/* Scroll-Driven Top Progress Bar Animation */}
       <ScrollProgressBar isLight={isLight} />
 
-      {/* Top Header */}
-      <div>
-        <Header
+      {/* Main Container: Sidebar flush on the left (top-0 left-0) + Content area */}
+      <div className="flex w-full min-h-screen">
+        {/* Modern Sidebar (Desktop flush at top-left & Mobile Drawer) */}
+        <Sidebar
+          currentView={currentView}
+          onSelectView={setCurrentView}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          isOpenMobile={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          theme={theme}
+          violationsCount={report?.timelineViolations.length || 0}
+          avgComplianceScore={avgComplianceScore}
+          pendingQueueCount={pendingQueueCount}
+          strictnessMode={strictnessMode}
+          onToggleStrictness={handleToggleStrictness}
           currentTheme={currentTheme}
+          onSelectTheme={setCurrentTheme}
           currentUser={currentUser}
+          onSignIn={handleSignIn}
+          onRegister={() => handleOpenAuth('register')}
+          onSignOut={handleSignOut}
+          onScanNewVideo={() => {
+            setCurrentView('scanner');
+            handleTriggerAudit();
+          }}
+          onOpenCompare={() => setIsCompareModalOpen(true)}
           currentTier={subscriptionTier}
           remainingFreeScans={deviceMetrics.remainingScans}
           onOpenPricing={() => setIsPricingModalOpen(true)}
-          onNavigateProfile={() => setCurrentView('profile')}
-          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
-        {/* Main Workspace with Modern Left Sidebar */}
-        <div className="flex w-full min-h-[calc(100vh-57px)]">
-          {/* Modern Sidebar (Desktop & Mobile Drawer) */}
-          <Sidebar
-            currentView={currentView}
-            onSelectView={setCurrentView}
-            isCollapsed={isSidebarCollapsed}
-            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            isOpenMobile={isMobileSidebarOpen}
-            onCloseMobile={() => setIsMobileSidebarOpen(false)}
-            theme={theme}
-            violationsCount={report?.timelineViolations.length || 0}
-            avgComplianceScore={avgComplianceScore}
-            pendingQueueCount={pendingQueueCount}
-            strictnessMode={strictnessMode}
-            onToggleStrictness={handleToggleStrictness}
+        {/* Main Content Column: Top Header + Views + Footer */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <Header
             currentTheme={currentTheme}
-            onSelectTheme={setCurrentTheme}
             currentUser={currentUser}
-            onSignIn={handleSignIn}
-            onRegister={() => handleOpenAuth('register')}
-            onSignOut={handleSignOut}
-            onScanNewVideo={() => {
-              setCurrentView('scanner');
-              handleTriggerAudit();
-            }}
-            onOpenCompare={() => setIsCompareModalOpen(true)}
             currentTier={subscriptionTier}
             remainingFreeScans={deviceMetrics.remainingScans}
             onOpenPricing={() => setIsPricingModalOpen(true)}
+            onNavigateProfile={() => setCurrentView('profile')}
+            onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           />
 
           {/* Main View Area (Clean view with no cluttered top button strip) */}
@@ -1814,7 +1846,7 @@ export default function App() {
                 </motion.div>
               )}
 
-              {/* View 8: SUPERADMIN MISSION CONTROL (Protected for blendagent.online@gmail.com) */}
+              {/* View 8: SUPERADMIN MISSION CONTROL (Protected for strikucloud@gmail.com) */}
               {currentView === 'admin' && (
                 <motion.div
                   key="view-admin"
@@ -1881,23 +1913,23 @@ export default function App() {
               )}
             </AnimatePresence>
           </main>
+
+          {/* Comprehensive Multi-Column SaaS Footer (FAQ, 14-Day Refund, Privacy, Lemon Squeezy MoR Disclosures) */}
+          <SaaSFooter
+            isLight={isLight}
+            onNavigate={(view, legalTab) => {
+              if (legalTab) {
+                setActiveLegalTab(legalTab);
+              }
+              setCurrentView(view);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenPricing={() => setIsPricingModalOpen(true)}
+            onOpenCompare={() => setIsCompareModalOpen(true)}
+            isSuperAdmin={isUserSuperAdmin(currentUser?.email)}
+          />
         </div>
       </div>
-
-      {/* Comprehensive Multi-Column SaaS Footer (FAQ, 14-Day Refund, Privacy, Lemon Squeezy MoR Disclosures) */}
-      <SaaSFooter
-        isLight={isLight}
-        onNavigate={(view, legalTab) => {
-          if (legalTab) {
-            setActiveLegalTab(legalTab);
-          }
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onOpenPricing={() => setIsPricingModalOpen(true)}
-        onOpenCompare={() => setIsCompareModalOpen(true)}
-        isSuperAdmin={isUserSuperAdmin(currentUser?.email)}
-      />
 
       {/* Mobile Bottom Navigation Bar (Thumb-Friendly on Phones) */}
       <MobileBottomNav

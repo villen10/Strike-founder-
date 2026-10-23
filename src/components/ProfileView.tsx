@@ -568,7 +568,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => onDemoLogin?.('Studio Creator', 'blendagent.online@gmail.com')}
+              onClick={() => onDemoLogin?.('Studio Creator', 'strikucloud@gmail.com')}
               className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 font-sans text-xs font-bold transition shadow-xs cursor-pointer"
             >
               <Zap className="h-3.5 w-3.5 fill-current" />

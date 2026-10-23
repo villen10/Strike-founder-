@@ -10,6 +10,7 @@ import {
   Clock,
   Layers,
   CheckCircle2,
+  Share2,
 } from 'lucide-react';
 import { AuditReport } from '../types/audit';
 
@@ -31,19 +32,29 @@ export const AuditSummaryCard: React.FC<AuditSummaryCardProps> = ({
   const isCritical = report.safetyGrade === 'HIGH_STRIKE_RISK';
 
   const [copied, setCopied] = React.useState(false);
+  const [copiedLink, setCopiedLink] = React.useState(false);
 
   const handleCopySummary = () => {
-    const text = `Strike Founder Compliance Audit:
+    const text = `Striku Video Analysis Report (striku.cloud):
 Video: ${report.videoTitle}
 Status: ${report.safetyGrade}
 Overall Risk Score: ${report.overallRiskScore}/100
+Compliance Score: ${100 - report.overallRiskScore}/100
 Strike Probability: ${report.strikeProbabilityPct}%
 Ad Monetization Probability: ${100 - report.demonetizationProbabilityPct}%
 Issues Flagged: ${report.totalIssuesCount} (${report.criticalIssuesCount} critical, ${report.warningsCount} warnings)
-Summary: ${report.summaryVerdictEn}`;
+Summary: ${report.summaryVerdictEn}
+Live Audit Link: https://www.striku.cloud/?report=${encodeURIComponent(report.id || 'latest')}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShareLink = () => {
+    const url = `https://www.striku.cloud/?report=${encodeURIComponent(report.id || 'latest')}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
@@ -153,6 +164,19 @@ Summary: ${report.summaryVerdictEn}`;
           >
             <Copy className="h-3.5 w-3.5 text-slate-500" />
             <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </button>
+
+          <button
+            onClick={handleShareLink}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 font-sans text-xs font-semibold transition cursor-pointer ${
+              isLight
+                ? 'border-indigo-200 bg-indigo-50/80 text-indigo-700 hover:bg-indigo-100'
+                : 'border-indigo-800/80 bg-indigo-950/60 text-indigo-300 hover:bg-indigo-900/60'
+            }`}
+            title="Copy shareable report link"
+          >
+            <Share2 className="h-3.5 w-3.5 text-indigo-500" />
+            <span>{copiedLink ? 'Link Copied!' : 'Share Link'}</span>
           </button>
         </div>
       </div>
