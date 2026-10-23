@@ -1,6 +1,8 @@
 {
   "name": "Striku",
-  "description": "Pre-upload YouTube community guidelines and strike auditor. Detects child safety, dangerous stunts, violent actions, and monetization risks with frame-accurate timestamps and fix recommendations.",
+  "description": "Check video before upload with Striku. AI YouTube strike checker and copyright claim founder. Analyzes video frames to detect community guidelines strikes, copyright risks, and monetization issues with frame-accurate timestamps.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

@@ -150,6 +150,49 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // SEO & Deep-link Hash Navigation
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (!hash) return;
+      if (hash === 'scanner' || hash === 'check-video-before-upload' || hash === 'copyright-checker') {
+        setCurrentView('scanner');
+      } else if (hash === 'youtube-strike-checker' || hash === 'guidelines-auditor') {
+        setCurrentView('knowledge');
+      } else if (hash === 'appeal-generator' || hash === 'appeal') {
+        setCurrentView('appeal');
+      } else if (hash === 'violations' || hash === 'video-analysis-detect-strike') {
+        setCurrentView('violations');
+      } else if (hash === 'pricing' || hash === 'subscription') {
+        setCurrentView('subscription');
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  // Sync document title with active keyword intent
+  useEffect(() => {
+    const titles: Record<NavView, string> = {
+      overview: 'Striku - Check Video Before Upload | YouTube Strike Checker & Copyright Founder',
+      scanner: 'Pre-Upload Video Scanner & Copyright Checker | Striku',
+      knowledge: 'YouTube Community Guidelines & Strike Checker Guide | Striku',
+      violations: 'CapCut Safe Cut Timecodes & Strike Prevention | Striku',
+      appeal: 'YouTube Strike Counter-Appeal Kit | Striku',
+      channels: 'YouTube Channel Health & Strike Tracker | Striku',
+      analytics: 'Channel Compliance Trend & Upload History | Striku',
+      profile: 'Creator Studio Profile | Striku',
+      subscription: 'Striku Pro Shield - YouTube Pre-Upload Protection Plans | Striku',
+      legal: 'Legal Trust & Terms | Striku',
+      admin: 'Mission Control Admin | Striku',
+    };
+    if (titles[currentView]) {
+      document.title = titles[currentView];
+    }
+  }, [currentView]);
+
   const handleOpenAuth = (mode: 'login' | 'register') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
