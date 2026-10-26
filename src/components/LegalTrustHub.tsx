@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { SEOManager } from '../lib/seo';
 import {
   HelpCircle,
   ShieldCheck,
@@ -36,14 +37,14 @@ interface LegalTrustHubProps {
   currentUserEmail?: string | null;
 }
 
-interface FAQItem {
+export interface FAQItem {
   id: string;
   category: 'billing' | 'scanner' | 'strikes' | 'security';
   question: string;
   answer: string;
 }
 
-const FAQ_ITEMS: FAQItem[] = [
+export const FAQ_ITEMS: FAQItem[] = [
   {
     id: 'faq-1',
     category: 'scanner',
@@ -126,6 +127,11 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
   const [faqCategory, setFaqCategory] = useState<string>('all');
   const [faqSearchQuery, setFaqSearchQuery] = useState('');
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>('faq-1');
+
+  // Automatically inject JSON-LD 'Question' entities for AI conversational engines (ChatGPT, Gemini, Perplexity)
+  useEffect(() => {
+    SEOManager.injectFaqSchemaToHead(FAQ_ITEMS);
+  }, []);
 
   // Contact form state
   const [contactSubject, setContactSubject] = useState('Billing & Refund Question');
