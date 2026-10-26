@@ -3,94 +3,129 @@
   <!-- Core Root & Brand Landing Page -->
   <url>
     <loc>https://www.striku.cloud/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  <!-- Primary High-Intent Keyword Hubs -->
+
+  <!-- High-Intent Target Keyword URLs for Google Sitelinks & Organic Top Rankings -->
   <url>
-    <loc>https://www.striku.cloud/#striku-video-analysis</loc>
-    <lastmod>2026-10-23</lastmod>
+    <loc>https://www.striku.cloud/#video-copyright-checker-online-free</loc>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#video-copyright-checker</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.98</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#youtube-video-strike-checker</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.98</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#copyright-checker-youtube-audio</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.96</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#copyright-checker-youtube-link</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.96</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#copyright-checker-youtube</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://www.striku.cloud/#check-video-before-upload</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://www.striku.cloud/#youtube-strike-checker</loc>
-    <lastmod>2026-10-23</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://www.striku.cloud/#copyright-checker</loc>
-    <lastmod>2026-10-23</lastmod>
+    <loc>https://www.striku.cloud/#striku-video-analysis</loc>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://www.striku.cloud/#scanner</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://www.striku.cloud/#video-analysis-detect-strike</loc>
-    <lastmod>2026-10-23</lastmod>
+    <loc>https://www.striku.cloud/#home-video-scan</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#strike-violations</loc>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
-    <loc>https://www.striku.cloud/#guidelines-auditor</loc>
-    <lastmod>2026-10-23</lastmod>
+    <loc>https://www.striku.cloud/#ai-appeal-generator</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#content-hub</loc>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://www.striku.cloud/#channel-tracker</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.striku.cloud/#appeal-generator</loc>
-    <lastmod>2026-10-23</lastmod>
+    <loc>https://www.striku.cloud/#channel-analytics</loc>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
-  <!-- Creator Pricing & Commercial Offerings -->
   <url>
-    <loc>https://www.striku.cloud/#pricing</loc>
-    <lastmod>2026-10-23</lastmod>
+    <loc>https://www.striku.cloud/#pricing-plans</loc>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
-  <!-- Policies, FAQ, Legal & Trust Hub -->
   <url>
     <loc>https://www.striku.cloud/#legal-faq</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://www.striku.cloud/#legal-privacy</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://www.striku.cloud/#legal-terms</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://www.striku.cloud/#legal-refund</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>

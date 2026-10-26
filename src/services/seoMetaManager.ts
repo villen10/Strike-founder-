@@ -245,15 +245,73 @@ export function getViewMetadata(view: string): DynamicSeoMetadata {
         ogUrl: `${baseUrl}/#overview`,
       };
     case 'scanner':
+    case 'home-video-scan':
+    case 'video-copyright-checker-online-free':
       return {
         ...DEFAULT_SEO_METADATA,
-        title: 'Striku Video Scanner & Strike Checker - Check Video Before Upload | striku.cloud',
+        title: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Claim Audit',
         description:
-          'Check video before upload to YouTube. AI-powered frame scanner detects copyright claims, community guideline violations, and monetization risks with instant safe-cut timecodes.',
-        ogTitle: 'Striku Video Scanner & Strike Checker - Check Video Before Upload',
-        ogDescription: 'Check video before upload to YouTube with Striku. AI frame scanner detects copyright claims and safety violations instantly.',
-        canonicalUrl: `${baseUrl}/#scanner`,
-        ogUrl: `${baseUrl}/#scanner`,
+          'Free online video copyright checker. Screen videos before upload to YouTube for Content ID claims, audio copyright, and strike risks with frame-accurate timestamps on striku.cloud.',
+        ogTitle: 'Video Copyright Checker Online Free - Striku',
+        ogDescription: 'Free online video copyright checker for YouTube creators. Screen videos for copyright claims, audio copyright, and strike risks before upload.',
+        canonicalUrl: `${baseUrl}/#video-copyright-checker-online-free`,
+        ogUrl: `${baseUrl}/#video-copyright-checker-online-free`,
+      };
+    case 'video-copyright-checker':
+    case 'copyright-checker-youtube':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Video Copyright Checker - Pre-Upload YouTube Content ID Audit | striku.cloud',
+        description:
+          'Online video copyright checker for YouTube creators. Detect Content ID claims, commercial audio loops, and video strike risks before publishing.',
+        ogTitle: 'Video Copyright Checker - Pre-Upload YouTube Content ID Audit',
+        ogDescription: 'Online video copyright checker for YouTube creators. Detect Content ID claims and copyright risks before publishing.',
+        canonicalUrl: `${baseUrl}/#video-copyright-checker`,
+        ogUrl: `${baseUrl}/#video-copyright-checker`,
+      };
+    case 'youtube-video-strike-checker':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'YouTube Video Strike Checker - Community Guidelines & Safety Auditor | striku.cloud',
+        description:
+          'Automated YouTube video strike checker. Audit video frames for community guidelines strikes, child safety hazards, and dangerous stunts before you upload.',
+        ogTitle: 'YouTube Video Strike Checker - Community Guidelines & Safety Auditor',
+        ogDescription: 'Audit video frames for YouTube community guidelines strikes, child safety hazards, and dangerous stunts before you upload.',
+        canonicalUrl: `${baseUrl}/#youtube-video-strike-checker`,
+        ogUrl: `${baseUrl}/#youtube-video-strike-checker`,
+      };
+    case 'copyright-checker-youtube-audio':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Copyright Checker YouTube Audio - Check Music & Soundtracks Free | striku.cloud',
+        description:
+          'Free YouTube audio copyright checker. Scan background music, songs, and audio tracks for Content ID claims and commercial licensing issues before uploading.',
+        ogTitle: 'Copyright Checker YouTube Audio - Check Music & Soundtracks Free',
+        ogDescription: 'Free YouTube audio copyright checker. Scan background music and songs for Content ID claims before uploading.',
+        canonicalUrl: `${baseUrl}/#copyright-checker-youtube-audio`,
+        ogUrl: `${baseUrl}/#copyright-checker-youtube-audio`,
+      };
+    case 'copyright-checker-youtube-link':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Copyright Checker YouTube Link - Check Video Strikes by URL | striku.cloud',
+        description:
+          'Check YouTube video copyright and strikes by link. Analyze channel compliance history, metadata risk factors, and policy flags on striku.cloud.',
+        ogTitle: 'Copyright Checker YouTube Link - Check Video Strikes by URL',
+        ogDescription: 'Check YouTube video copyright and strikes by link. Analyze channel compliance history and policy risk factors.',
+        canonicalUrl: `${baseUrl}/#copyright-checker-youtube-link`,
+        ogUrl: `${baseUrl}/#copyright-checker-youtube-link`,
+      };
+    case 'check-video-before-upload':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Check Video Before Upload to YouTube - Prevent Strikes | striku.cloud',
+        description:
+          'Check your video before upload to YouTube Studio. Catch strikes, copyright claims, and monetization issues with second-by-second CapCut safe-cut timecodes.',
+        ogTitle: 'Check Video Before Upload to YouTube - Prevent Strikes',
+        ogDescription: 'Check your video before upload to YouTube Studio. Catch strikes and copyright claims with second-by-second timecodes.',
+        canonicalUrl: `${baseUrl}/#check-video-before-upload`,
+        ogUrl: `${baseUrl}/#check-video-before-upload`,
       };
     case 'channels':
       return {

@@ -199,11 +199,18 @@ export default function App() {
         hash === 'home-video-scan' ||
         hash === 'check-video-before-upload' ||
         hash === 'copyright-checker' ||
-        hash === 'striku-video-analysis'
+        hash === 'striku-video-analysis' ||
+        hash === 'video-copyright-checker-online-free' ||
+        hash === 'video-copyright-checker' ||
+        hash === 'copyright-checker-youtube' ||
+        hash === 'copyright-checker-youtube-audio' ||
+        hash === 'copyright-checker-youtube-link'
       ) {
         setCurrentView('scanner');
-      } else if (hash === 'youtube-strike-checker' || hash === 'guidelines-auditor') {
+        applyDynamicMetadata(getViewMetadata(hash));
+      } else if (hash === 'youtube-strike-checker' || hash === 'guidelines-auditor' || hash === 'youtube-video-strike-checker') {
         setCurrentView('knowledge');
+        applyDynamicMetadata(getViewMetadata(hash));
       } else if (hash === 'appeal-generator' || hash === 'appeal' || hash === 'ai-appeal-generator') {
         setCurrentView('appeal');
       } else if (hash === 'violations' || hash === 'strike-violations' || hash === 'video-analysis-detect-strike') {

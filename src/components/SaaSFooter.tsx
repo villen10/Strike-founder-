@@ -362,6 +362,165 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
           </div>
         </div>
 
+        {/* Free Video Copyright & YouTube Strike Tools Directory (Crawlable Sitelinks & SEO Rank Booster) */}
+        <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col gap-1.5 mb-6">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <h4 className="font-satoshi text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                Free YouTube Copyright &amp; Strike Tools Directory
+              </h4>
+            </div>
+            <p className="text-xs text-slate-500 max-w-3xl leading-relaxed">
+              Explore our suite of free online creator utilities for copyright detection, audio claim pre-screening, YouTube strike prevention, and CapCut editing workflows.
+            </p>
+          </div>
+
+          {/* Primary Sitelinks Grid (Targeting Google's Sub-link Blue Cards) */}
+          <nav aria-label="Quick Creator Tools" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+            <a
+              href="#video-copyright-checker-online-free"
+              onClick={() => onNavigate('scanner')}
+              className={`p-3 rounded-xl border transition flex flex-col gap-1 group cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-red-400' : 'bg-slate-900/70 hover:bg-slate-850 border-slate-800 hover:border-red-800'
+              }`}
+            >
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center justify-between">
+                <span>Video Copyright Checker Online Free</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Upload video before publishing to scan for Content ID claims and strike risks with zero video retention.
+              </p>
+            </a>
+
+            <a
+              href="#youtube-video-strike-checker"
+              onClick={() => onNavigate('knowledge')}
+              className={`p-3 rounded-xl border transition flex flex-col gap-1 group cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-red-400' : 'bg-slate-900/70 hover:bg-slate-850 border-slate-800 hover:border-red-800'
+              }`}
+            >
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center justify-between">
+                <span>YouTube Video Strike Checker</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Pre-screen video frames for child safety, dangerous stunts, graphic violence, and community guidelines strikes.
+              </p>
+            </a>
+
+            <a
+              href="#copyright-checker-youtube-audio"
+              onClick={() => onNavigate('scanner')}
+              className={`p-3 rounded-xl border transition flex flex-col gap-1 group cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-red-400' : 'bg-slate-900/70 hover:bg-slate-850 border-slate-800 hover:border-red-800'
+              }`}
+            >
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center justify-between">
+                <span>Copyright Checker YouTube Audio</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Analyze acoustic waveforms and background music tracks to detect unlicensed music claims before upload.
+              </p>
+            </a>
+
+            <a
+              href="#copyright-checker-youtube-link"
+              onClick={() => onNavigate('scanner')}
+              className={`p-3 rounded-xl border transition flex flex-col gap-1 group cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-red-400' : 'bg-slate-900/70 hover:bg-slate-850 border-slate-800 hover:border-red-800'
+              }`}
+            >
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center justify-between">
+                <span>Copyright Checker YouTube Link</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Check YouTube video links and published channel compliance to evaluate historical strike risks and warnings.
+              </p>
+            </a>
+
+            <a
+              href="#strike-violations"
+              onClick={() => onNavigate('violations')}
+              className={`p-3 rounded-xl border transition flex flex-col gap-1 group cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-red-400' : 'bg-slate-900/70 hover:bg-slate-850 border-slate-800 hover:border-red-800'
+              }`}
+            >
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center justify-between">
+                <span>CapCut Safe Cut Timecodes</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Export second-by-second timestamps to trim, blur, or mute flagged footage in CapCut or Premiere Pro.
+              </p>
+            </a>
+
+            <a
+              href="#ai-appeal-generator"
+              onClick={() => onNavigate('appeal')}
+              className={`p-3 rounded-xl border transition flex flex-col gap-1 group cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-red-400' : 'bg-slate-900/70 hover:bg-slate-850 border-slate-800 hover:border-red-800'
+              }`}
+            >
+              <div className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center justify-between">
+                <span>AI Strike Counter-Appeal Kit</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Generate formal dispute letters referencing YouTube guidelines and Fair Use doctrine (17 U.S.C. § 107).
+              </p>
+            </a>
+          </nav>
+
+          {/* 100+ Creator Keywords Tag Cloud for Crawlers & Long-Tail Search */}
+          <div className="flex flex-col gap-2 pt-2">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Popular Search Topics &amp; Compliance Checks:
+            </span>
+            <div className="flex flex-wrap gap-1.5 text-[11px]">
+              {[
+                { label: 'video copyright checker online free', href: '#video-copyright-checker-online-free' },
+                { label: 'video copyright checker', href: '#video-copyright-checker' },
+                { label: 'youtube video strike checker', href: '#youtube-video-strike-checker' },
+                { label: 'copyright checker youtube audio', href: '#copyright-checker-youtube-audio' },
+                { label: 'copyright checker youtube link', href: '#copyright-checker-youtube-link' },
+                { label: 'copyright checker youtube', href: '#copyright-checker-youtube' },
+                { label: 'check video before upload', href: '#check-video-before-upload' },
+                { label: 'youtube copyright check before upload', href: '#check-video-before-upload' },
+                { label: 'content id claim founder', href: '#video-copyright-checker' },
+                { label: 'free video copyright checker without login', href: '#video-copyright-checker-online-free' },
+                { label: 'check song copyright for youtube', href: '#copyright-checker-youtube-audio' },
+                { label: 'background music copyright checker', href: '#copyright-checker-youtube-audio' },
+                { label: 'youtube community guidelines strike detector', href: '#youtube-video-strike-checker' },
+                { label: 'strike risk analyzer', href: '#strike-violations' },
+                { label: 'capcut safe cut timecodes', href: '#strike-violations' },
+                { label: 'fair use copyright checker', href: '#content-hub' },
+                { label: 'youtube monetization yellow dollar checker', href: '#scanner' },
+                { label: 'avoid copyright strike youtube', href: '#content-hub' },
+                { label: 'pre upload video compliance check', href: '#check-video-before-upload' },
+                { label: 'counter notification appeal generator', href: '#ai-appeal-generator' },
+                { label: 'youtube shorts copyright check', href: '#scanner' },
+                { label: 'zero video retention privacy', href: '#legal-privacy' },
+              ].map((item, idx) => (
+                <a
+                  key={idx}
+                  href={item.href}
+                  className={`rounded-md px-2 py-0.5 border text-[11px] font-sans transition hover:underline ${
+                    isLight
+                      ? 'border-slate-200 bg-white text-slate-600 hover:text-blue-600 hover:border-blue-300'
+                      : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-blue-400 hover:border-blue-700'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Middle Trust Badges Bar */}
         <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-500">
