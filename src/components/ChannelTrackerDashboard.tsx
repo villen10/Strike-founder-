@@ -241,7 +241,8 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
     '@GeoNews',
     '@MrBeast',
     '@Veritasium',
-    '@GoogleDevelopers',
+    '@MKBHD',
+    '@StrikuCloud',
   ];
 
   return (
@@ -339,11 +340,11 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
               }`}
             >
               <img
-                src={ch.avatar}
+                src={ch.avatar || 'https://www.striku.cloud/logo.png'}
                 alt={ch.title}
                 className="w-5 h-5 rounded-full object-cover border border-white/20"
                 onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
+                  (e.currentTarget as HTMLImageElement).src = 'https://www.striku.cloud/logo.png';
                 }}
               />
               <span className="truncate max-w-[130px]">{ch.title}</span>
@@ -399,9 +400,12 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
                 <div className="flex items-end gap-4">
                   <img
-                    src={activeChannel.avatar}
+                    src={activeChannel.avatar || 'https://www.striku.cloud/logo.png'}
                     alt={activeChannel.title}
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-2xl bg-slate-100 shrink-0"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = 'https://www.striku.cloud/logo.png';
+                    }}
                   />
                   <div className="pb-1">
                     <div className="flex items-center gap-2">

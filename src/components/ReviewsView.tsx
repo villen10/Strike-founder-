@@ -33,6 +33,7 @@ import {
   addReviewReply,
   deleteReviewReply,
 } from '../services/reviewService';
+import { isUserSuperAdmin } from '../services/adminService';
 
 interface ReviewsViewProps {
   isLight: boolean;
@@ -220,12 +221,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
   const handleSendReply = async (reviewId: string) => {
     if (!replyMessage.trim()) return;
     setIsSendingReply(true);
+    const isAdmin = isUserSuperAdmin(currentUser?.email);
     try {
       await addReviewReply(
         reviewId,
         {
-          userName: replyName.trim() || currentUser?.displayName || 'Creator',
+          userName: replyName.trim() || (isAdmin ? 'Striku Official Support' : currentUser?.displayName || 'Creator'),
           message: replyMessage.trim(),
+          userEmail: currentUser?.email || undefined,
         },
         currentUser
       );
@@ -574,23 +577,17 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   {/* Top Review Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      {rev.userAvatar ? (
-                        <img
-                          src={rev.userAvatar}
-                          alt={rev.userName}
-                          className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white font-bold text-sm shrink-0">
-                          {rev.userName.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <img
+                        src={rev.userAvatar || 'https://www.striku.cloud/logo.png'}
+                        alt={rev.userName}
+                        className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0 shadow-xs"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = 'https://www.striku.cloud/logo.png';
+                        }}
+                      />
 
                       <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className={`font-satoshi text-sm font-bold ${isLight ? 'text-slate-950' : 'text-white'}`}>
                             {rev.userName}
                           </span>
@@ -655,7 +652,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
                       {/* Reply Button */}
                       <button
-                        onClick={() => setReplyingReviewId(isReplyBoxOpen ? null : rev.id)}
+                        onClick={() => {
+                          const willOpen = !isReplyBoxOpen;
+                          setReplyingReviewId(willOpen ? rev.id : null);
+                          if (willOpen && isUserSuperAdmin(currentUser?.email)) {
+                            setReplyName('Striku Official Support');
+                          }
+                        }}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
                           isReplyBoxOpen
                             ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
@@ -695,9 +698,17 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   {/* Inline Reply Box */}
                   {isReplyBoxOpen && (
                     <div className="mt-2 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-3">
-                      <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Leave a Reply:
-                      </span>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Leave a Reply:
+                        </span>
+                        {isUserSuperAdmin(currentUser?.email) && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-bold shadow-xs">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>Replying as Verified Striku Admin</span>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           type="text"
@@ -712,7 +723,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         />
                         <input
                           type="text"
-                          placeholder="Type your message..."
+                          placeholder={isUserSuperAdmin(currentUser?.email) ? 'Type official support response...' : 'Type your message...'}
                           value={replyMessage}
                           onChange={(e) => setReplyMessage(e.target.value)}
                           className={`flex-1 rounded-xl border px-3 py-1.5 text-xs font-sans outline-none ${
@@ -738,19 +749,57 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     <div className="mt-1 flex flex-col gap-2.5 pl-3 sm:pl-6 border-l-2 border-slate-200 dark:border-slate-800">
                       {rev.replies.map((reply) => {
                         const isMyReply = reply.userId === currentUserId;
+                        const isOfficialReply = Boolean(
+                          reply.isOfficial ||
+                          isUserSuperAdmin(reply.userEmail) ||
+                          (reply.userName && (reply.userName.toLowerCase().includes('striku official') || reply.userName.toLowerCase().includes('striku compliance') || reply.userName.toLowerCase().includes('striku legal') || reply.userName.toLowerCase().includes('striku team'))) ||
+                          reply.userId === 'admin-striku'
+                        );
+
                         return (
                           <div
                             key={reply.id}
-                            className={`p-3 rounded-2xl border text-xs flex flex-col gap-1 ${
-                              isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'
+                            className={`p-3.5 rounded-2xl border text-xs flex flex-col gap-1.5 transition-all ${
+                              isOfficialReply
+                                ? isLight
+                                  ? 'bg-rose-50/70 border-rose-300/80 shadow-xs ring-1 ring-rose-500/10'
+                                  : 'bg-rose-950/20 border-rose-800/60 shadow-xs ring-1 ring-rose-500/20'
+                                : isLight
+                                ? 'bg-slate-50/80 border-slate-200'
+                                : 'bg-slate-950/60 border-slate-800'
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1.5 font-bold">
-                                <CornerDownRight className="h-3.5 w-3.5 text-slate-400" />
-                                <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <div className="flex items-center gap-2 font-bold flex-wrap">
+                                <CornerDownRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                {isOfficialReply ? (
+                                  <img
+                                    src="https://www.striku.cloud/logo.png"
+                                    alt="Striku Official"
+                                    className="h-5 w-5 rounded-full object-cover border border-rose-500/30 shrink-0"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : reply.userAvatar ? (
+                                  <img
+                                    src={reply.userAvatar}
+                                    alt={reply.userName}
+                                    className="h-5 w-5 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0"
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLImageElement).src = 'https://www.striku.cloud/logo.png';
+                                    }}
+                                  />
+                                ) : null}
+                                <span className={isOfficialReply ? 'text-rose-600 dark:text-rose-400 font-extrabold' : isLight ? 'text-slate-900' : 'text-slate-100'}>
                                   {reply.userName}
                                 </span>
+                                {isOfficialReply && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white font-extrabold px-2 py-0.5 text-[9px] shadow-xs tracking-wider uppercase">
+                                    <CheckCircle2 className="h-2.5 w-2.5 text-white" />
+                                    <span>Verified Official Reply</span>
+                                  </span>
+                                )}
                                 <span className="font-mono text-[10px] text-slate-400 font-normal">
                                   · {reply.createdAt}
                                 </span>
@@ -765,7 +814,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                                 </button>
                               )}
                             </div>
-                            <p className="text-slate-600 dark:text-slate-300 pl-5 leading-relaxed">
+                            <p className={`pl-5 leading-relaxed ${isOfficialReply ? (isLight ? 'text-slate-800 font-medium' : 'text-slate-200 font-medium') : 'text-slate-600 dark:text-slate-300'}`}>
                               {reply.message}
                             </p>
                           </div>
