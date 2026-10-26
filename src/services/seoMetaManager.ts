@@ -379,6 +379,28 @@ export function getViewMetadata(view: string): DynamicSeoMetadata {
         canonicalUrl: `${baseUrl}/#content-hub`,
         ogUrl: `${baseUrl}/#content-hub`,
       };
+    case 'reviews':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'Creator Reviews & Testimonials (4.9 ★) - Striku | striku.cloud',
+        description:
+          'Read authentic creator reviews for Striku video strike checker and copyright analysis tool. Share your feedback, like, dislike, and reply to community reviews.',
+        ogTitle: 'Creator Reviews & Testimonials (4.9 ★) - Striku',
+        ogDescription: 'Read authentic creator reviews for Striku video strike checker and copyright analysis tool.',
+        canonicalUrl: `${baseUrl}/#reviews`,
+        ogUrl: `${baseUrl}/#reviews`,
+      };
+    case 'my-reviews':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'My Reviews & Community Feedback - Striku | striku.cloud',
+        description:
+          'Manage, edit, or delete your submitted reviews and replies on Striku.',
+        ogTitle: 'My Reviews & Community Feedback - Striku',
+        ogDescription: 'Manage, edit, or delete your submitted reviews and replies on Striku.',
+        canonicalUrl: `${baseUrl}/#my-reviews`,
+        ogUrl: `${baseUrl}/#my-reviews`,
+      };
     case 'profile':
       return {
         ...DEFAULT_SEO_METADATA,

@@ -224,6 +224,86 @@
         }
       },
       "required": ["userId", "channelId", "title", "handle", "url", "createdAt", "updatedAt"]
+    },
+    "ReviewItem": {
+      "title": "ReviewItem",
+      "description": "User review with star rating, comments, likes/dislikes and replies",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Author UID who wrote the review",
+          "maxLength": 128
+        },
+        "userName": {
+          "type": "string",
+          "description": "Name of the reviewer",
+          "maxLength": 100
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Email of reviewer",
+          "maxLength": 256
+        },
+        "userAvatar": {
+          "type": "string",
+          "description": "Avatar of reviewer",
+          "maxLength": 1000
+        },
+        "rating": {
+          "type": "number",
+          "description": "Star rating from 1 to 5"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Review text content",
+          "maxLength": 2000
+        },
+        "likesCount": {
+          "type": "number",
+          "description": "Count of likes received"
+        },
+        "dislikesCount": {
+          "type": "number",
+          "description": "Count of dislikes received"
+        },
+        "likedBy": {
+          "type": "array",
+          "description": "User IDs who liked this review",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dislikedBy": {
+          "type": "array",
+          "description": "User IDs who disliked this review",
+          "items": {
+            "type": "string"
+          }
+        },
+        "replies": {
+          "type": "array",
+          "description": "Threaded replies to this review",
+          "items": {
+            "type": "object"
+          }
+        },
+        "isEdited": {
+          "type": "boolean",
+          "description": "Whether review was modified"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["userId", "userName", "rating", "comment", "likesCount", "dislikesCount", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -242,6 +322,10 @@
     "/tracked_channels/{channelId}": {
       "schema": "TrackedChannel",
       "description": "User YouTube tracked channel with real views and 24h/7d analytics strictly isolated per user"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "ReviewItem",
+      "description": "Public community reviews with likes, dislikes, and community replies"
     }
   }
 }

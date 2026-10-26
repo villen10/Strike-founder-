@@ -23,6 +23,7 @@ import { AdminPanelDashboard } from './components/AdminPanelDashboard';
 import { SubscriptionPlanView } from './components/SubscriptionPlanView';
 import { LegalTrustHub, LegalTabType } from './components/LegalTrustHub';
 import { ContentHub } from './components/ContentHub';
+import { ReviewsView } from './components/ReviewsView';
 import { SaaSFooter } from './components/SaaSFooter';
 import {
   ScrollProgressBar,
@@ -173,6 +174,8 @@ export default function App() {
       case 'appeal': return 'ai-appeal-generator';
       case 'knowledge': return 'youtube-strike-checker';
       case 'content-hub': return 'content-hub';
+      case 'reviews': return 'reviews';
+      case 'my-reviews': return 'my-reviews';
       case 'profile': return 'creator-profile';
       case 'subscription': return 'pricing-plans';
       case 'admin': return 'super-admin-control';
@@ -223,6 +226,12 @@ export default function App() {
         setCurrentView('analytics');
       } else if (hash === 'content-hub') {
         setCurrentView('content-hub');
+      } else if (hash === 'reviews') {
+        setCurrentView('reviews');
+        applyDynamicMetadata(getViewMetadata('reviews'));
+      } else if (hash === 'my-reviews') {
+        setCurrentView('my-reviews');
+        applyDynamicMetadata(getViewMetadata('my-reviews'));
       } else if (hash === 'creator-profile' || hash === 'profile') {
         setCurrentView('profile');
       } else if (hash === 'super-admin-control' || hash === 'admin') {
@@ -366,6 +375,8 @@ export default function App() {
         scanner: 'Pre-Upload Video Scanner & Copyright Checker | Striku',
         knowledge: 'YouTube Community Guidelines & Strike Checker Guide | Striku',
         'content-hub': 'SEO Content & Guides - YouTube Copyright & Strike Prevention | Striku',
+        reviews: 'Creator Reviews & Testimonials (4.9 ★) - Striku | striku.cloud',
+        'my-reviews': 'My Reviews & Community Feedback - Striku | striku.cloud',
         violations: 'CapCut Safe Cut Timecodes & Strike Prevention | Striku',
         appeal: 'YouTube Strike Counter-Appeal Kit | Striku',
         channels: 'YouTube Channel Health & Strike Tracker | Striku',
@@ -1107,6 +1118,46 @@ export default function App() {
                       setCurrentView('knowledge');
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
+                  />
+                </motion.div>
+              )}
+
+              {currentView === 'reviews' && (
+                <motion.div
+                  key="view-reviews"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ReviewsView
+                    isLight={isLight}
+                    currentUser={currentUser}
+                    onSignIn={() => {
+                      setAuthModalMode('login');
+                      setIsAuthModalOpen(true);
+                    }}
+                    initialMode="all"
+                  />
+                </motion.div>
+              )}
+
+              {currentView === 'my-reviews' && (
+                <motion.div
+                  key="view-my-reviews"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ReviewsView
+                    isLight={isLight}
+                    currentUser={currentUser}
+                    onSignIn={() => {
+                      setAuthModalMode('login');
+                      setIsAuthModalOpen(true);
+                    }}
+                    initialMode="my-reviews"
                   />
                 </motion.div>
               )}

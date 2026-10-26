@@ -152,6 +152,21 @@ service cloud.firestore {
         data.updatedAt is timestamp;
     }
 
+    function isValidReview(data) {
+      return data.keys().hasAll(['userId', 'userName', 'rating', 'comment', 'likesCount', 'dislikesCount', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+        data.userName is string && data.userName.size() > 0 && data.userName.size() <= 100 &&
+        (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 256)) &&
+        (!('userAvatar' in data) || (data.userAvatar is string && data.userAvatar.size() <= 1000)) &&
+        data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+        data.comment is string && data.comment.size() > 0 && data.comment.size() <= 2000 &&
+        data.likesCount is number && data.likesCount >= 0 &&
+        data.dislikesCount is number && data.dislikesCount >= 0 &&
+        (!('isEdited' in data) || data.isEdited is bool) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
     match /tracked_channels/{channelId} {
       // Strictly isolated: only the owning authenticated user can read or get their channel data
       allow get: if isValidChannelDocId(channelId) && (isOwner(existing().userId) || isAdmin());
@@ -169,6 +184,35 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt && 
         incoming().updatedAt == request.time;
       allow delete: if isValidChannelDocId(channelId) && (isOwner(existing().userId) || isAdmin());
+    }
+
+    // 5. Community Reviews Collection
+    match /reviews/{reviewId} {
+      // Publicly viewable reviews
+      allow get, list: if true;
+      allow create: if isValidId(reviewId) && 
+        isSignedIn() && 
+        incoming().userId == request.auth.uid && 
+        isValidReview(incoming()) && 
+        incoming().createdAt == request.time && 
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(reviewId) && 
+        isSignedIn() && 
+        isValidReview(incoming()) && 
+        incoming().userId == existing().userId && 
+        incoming().createdAt == existing().createdAt && 
+        incoming().updatedAt == request.time && 
+        (
+          // Case A: Author updating rating/comment/name
+          (isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['rating', 'comment', 'userName', 'isEdited', 'updatedAt'])) ||
+          // Case B: Voting (like / dislike count & list)
+          incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'dislikesCount', 'likedBy', 'dislikedBy', 'updatedAt']) ||
+          // Case C: Threaded replies
+          incoming().diff(existing()).affectedKeys().hasOnly(['replies', 'updatedAt']) ||
+          // Case D: Admin override
+          isAdmin()
+        );
+      allow delete: if isValidId(reviewId) && (isOwner(existing().userId) || isAdmin());
     }
   }
 }

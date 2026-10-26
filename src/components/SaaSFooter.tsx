@@ -229,6 +229,16 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
               <li>
                 <button
                   type="button"
+                  onClick={() => onNavigate('reviews')}
+                  className="hover:text-amber-500 font-bold transition cursor-pointer text-left flex items-center gap-1.5"
+                >
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  <span>Creator Reviews (4.9 ★)</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
                   onClick={() => onNavigate('legal', 'contact')}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left flex items-center gap-1.5"
                 >

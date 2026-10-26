@@ -88,6 +88,18 @@
     <priority>0.90</priority>
   </url>
   <url>
+    <loc>https://www.striku.cloud/#reviews</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://www.striku.cloud/#my-reviews</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://www.striku.cloud/#channel-tracker</loc>
     <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>

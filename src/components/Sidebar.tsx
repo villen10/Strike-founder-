@@ -27,6 +27,8 @@ import {
   Scale,
   Building2,
   CreditCard,
+  Star,
+  MessageSquare,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
@@ -42,6 +44,8 @@ export type NavView =
   | 'appeal'
   | 'knowledge'
   | 'content-hub'
+  | 'reviews'
+  | 'my-reviews'
   | 'profile'
   | 'subscription'
   | 'admin'
@@ -203,6 +207,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Sparkles,
       badge: 'SEO',
       badgeColor: 'bg-red-500/15 text-red-500 border border-red-500/30 font-bold',
+    },
+    {
+      id: 'reviews' as NavView,
+      label: 'Creator Reviews',
+      icon: Star,
+      badge: '4.9 ★',
+      badgeColor: 'bg-amber-500/15 text-amber-500 border border-amber-500/30 font-bold',
+    },
+    {
+      id: 'my-reviews' as NavView,
+      label: 'My Reviews',
+      icon: MessageSquare,
+      badge: null,
     },
     {
       id: 'legal' as NavView,
