@@ -91,7 +91,7 @@ export function generateAuditReportMetadata(
       url: 'https://www.striku.cloud',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI',
+        url: 'https://www.striku.cloud/logo.png',
       },
     },
     about: [
@@ -197,7 +197,7 @@ export function applyDynamicMetadata(meta: DynamicSeoMetadata) {
   setMetaTag('property', 'og:url', meta.ogUrl);
   setMetaTag('property', 'og:type', meta.ogType);
   setMetaTag('property', 'og:site_name', 'Striku');
-  setMetaTag('property', 'og:image', 'https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI');
+  setMetaTag('property', 'og:image', 'https://www.striku.cloud/logo.png');
   setMetaTag('property', 'og:image:width', '512');
   setMetaTag('property', 'og:image:height', '512');
 
@@ -206,7 +206,7 @@ export function applyDynamicMetadata(meta: DynamicSeoMetadata) {
   setMetaTag('name', 'twitter:title', meta.twitterTitle);
   setMetaTag('name', 'twitter:description', meta.twitterDescription);
   setMetaTag('name', 'twitter:url', meta.ogUrl);
-  setMetaTag('name', 'twitter:image', 'https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI');
+  setMetaTag('name', 'twitter:image', 'https://www.striku.cloud/logo.png');
 
   // 6. Dynamic JSON-LD Structured Data
   setDynamicSchema(meta.jsonLd);

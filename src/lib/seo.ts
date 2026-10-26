@@ -29,7 +29,7 @@ export function generateSchemaForArticle(article: ArticleSchemaData): string {
       url: baseUrl,
       logo: {
         '@type': 'ImageObject',
-        url: 'https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI',
+        url: 'https://www.striku.cloud/logo.png',
       },
     },
     author: {

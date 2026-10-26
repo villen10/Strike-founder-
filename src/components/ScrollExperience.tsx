@@ -428,7 +428,7 @@ export const FloatingScrollHUD: React.FC<FloatingScrollHUDProps> = ({
                 <div className="flex items-center gap-2.5 min-w-0 pr-1">
                   <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-slate-700/70 overflow-hidden shadow-md shadow-red-900/35">
                     <img
-                      src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
+                      src="/logo.png"
                       alt="Striku"
                       className="h-full w-full object-contain p-0.5"
                       onError={(e) => {

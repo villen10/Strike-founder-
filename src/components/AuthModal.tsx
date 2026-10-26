@@ -144,7 +144,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="flex items-center gap-3.5 mb-5">
             <div className="flex h-12 w-36 items-center justify-start shrink-0">
               <img
-                src="https://lh3.googleusercontent.com/d/1wD4MS3OLJmAjuuAy1OueuNM2EFW7TYCI"
+                src="/logo.png"
                 alt="Striku Logo"
                 className="h-full w-full object-contain"
                 onError={(e) => {
