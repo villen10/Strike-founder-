@@ -9,87 +9,8 @@ import {
 const STORAGE_KEY = 'sg_tracked_channels_v2';
 const SELECTED_CHANNEL_KEY = 'sg_selected_channel_id';
 
-// Default seed channel for instant preview if user hasn't connected or added one yet
-export const DEFAULT_DEMO_CHANNEL: TrackedChannel = {
-  id: 'UC_striku_creator_studio',
-  handle: '@StrikuCloud',
-  title: 'Striku Creator Studio',
-  customUrl: 'https://www.youtube.com/@StrikuCloud',
-  avatar: 'https://www.striku.cloud/logo.png',
-  banner: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=300&fit=crop',
-  subscribers: '128K subscribers',
-  subscriberCount: 128000,
-  videoCount: 34,
-  totalViews: '4.2M',
-  totalViewsCount: 4200000,
-  description: 'Official Striku Creator Studio: Live YouTube strike compliance checks, audio copyright analysis, and safe-cut timecode detection.',
-  lastUpdated: Date.now() - 3600000,
-  total24hLikes: 14280,
-  total24hViews: 284500,
-  total7dLikes: 68900,
-  total7dViews: 1420000,
-  isGoogleConnected: false,
-  privacyProtected: true,
-  videos: [
-    {
-      id: 'strik_v_01',
-      title: 'How to Prevent YouTube Copyright Strikes: Full 2026 Guide & Pre-Upload Scan',
-      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      thumbnail: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=640&h=360&fit=crop',
-      duration: '14:22',
-      publishedTime: '18 hours ago',
-      views: 145000,
-      viewsFormatted: '145K',
-      likes: 8200,
-      likesFormatted: '8.2K',
-      likes24h: 8200,
-      views24h: 145000,
-      likes7d: 8200,
-      views7d: 145000,
-      commentsCount: 520,
-      complianceStatus: 'SAFE_TO_UPLOAD',
-      strikeRiskPct: 0,
-    },
-    {
-      id: 'strik_v_02',
-      title: 'CapCut Audio Library Copyright Trap: Exact Timecode Safe Trimming',
-      url: 'https://www.youtube.com/watch?v=71ya_JC_IbM',
-      thumbnail: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=640&h=360&fit=crop',
-      duration: '11:15',
-      publishedTime: '2 days ago',
-      views: 280000,
-      viewsFormatted: '280K',
-      likes: 13900,
-      likesFormatted: '13.9K',
-      likes24h: 4200,
-      views24h: 75000,
-      likes7d: 13900,
-      views7d: 280000,
-      commentsCount: 940,
-      complianceStatus: 'SAFE_TO_UPLOAD',
-      strikeRiskPct: 0,
-    },
-    {
-      id: 'strik_v_03',
-      title: 'YouTube Community Guidelines 2026: Violent Pranks & Sensitive Flags Explained',
-      url: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
-      thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=640&h=360&fit=crop',
-      duration: '09:40',
-      publishedTime: '5 days ago',
-      views: 94000,
-      viewsFormatted: '94K',
-      likes: 4950,
-      likesFormatted: '4.9K',
-      likes24h: 1480,
-      views24h: 29000,
-      likes7d: 4950,
-      views7d: 94000,
-      commentsCount: 380,
-      complianceStatus: 'SAFE_TO_UPLOAD',
-      strikeRiskPct: 0,
-    },
-  ],
-};
+// Default seed channel is null: user adds their own genuine YouTube channel via URL or handle
+export const DEFAULT_DEMO_CHANNEL: TrackedChannel | null = null;
 
 /**
  * Format compact numbers like 1.2M, 45K
@@ -121,21 +42,31 @@ export function parseIsoDuration(duration?: string): string {
 }
 
 /**
- * Load saved channels from localStorage
+ * Load saved channels from localStorage.
+ * Guaranteed no pre-added or fake channels: only genuine channels added by the user are returned.
  */
 export function getSavedChannels(): TrackedChannel[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      if (Array.isArray(parsed)) {
+        // Strictly filter out any demo or fake seed channels
+        const userChannels = parsed.filter(
+          (c) =>
+            c &&
+            c.id &&
+            c.id !== 'UC_x5XG1OV2P6uZZ5FSM9Ttw' &&
+            c.id !== 'UC_striku_creator_studio' &&
+            c.id !== 'UC_striku_official_hub'
+        );
+        return userChannels;
       }
     }
   } catch (err) {
     console.error('Error reading saved channels from storage:', err);
   }
-  return [DEFAULT_DEMO_CHANNEL];
+  return [];
 }
 
 /**
