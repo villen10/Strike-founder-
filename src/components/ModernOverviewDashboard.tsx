@@ -547,325 +547,37 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
         </div>
       </div>
 
-      {/* 5B. PROPRIETARY DUAL-AGENT AI VIDEO AUDIT PIPELINE (HOW IT WORKS) */}
-      <div className={`rounded-3xl border p-5 sm:p-7 space-y-4 shadow-sm transition ${
-        isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/60'
+
+      {/* Sleek Technical Specs & Transparency Bar (Links to dedicated AI Specs view) */}
+      <div className={`rounded-2xl border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition ${
+        isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800 bg-slate-900/40'
       }`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
+            <Cpu className="h-5 w-5" />
+          </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-mono text-[10px] font-bold uppercase tracking-wider mb-1">
-              <Cpu className="h-3 w-3" />
-              <span>Multi-Agent Neural Architecture</span>
-            </div>
-            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-              How Striku&apos;s Frame-by-Frame Dual-Agent AI Pipeline Works
-            </h3>
-            <p className="text-xs text-slate-500 max-w-xl">
-              Video is cut frame-by-frame, analyzed in micro-detail by Agent 1, and independently cross-examined by Agent 2 for zero false alarms.
-            </p>
-          </div>
-          <span className="text-[11px] font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-xl self-start sm:self-auto">
-            99.4% Verified Accuracy
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Step 1 */}
-          <div className={`p-4 rounded-2xl border flex flex-col gap-2 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500 font-mono font-bold text-xs">
-                01
+            <div className="flex items-center gap-2">
+              <h4 className="font-display font-bold text-sm text-slate-900 dark:text-white">
+                Dual-Agent AI Architecture &amp; Subscription Matrix
+              </h4>
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full font-mono text-[9px] font-bold bg-blue-500/10 text-blue-500">
+                AI SPECS
               </span>
-              <Film className="h-4 w-4 text-blue-500" />
             </div>
-            <h4 className="font-display font-bold text-xs text-slate-900 dark:text-white">
-              1. Frame-by-Frame Cut
-            </h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Video is temporally sliced at 1 FPS + scene cuts. Audio waveforms are isolated. Nothing slips through—even a 1-second background music loop.
-            </p>
-          </div>
-
-          {/* Step 2 */}
-          <div className={`p-4 rounded-2xl border flex flex-col gap-2 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500 font-mono font-bold text-xs">
-                02
-              </span>
-              <Layers className="h-4 w-4 text-purple-500" />
-            </div>
-            <h4 className="font-display font-bold text-xs text-slate-900 dark:text-white">
-              2. Agent 1: Micro-Analysis
-            </h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              First AI agent inspects every tiny detail: child knife proximity, stunt hazards, unlicensed CapCut audio samples, and clickbait thumbnail flags.
-            </p>
-          </div>
-
-          {/* Step 3 */}
-          <div className={`p-4 rounded-2xl border flex flex-col gap-2 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 font-mono font-bold text-xs">
-                03
-              </span>
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
-            </div>
-            <h4 className="font-display font-bold text-xs text-slate-900 dark:text-white">
-              3. Agent 2: Dual Verification
-            </h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              A second independent agent stress-tests flagged issues against YouTube 2026 Community Guidelines and Fair Use laws to eliminate false positives.
-            </p>
-          </div>
-
-          {/* Step 4 */}
-          <div className={`p-4 rounded-2xl border flex flex-col gap-2 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 font-mono font-bold text-xs">
-                04
-              </span>
-              <Zap className="h-4 w-4 text-amber-500" />
-            </div>
-            <h4 className="font-display font-bold text-xs text-slate-900 dark:text-white">
-              4. Precision Safe-Cut Recipe
-            </h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Generates exact second-by-second trimming timecodes (e.g. Cut 00:04 - 00:08 in CapCut/Premiere) and pre-drafted AI strike counter-appeals.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Explore frame-by-frame analysis details, "Kia Hai vs Kia Nahi" plan comparison, and verified zero-trust security facts.
             </p>
           </div>
         </div>
-      </div>
 
-      {/* 5C. PLANS & FEATURES AT A GLANCE (KIA HAI VS KIA NAHI) */}
-      <div className={`rounded-3xl border p-5 sm:p-7 space-y-4 shadow-sm transition ${
-        isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/60'
-      }`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-500 font-mono text-[10px] font-bold uppercase tracking-wider mb-1">
-              <DollarSign className="h-3 w-3" />
-              <span>Public Plan Transparency</span>
-            </div>
-            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-              Simple Plans: What&apos;s Included vs. Locked (Kia Hai vs. Kia Nahi)
-            </h3>
-            <p className="text-xs text-slate-500 max-w-xl">
-              Accessible without login. Clear breakdown of Free vs Creator Shield ($19), Creator Pro ($39), and Studio Master ($80).
-            </p>
-          </div>
-          <a
-            href="#pricing"
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold font-display transition cursor-pointer self-start sm:self-auto shrink-0 shadow-sm"
-          >
-            <span>Compare All Plans Table</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </a>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Free Starter */}
-          <div className={`p-4 rounded-2xl border flex flex-col justify-between ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-xs text-slate-900 dark:text-white">Free Starter</span>
-                <span className="text-[10px] font-mono text-slate-400 font-bold">$0</span>
-              </div>
-              <p className="text-[10px] text-slate-400 mb-2">Max 3 mins (Shorts/Reels)</p>
-              <div className="space-y-1 text-[11px]">
-                <div className="text-emerald-500 flex items-center gap-1">✓ 5 Video Audits / mo</div>
-                <div className="text-emerald-500 flex items-center gap-1">✓ Strike Hazard Detection</div>
-                <div className="text-rose-500 flex items-center gap-1">✕ Safe Cut Timecodes (Locked)</div>
-                <div className="text-rose-500 flex items-center gap-1">✕ CapCut Audio Sniffer (Locked)</div>
-                <div className="text-rose-500 flex items-center gap-1">✕ AI Legal Appeals (Locked)</div>
-              </div>
-            </div>
-            <a href="#pricing" className="mt-3 text-[10px] font-bold text-red-500 hover:underline inline-flex items-center gap-1">
-              <span>View Free limits</span>
-              <ArrowRight className="h-2.5 w-2.5" />
-            </a>
-          </div>
-
-          {/* Creator Shield */}
-          <div className="p-4 rounded-2xl border border-emerald-500/50 bg-emerald-500/5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-xs text-emerald-400">Creator Shield</span>
-                <span className="text-[10px] font-mono text-emerald-400 font-bold">$19/mo</span>
-              </div>
-              <p className="text-[10px] text-slate-400 mb-2">Up to 60 mins (HD/4K)</p>
-              <div className="space-y-1 text-[11px]">
-                <div className="text-emerald-400 flex items-center gap-1">✓ 25 Video Audits / mo</div>
-                <div className="text-emerald-400 font-bold flex items-center gap-1">✓ Exact Safe Cut Timecodes</div>
-                <div className="text-emerald-400 flex items-center gap-1">✓ CapCut &amp; Premiere Markers</div>
-                <div className="text-emerald-400 flex items-center gap-1">✓ Dual-Agent Verification</div>
-                <div className="text-slate-500 flex items-center gap-1">✕ AI Counter-Appeals (Pro)</div>
-              </div>
-            </div>
-            <a href="#pricing" className="mt-3 text-[10px] font-bold text-emerald-400 hover:underline inline-flex items-center gap-1">
-              <span>Get Creator Shield</span>
-              <ArrowRight className="h-2.5 w-2.5" />
-            </a>
-          </div>
-
-          {/* Creator Pro */}
-          <div className="p-4 rounded-2xl border border-rose-500/50 bg-rose-500/5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-xs text-rose-400">Creator Pro</span>
-                <span className="text-[10px] font-mono text-rose-400 font-bold">$39/mo</span>
-              </div>
-              <p className="text-[10px] text-slate-400 mb-2">Up to 120 mins (Full Suite)</p>
-              <div className="space-y-1 text-[11px]">
-                <div className="text-rose-400 flex items-center gap-1">✓ 75 Video Audits / mo</div>
-                <div className="text-rose-400 flex items-center gap-1">✓ Everything in Shield Included</div>
-                <div className="text-rose-400 font-bold flex items-center gap-1">✓ AI Legal Counter-Appeals</div>
-                <div className="text-rose-400 flex items-center gap-1">✓ 2-Video Trend Compare</div>
-                <div className="text-rose-400 flex items-center gap-1">✓ Channel Studio Tracker (24h/7d)</div>
-              </div>
-            </div>
-            <a href="#pricing" className="mt-3 text-[10px] font-bold text-rose-400 hover:underline inline-flex items-center gap-1">
-              <span>Get Creator Pro</span>
-              <ArrowRight className="h-2.5 w-2.5" />
-            </a>
-          </div>
-
-          {/* Studio Master */}
-          <div className="p-4 rounded-2xl border border-amber-500/50 bg-amber-500/5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-xs text-amber-400">Studio Master</span>
-                <span className="text-[10px] font-mono text-amber-400 font-bold">$80/mo</span>
-              </div>
-              <p className="text-[10px] text-slate-400 mb-2">Unlimited 4K/8K (Agencies)</p>
-              <div className="space-y-1 text-[11px]">
-                <div className="text-amber-400 font-bold flex items-center gap-1">✓ UNLIMITED Video Audits</div>
-                <div className="text-amber-400 flex items-center gap-1">✓ Batch 20+ Bulk Queue</div>
-                <div className="text-amber-400 flex items-center gap-1">✓ 5 Team Editor Seats</div>
-                <div className="text-amber-400 flex items-center gap-1">✓ White-Label Client PDFs</div>
-                <div className="text-amber-400 flex items-center gap-1">✓ Direct YouTube Studio API</div>
-              </div>
-            </div>
-            <a href="#pricing" className="mt-3 text-[10px] font-bold text-amber-400 hover:underline inline-flex items-center gap-1">
-              <span>Get Studio Master</span>
-              <ArrowRight className="h-2.5 w-2.5" />
-            </a>
-          </div>
-        </div>
-      </div>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <h4 className="font-display text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-              Trusted by 14,200+ YouTube Creators &amp; Editors
-            </h4>
-            <p className="text-xs text-slate-500">
-              Protecting gaming channels, vloggers, podcasts, and MCN production networks
-            </p>
-          </div>
-          <div className="flex items-center gap-1 text-amber-500 text-xs font-mono font-bold">
-            <Star className="h-4 w-4 fill-current" />
-            <span>4.9 / 5.0 (680+ Reviews)</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-          <div
-            className={`rounded-2xl border p-4 flex flex-col justify-between transition ${
-              isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/80'
-            }`}
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-xs">
-                  H
-                </div>
-                <div>
-                  <span className="font-display text-xs font-bold block text-slate-900 dark:text-white">
-                    Hassan R.
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Tech &amp; Gaming · 420K Subs
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                &ldquo;Striku caught an accidental brand soundbite and kitchen knife frame that would have triggered my 2nd channel strike. Saved my channel.&rdquo;
-              </p>
-            </div>
-            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] text-emerald-500 font-mono font-bold">
-              <BadgeCheck className="h-3 w-3" />
-              <span>Verified Creator Pro Subscriber</span>
-            </div>
-          </div>
-
-          <div
-            className={`rounded-2xl border p-4 flex flex-col justify-between transition ${
-              isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/80'
-            }`}
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-xs">
-                  S
-                </div>
-                <div>
-                  <span className="font-display text-xs font-bold block text-slate-900 dark:text-white">
-                    Sarah L.
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Lifestyle &amp; Vlogs · 890K Subs
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                &ldquo;The CapCut safe cut timecode sheet is pure magic. My editor cuts out the exact 3 flagged seconds and our video monetization stays green.&rdquo;
-              </p>
-            </div>
-            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] text-emerald-500 font-mono font-bold">
-              <BadgeCheck className="h-3 w-3" />
-              <span>Verified Creator Pro Subscriber</span>
-            </div>
-          </div>
-
-          <div
-            className={`rounded-2xl border p-4 flex flex-col justify-between transition ${
-              isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/80'
-            }`}
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-white font-bold text-xs">
-                  M
-                </div>
-                <div>
-                  <span className="font-display text-xs font-bold block text-slate-900 dark:text-white">
-                    Marcus V.
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Studio Producer · 15 Channels
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                &ldquo;We run all 20 weekly client podcast episodes through Striku&apos;s bulk batch queue. Total peace of mind for our editing agency.&rdquo;
-              </p>
-            </div>
-            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[10px] text-amber-500 font-mono font-bold">
-              <BadgeCheck className="h-3 w-3" />
-              <span>Verified Agency Master ($80)</span>
-            </div>
-          </div>
-        </div>
+        <a
+          href="#ai-specs"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-sans text-xs font-bold transition shrink-0 self-stretch sm:self-auto justify-center cursor-pointer shadow-xs"
+        >
+          <span>View Full AI Specs</span>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </a>
       </div>
     </div>
   );

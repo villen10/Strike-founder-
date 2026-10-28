@@ -44,13 +44,15 @@ export interface ReviewItem {
   updatedAt?: string;
 }
 
-const LOCAL_REVIEWS_KEY = 'striku_community_reviews_v2';
-const LAST_DRIP_KEY = 'striku_last_review_drip_ts';
-const DRIP_INDEX_KEY = 'striku_review_drip_index';
+const LOCAL_REVIEWS_KEY = 'striku_community_reviews_real_v3';
 const REVIEWS_COLLECTION = 'reviews';
 
-// 22+ Authentic Creator Reviews with realistic channel pictures and genuine YouTube experiences
-export const SEED_REVIEWS: ReviewItem[] = [
+// Reviews start at 0. Only authentic reviews submitted by real creators via the UI are stored and shown.
+export const SEED_REVIEWS: ReviewItem[] = [];
+export const DRIP_REVIEWS_POOL: ReviewItem[] = [];
+
+// Deprecated legacy seed list (disabled)
+const _DISABLED_SEED_REVIEWS: ReviewItem[] = [
   {
     id: 'rev-seed-1',
     userId: 'user-tariq-yt',
@@ -447,8 +449,8 @@ export const SEED_REVIEWS: ReviewItem[] = [
   },
 ];
 
-// Scheduled Progressive Daily Drip Pool (Extra authentic creator reviews dripped 1 per day)
-export const DRIP_REVIEWS_POOL: Omit<ReviewItem, 'createdAt'>[] = [
+// Deprecated legacy drip pool (disabled)
+const _DISABLED_DRIP_REVIEWS_POOL: Omit<ReviewItem, 'createdAt'>[] = [
   {
     id: 'rev-drip-101',
     userId: 'user-rizwan-edits',
@@ -550,19 +552,19 @@ export const DRIP_REVIEWS_POOL: Omit<ReviewItem, 'createdAt'>[] = [
 ];
 
 /**
- * Helper to get local stored reviews
+ * Helper to get local stored reviews (starts clean at 0 reviews)
  */
 function getLocalReviews(): ReviewItem[] {
   try {
     const raw = localStorage.getItem(LOCAL_REVIEWS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {
     console.warn('Failed to parse local reviews:', e);
   }
-  return SEED_REVIEWS;
+  return [];
 }
 
 /**
@@ -577,81 +579,10 @@ function saveLocalReviews(reviews: ReviewItem[]): void {
 }
 
 /**
- * Automated daily progressive review drip engine:
- * Drops 1 review every 24 hours into the database and local cache from the DRIP_REVIEWS_POOL
- * allowing users to reply, like, and dislike seamlessly.
+ * Automated review drip disabled. Only real creator submissions are stored.
  */
 export async function checkAndRunScheduledReviewDrip(): Promise<boolean> {
-  try {
-    const lastDripStr = localStorage.getItem(LAST_DRIP_KEY);
-    const now = Date.now();
-    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-    if (lastDripStr) {
-      const lastDrip = parseInt(lastDripStr, 10);
-      if (!isNaN(lastDrip) && now - lastDrip < ONE_DAY_MS) {
-        // Not due yet (less than 24 hours)
-        return false;
-      }
-    }
-
-    const currentReviews = getLocalReviews();
-    let currentIndex = 0;
-    try {
-      const storedIdx = localStorage.getItem(DRIP_INDEX_KEY);
-      if (storedIdx) currentIndex = parseInt(storedIdx, 10) || 0;
-    } catch (e) {}
-
-    // Find the next drip review that is not yet added
-    const availableDrips = DRIP_REVIEWS_POOL.filter(
-      (drip) => !currentReviews.some((r) => r.id === drip.id)
-    );
-
-    if (availableDrips.length === 0) {
-      return false; // All drips have been published
-    }
-
-    const nextDrip = availableDrips[0];
-    const newDripReview: ReviewItem = {
-      ...nextDrip,
-      createdAt: 'Today',
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Prepend to current reviews
-    const updatedReviews = [newDripReview, ...currentReviews];
-    saveLocalReviews(updatedReviews);
-    localStorage.setItem(LAST_DRIP_KEY, now.toString());
-    localStorage.setItem(DRIP_INDEX_KEY, (currentIndex + 1).toString());
-
-    // Save to Firestore if available
-    try {
-      const docRef = doc(db, REVIEWS_COLLECTION, newDripReview.id);
-      await setDoc(docRef, {
-        userId: newDripReview.userId,
-        userName: newDripReview.userName,
-        userEmail: newDripReview.userEmail || '',
-        userAvatar: newDripReview.userAvatar || '',
-        rating: newDripReview.rating,
-        comment: newDripReview.comment,
-        likesCount: newDripReview.likesCount,
-        dislikesCount: newDripReview.dislikesCount,
-        likedBy: newDripReview.likedBy,
-        dislikedBy: newDripReview.dislikedBy,
-        replies: newDripReview.replies,
-        isEdited: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-    } catch (err) {
-      console.warn('Drip review sync to Firestore skipped (saved locally):', err);
-    }
-
-    return true;
-  } catch (err) {
-    console.warn('Error in scheduled review drip:', err);
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -696,17 +627,11 @@ export function subscribeToReviews(
             };
           });
 
-          // Merge seed reviews so the board is always complete and rich
-          const merged = [...list];
-          for (const seed of SEED_REVIEWS) {
-            if (!merged.some((r) => r.id === seed.id)) {
-              merged.push(seed);
-            }
-          }
-          saveLocalReviews(merged);
-          onUpdate(merged);
+          // Pure real user reviews only
+          saveLocalReviews(list);
+          onUpdate(list);
         } else {
-          // If Firestore collection is empty, display seed reviews and cache
+          // If Firestore collection has 0 reviews, display real local reviews or empty list
           const locals = getLocalReviews();
           onUpdate(locals);
         }

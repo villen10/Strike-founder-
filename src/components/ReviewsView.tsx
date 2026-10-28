@@ -109,7 +109,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
   const totalReviews = reviews.length;
   const avgRating = totalReviews > 0
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1)
-    : '5.0';
+    : 'New';
 
   const ratingCounts = {
     5: reviews.filter((r) => r.rating === 5).length,
@@ -318,7 +318,9 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             </div>
           </div>
           <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-            Based on {totalReviews} verified creator submissions. 98.4% of users report zero copyright strikes after pre-upload auditing.
+            {totalReviews > 0
+              ? `Based on ${totalReviews} authentic creator submission${totalReviews > 1 ? 's' : ''}. Ratings update in real-time.`
+              : 'No reviews submitted yet. Use the form below to be the first creator to share your experience!'}
           </p>
         </div>
 

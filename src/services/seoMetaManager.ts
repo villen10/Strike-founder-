@@ -14,16 +14,16 @@ export interface DynamicSeoMetadata {
 }
 
 export const DEFAULT_SEO_METADATA: DynamicSeoMetadata = {
-  title: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Audio Claim Checker (4.9★)',
+  title: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Audio Claim Checker',
   description:
-    'Striku (striku.cloud) is the #1 free online video copyright checker & YouTube strike pre-screener (4.9/5★). Dual-agent frame-by-frame analysis with CapCut safe-cut timecodes before upload.',
+    'Striku (striku.cloud) is the #1 free online video copyright checker & YouTube strike pre-screener. Dual-agent frame-by-frame analysis with CapCut safe-cut timecodes before upload.',
   canonicalUrl: 'https://www.striku.cloud/',
-  ogTitle: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Audio Claim Checker (4.9★)',
+  ogTitle: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Audio Claim Checker',
   ogDescription:
     'Free online video copyright checker & YouTube video strike checker before upload. Detects Content ID claims, audio loops, and community guidelines strikes with exact safe cut timecodes.',
   ogUrl: 'https://www.striku.cloud/',
   ogType: 'website',
-  twitterTitle: 'Video Copyright Checker Online Free - Striku | YouTube Strike Checker (4.9★)',
+  twitterTitle: 'Video Copyright Checker Online Free - Striku | YouTube Strike Checker',
   twitterDescription:
     'Free online video copyright checker & YouTube video strike checker before upload. Detects Content ID claims, audio loops, and community guidelines strikes with exact safe cut timecodes.',
 };
@@ -382,10 +382,10 @@ export function getViewMetadata(view: string): DynamicSeoMetadata {
     case 'reviews':
       return {
         ...DEFAULT_SEO_METADATA,
-        title: 'Creator Reviews & Testimonials (4.9 ★) - Striku | striku.cloud',
+        title: 'Creator Reviews & Community Feedback - Striku | striku.cloud',
         description:
           'Read authentic creator reviews for Striku video strike checker and copyright analysis tool. Share your feedback, like, dislike, and reply to community reviews.',
-        ogTitle: 'Creator Reviews & Testimonials (4.9 ★) - Striku',
+        ogTitle: 'Creator Reviews & Community Feedback - Striku',
         ogDescription: 'Read authentic creator reviews for Striku video strike checker and copyright analysis tool.',
         canonicalUrl: `${baseUrl}/#reviews`,
         ogUrl: `${baseUrl}/#reviews`,
@@ -410,6 +410,20 @@ export function getViewMetadata(view: string): DynamicSeoMetadata {
         ogDescription: 'Manage your Striku creator account profile, cloud sync preferences, and Pro Shield subscription status.',
         canonicalUrl: `${baseUrl}/#profile`,
         ogUrl: `${baseUrl}/#profile`,
+      };
+    case 'ai-specs':
+    case 'specs':
+    case 'ai-platform-specs':
+      return {
+        ...DEFAULT_SEO_METADATA,
+        title: 'AI System Specs & Plans Matrix - Striku | Dual-Agent Architecture & Safety',
+        description:
+          'Technical specifications of Striku 4-step dual-agent AI pipeline, frame-by-frame analysis architecture, plan comparison (Kia Hai vs Kia Nahi), and verified zero-trust creator privacy.',
+        ogTitle: 'AI System Specs & Subscription Plans Matrix - Striku',
+        ogDescription:
+          'Technical specifications of Striku multi-agent video audit architecture, plan matrix ($0 Free, $19 Shield, $39 Pro, $80 Master), and zero-trust security model.',
+        canonicalUrl: `${baseUrl}/#ai-specs`,
+        ogUrl: `${baseUrl}/#ai-specs`,
       };
     case 'pricing':
     case 'pricing-plans':

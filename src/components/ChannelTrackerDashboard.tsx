@@ -882,7 +882,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
 
           <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            <span>Accepts handles (<code>@channel</code>), full YouTube links, or custom URLs. 100% private to your account.</span>
+            <span>100% Safe Public URL Tracking: Striku NEVER asks for Google passwords or channel OAuth permissions. Enter any public handle (<code>@channel</code>) or link.</span>
           </p>
         </div>
       )}
@@ -905,7 +905,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
                     Add YouTube Channel
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Enter channel URL or @handle to load real-time views &amp; stats.
+                    No Google login or password needed. Enter public channel URL or @handle.
                   </p>
                 </div>
               </div>

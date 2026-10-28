@@ -17,6 +17,7 @@ import {
   Clock,
   Layers,
   Check,
+  Cpu,
 } from 'lucide-react';
 import { NavView } from './Sidebar';
 import { LegalTabType } from './LegalTrustHub';
@@ -150,6 +151,16 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
                   className="hover:text-red-600 dark:hover:text-red-400 transition cursor-pointer font-bold text-indigo-600 dark:text-indigo-400 text-left"
                 >
                   Subscription Pricing ($0 - $80) →
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('ai-specs')}
+                  className="hover:text-blue-600 dark:hover:text-blue-400 font-bold transition cursor-pointer text-left flex items-center gap-1.5 text-blue-600 dark:text-blue-400"
+                >
+                  <Cpu className="h-3 w-3" />
+                  <span>AI &amp; Platform Specs</span>
                 </button>
               </li>
             </ul>

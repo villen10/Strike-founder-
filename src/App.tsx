@@ -24,6 +24,7 @@ import { SubscriptionPlanView } from './components/SubscriptionPlanView';
 import { LegalTrustHub, LegalTabType } from './components/LegalTrustHub';
 import { ContentHub } from './components/ContentHub';
 import { ReviewsView } from './components/ReviewsView';
+import { AiPlatformSpecsView } from './components/AiPlatformSpecsView';
 import { SaaSFooter } from './components/SaaSFooter';
 import {
   ScrollProgressBar,
@@ -176,6 +177,7 @@ export default function App() {
       case 'content-hub': return 'content-hub';
       case 'reviews': return 'reviews';
       case 'my-reviews': return 'my-reviews';
+      case 'ai-specs': return 'ai-specs';
       case 'profile': return 'creator-profile';
       case 'subscription': return 'pricing-plans';
       case 'admin': return 'super-admin-control';
@@ -232,6 +234,9 @@ export default function App() {
       } else if (hash === 'my-reviews') {
         setCurrentView('my-reviews');
         applyDynamicMetadata(getViewMetadata('my-reviews'));
+      } else if (hash === 'ai-specs' || hash === 'specs' || hash === 'ai-platform-specs') {
+        setCurrentView('ai-specs');
+        applyDynamicMetadata(getViewMetadata('ai-specs'));
       } else if (hash === 'creator-profile' || hash === 'profile') {
         setCurrentView('profile');
       } else if (hash === 'super-admin-control' || hash === 'admin') {
@@ -375,8 +380,9 @@ export default function App() {
         scanner: 'Pre-Upload Video Scanner & Copyright Checker | Striku',
         knowledge: 'YouTube Community Guidelines & Strike Checker Guide | Striku',
         'content-hub': 'SEO Content & Guides - YouTube Copyright & Strike Prevention | Striku',
-        reviews: 'Creator Reviews & Testimonials (4.9 ★) - Striku | striku.cloud',
+        reviews: 'Creator Reviews & Community Feedback - Striku | striku.cloud',
         'my-reviews': 'My Reviews & Community Feedback - Striku | striku.cloud',
+        'ai-specs': 'AI System Architecture & Subscription Plans Matrix | Striku',
         violations: 'CapCut Safe Cut Timecodes & Strike Prevention | Striku',
         appeal: 'YouTube Strike Counter-Appeal Kit | Striku',
         channels: 'YouTube Channel Health & Strike Tracker | Striku',
@@ -1158,6 +1164,27 @@ export default function App() {
                       setIsAuthModalOpen(true);
                     }}
                     initialMode="my-reviews"
+                  />
+                </motion.div>
+              )}
+
+              {currentView === 'ai-specs' && (
+                <motion.div
+                  key="view-ai-specs"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  <AiPlatformSpecsView
+                    isLight={isLight}
+                    onOpenPricing={() => setIsPricingModalOpen(true)}
+                    onSelectPlan={(tier, cycle) => {
+                      setCheckoutSelectedTier(tier);
+                      setCheckoutBillingCycle(cycle);
+                      setIsCheckoutModalOpen(true);
+                    }}
                   />
                 </motion.div>
               )}
