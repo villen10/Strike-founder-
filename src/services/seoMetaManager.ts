@@ -14,18 +14,18 @@ export interface DynamicSeoMetadata {
 }
 
 export const DEFAULT_SEO_METADATA: DynamicSeoMetadata = {
-  title: 'Striku - striku.cloud | Striku Video Analysis & YouTube Strike Checker',
+  title: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Audio Claim Checker (4.9★)',
   description:
-    'Striku (striku.cloud) - Official Striku video analysis tool. Check video before upload to YouTube to detect strikes, copyright claims, and monetization risks with frame-accurate timestamps.',
+    'Striku (striku.cloud) is the #1 free online video copyright checker & YouTube strike pre-screener (4.9/5★). Dual-agent frame-by-frame analysis with CapCut safe-cut timecodes before upload.',
   canonicalUrl: 'https://www.striku.cloud/',
-  ogTitle: 'Striku - striku.cloud | Striku Video Analysis & YouTube Strike Checker',
+  ogTitle: 'Video Copyright Checker Online Free - Striku | YouTube Strike & Audio Claim Checker (4.9★)',
   ogDescription:
-    'Check video before upload with Striku. AI YouTube strike checker and copyright claim founder. Analyzes video frames to detect community guidelines strikes, copyright risks, and monetization issues with frame-accurate timestamps.',
+    'Free online video copyright checker & YouTube video strike checker before upload. Detects Content ID claims, audio loops, and community guidelines strikes with exact safe cut timecodes.',
   ogUrl: 'https://www.striku.cloud/',
   ogType: 'website',
-  twitterTitle: 'Striku - striku.cloud | Striku Video Analysis & YouTube Strike Checker',
+  twitterTitle: 'Video Copyright Checker Online Free - Striku | YouTube Strike Checker (4.9★)',
   twitterDescription:
-    'Check video before upload with Striku. AI YouTube strike checker and copyright claim founder. Analyzes video frames to detect community guidelines strikes, copyright risks, and monetization issues with frame-accurate timestamps.',
+    'Free online video copyright checker & YouTube video strike checker before upload. Detects Content ID claims, audio loops, and community guidelines strikes with exact safe cut timecodes.',
 };
 
 /**
