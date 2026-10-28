@@ -411,15 +411,19 @@ export function getViewMetadata(view: string): DynamicSeoMetadata {
         canonicalUrl: `${baseUrl}/#profile`,
         ogUrl: `${baseUrl}/#profile`,
       };
+    case 'pricing':
+    case 'pricing-plans':
     case 'subscription':
       return {
         ...DEFAULT_SEO_METADATA,
-        title: 'Pro Shield & Enterprise Subscription Plans - Striku | striku.cloud',
-        description: 'Upgrade to Striku Pro Shield for unlimited video scans, priority neural consensus, and advanced copyright detection.',
-        ogTitle: 'Pro Shield & Enterprise Subscription Plans - Striku',
-        ogDescription: 'Upgrade to Striku Pro Shield for unlimited video scans, priority neural consensus, and advanced copyright detection.',
-        canonicalUrl: `${baseUrl}/#subscription`,
-        ogUrl: `${baseUrl}/#subscription`,
+        title: 'Subscription Plans & Feature Comparison - Striku | Free vs Creator Shield & Pro',
+        description:
+          'Compare Striku plans: Free ($0/mo, 5 scans), Creator Shield ($19/mo, safe-cut timecodes), Creator Pro ($39/mo, AI appeals & channel tracker), and Studio Master ($80/mo).',
+        ogTitle: 'Striku Subscription Plans & Feature Matrix - Free vs Pro',
+        ogDescription:
+          'Transparent plan breakdown: Free ($0), Creator Shield ($19), Creator Pro ($39), and Studio Master ($80). What is included vs locked without login.',
+        canonicalUrl: `${baseUrl}/#pricing`,
+        ogUrl: `${baseUrl}/#pricing`,
       };
     case 'admin':
       return {

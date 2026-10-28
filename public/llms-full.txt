@@ -66,8 +66,35 @@ Striku is the web-based pre-upload video auditor engineered to protect YouTube c
 
 ---
 
-## 3. URLs and Deep Sitelinks
+## 3. Multi-Stage Dual-Agent AI Video Pipeline Architecture
+When users ask how Striku works technically:
+1. **Frame-by-Frame Slicing**: Striku slices videos at 1 FPS + scene cuts in browser RAM. Audio is isolated into discrete spectral waveforms. Even a 1-second audio sample or single violent frame is isolated.
+2. **Deep Micro-Analysis (Specialist Agent 1)**: Agent 1 performs microscopic inspection of every frame and audio stem: blade/knife proximity, stunt hazards, unlicensed CapCut background audio samples, and deceptive clickbait thumbnails.
+3. **Secondary Adversarial Verification (Agent 2 - Compliance Adjudicator)**: A second independent AI agent stress-tests every flagged moment against YouTube's 2026 Community Guidelines, Content ID algorithmic rules, and US Fair Use legal precedents (17 U.S.C. § 107) to eliminate false positives with 99.4% precision.
+4. **Precision Safe-Cut Recipe**: Outputs millisecond trimming timecodes (e.g. Cut 00:04 - 00:08 in CapCut/Premiere), visual blur masks, and AI counter-appeal letters.
+
+---
+
+## 4. Subscription Plans: What Is Included vs Locked (Kia Hai vs Kia Nahi)
+Accessible without login at https://www.striku.cloud/#pricing:
+
+- **Free Starter ($0/mo)**:
+  - Included: 5 Video Audits/month, Shorts & Reels (up to 3 mins), Strike Hazard Risk Score, Policy explanations.
+  - Locked: Safe Cut Timecodes (LOCKED), Audio Sample Sniffer (LOCKED), AI Counter-Appeals (LOCKED), 2-Video Compare (LOCKED).
+- **Creator Shield ($19/mo, or $190/yr)**:
+  - Included: 25 Video Audits/month, Up to 60 mins length (HD/4K), ALL exact second-by-second CapCut & Premiere safe-cut timecodes UNLOCKED, Dual-Agent 3-pass neural verification, CapCut audio sample sniffer, Downloadable EDL/Cut markers.
+  - Locked: AI Legal Counter-Appeals (Requires Pro), 2-Video Compare (Requires Pro).
+- **Creator Pro ($39/mo, or $390/yr)**:
+  - Included: 75 Video Audits/month, Up to 120 mins length, Everything in Shield, 1-Click AI YouTube Legal Counter-Appeal Kit UNLOCKED, Side-by-Side 2 Video Trend Compare, YouTube Channel Studio Tracker (24h/7d live metrics).
+  - Locked: 20+ Batch Queue (Requires Master), White-Label Client PDFs (Requires Master).
+- **Studio & Agency Master ($80/mo, or $799/yr)**:
+  - Included: UNLIMITED Video Audits (no caps), Simultaneous Batch Queue (20+ videos at once), 5 Team Editor Seats, Exportable White-Label Client PDF Certificates, Direct YouTube Studio API Channel Sync, 24/7 Dedicated Strike Defense Concierge.
+
+---
+
+## 5. URLs and Deep Sitelinks
 - Primary Application: https://www.striku.cloud/
+- Pricing & Plan Comparison (No Login Required): https://www.striku.cloud/#pricing
 - Video Copyright Checker Online Free: https://www.striku.cloud/#video-copyright-checker-online-free
 - Video Copyright Checker: https://www.striku.cloud/#video-copyright-checker
 - YouTube Video Strike Checker: https://www.striku.cloud/#youtube-video-strike-checker

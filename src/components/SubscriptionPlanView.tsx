@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import {
   Sparkles,
   Check,
+  X,
   ShieldCheck,
   Building2,
   Lock,
@@ -11,6 +12,16 @@ import {
   Globe,
   FileText,
   Scale,
+  Cpu,
+  Layers,
+  Activity,
+  Zap,
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  Film,
+  Music,
+  Shield,
 } from 'lucide-react';
 import {
   SubscriptionTier,
@@ -33,7 +44,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
   const metrics = getDeviceScanMetrics();
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-6 text-white">
+    <div className="flex flex-col gap-8 max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-6 text-white font-sans">
       {/* Current Active Plan Status Banner */}
       <div
         className={`rounded-3xl border p-5 sm:p-6 transition shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${
@@ -71,7 +82,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
-                Current Plan
+                Current Active Status
               </span>
               <span
                 className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
@@ -94,16 +105,16 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
                 ? 'Creator Pro Active ($39/mo)'
                 : currentTier === 'shield'
                 ? 'Creator Shield Active ($19/mo)'
-                : 'Free Starter Trial'}
+                : 'Free Starter (5 Video Scans/Month)'}
             </h2>
             <p className="font-sans text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
               {currentTier === 'free'
-                ? `You have audited ${metrics.usedScans} of ${metrics.totalScans} free videos this month. Safe cut timecodes & appeal letters are locked.`
+                ? `You have used ${metrics.usedScans} of ${metrics.totalScans} free video audits this month. Exact CapCut safe-cut timecodes and AI appeals are locked.`
                 : currentTier === 'shield'
-                ? 'All exact CapCut/Premiere safe-cut timecodes are unlocked. 25 video scans per month active.'
+                ? 'All exact CapCut & Premiere safe-cut timecodes are unlocked. 25 HD/4K scans per month active.'
                 : currentTier === 'pro'
                 ? 'All features including AI Legal Appeals, Side-by-Side Compare & Channel Tracker active. 75 scans/mo.'
-                : 'Studio & Agency Master active: Unlimited video audits, team seats, and white-label client PDF certificates.'}
+                : 'Studio & Agency Master active: Unlimited video audits, 5 team seats, and white-label client PDF certificates.'}
             </p>
           </div>
         </div>
@@ -122,11 +133,15 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
 
       {/* Pricing Header & Billing Toggle */}
       <div className="text-center py-2 space-y-2">
-        <h1 className="font-display text-2xl sm:text-3xl font-black text-white tracking-tight">
-          Choose the Perfect Strike Protection Plan
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <Shield className="h-3 w-3" />
+          <span>Transparent Pricing &amp; Feature Comparison</span>
+        </div>
+        <h1 className="font-display text-2xl sm:text-4xl font-black text-white tracking-tight">
+          Choose Your YouTube Strike Protection Plan
         </h1>
-        <p className="font-sans text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-          No hidden fees. Safe Cut timecodes, AI appeals, and unlimited audits.
+        <p className="font-sans text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          Publicly visible without login. See exactly what is included (Kia Hai) and what is locked (Kia Nahi) across each tier so you can choose with 100% confidence.
         </p>
 
         {/* Monthly / Yearly Toggle */}
@@ -138,6 +153,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
             type="button"
             onClick={() => setBillingCycle((prev) => (prev === 'monthly' ? 'yearly' : 'monthly'))}
             className="relative h-7 w-13 rounded-full bg-slate-800 p-1 transition cursor-pointer border border-slate-700"
+            aria-label="Toggle annual billing discount"
           >
             <div
               className={`h-5 w-5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 transition-transform ${
@@ -156,7 +172,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
         </div>
       </div>
 
-      {/* 4 Pricing Cards */}
+      {/* 4 Pricing Cards with Explicit "Kia Hai vs Kia Nahi" */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* TIER 1: FREE STARTER ($0) */}
         <div
@@ -176,7 +192,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               )}
             </div>
             <p className="text-[11px] text-slate-400 min-h-[32px] leading-relaxed">
-              Shorts & Reels (Max 3 mins) basic strike check.
+              Basic strike risk check for Shorts &amp; Reels (Max 3 mins).
             </p>
 
             <div className="my-3">
@@ -184,13 +200,43 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               <span className="text-xs text-slate-400 ml-1">/ month</span>
             </div>
 
+            {/* Included vs Not Included */}
             <div className="pt-3 border-t border-slate-800 space-y-2 text-xs">
-              {SUBSCRIPTION_PLANS.free.features.map((feat, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 text-slate-300">
-                  <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span className="text-[11px] leading-snug">{feat}</span>
-                </div>
-              ))}
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block mb-1">
+                Included in Free:
+              </span>
+              <div className="flex items-start gap-1.5 text-slate-300">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">5 Video Audits / month</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-300">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Shorts &amp; Reels (Max 3 minutes length)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-300">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Strike Hazard Score (Critical / Safe)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-300">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Policy Violation Explanation</span>
+              </div>
+
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block mt-3 mb-1">
+                Locked / Not in Free:
+              </span>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Exact Safe Cut Timecodes (Locked)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">CapCut Audio Sample Sniffer (Locked)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">AI Legal Counter-Appeal Kit (Locked)</span>
+              </div>
             </div>
           </div>
 
@@ -239,13 +285,43 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               )}
             </div>
 
+            {/* Included vs Not Included */}
             <div className="pt-3 border-t border-slate-800 space-y-2 text-xs">
-              {SUBSCRIPTION_PLANS.shield.features.map((feat, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 text-white">
-                  <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span className="text-[11px] leading-snug">{feat}</span>
-                </div>
-              ))}
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block mb-1">
+                Included in Shield:
+              </span>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">25 Video Audits / month (Up to 60 mins)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug font-bold text-emerald-300">✓ ALL Exact Safe Cut &amp; Blur Timecodes UNLOCKED</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">CapCut &amp; Premiere Trimming Markers</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Dual-Agent Neural Verification (Alpha &amp; Beta)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Downloadable EDL &amp; Cut Sheet</span>
+              </div>
+
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mt-3 mb-1">
+                Not in Shield:
+              </span>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-slate-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">AI Legal Counter-Appeal Kit (Requires Pro)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-slate-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Side-by-Side Video Compare (Requires Pro)</span>
+              </div>
             </div>
           </div>
 
@@ -280,7 +356,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               )}
             </div>
             <p className="text-[11px] text-slate-300 min-h-[32px] leading-relaxed">
-              Full strike defense, AI legal counter-appeals & comparisons.
+              Full strike defense, AI legal counter-appeals &amp; channel tracker.
             </p>
 
             <div className="my-3">
@@ -295,13 +371,47 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               )}
             </div>
 
+            {/* Included vs Not Included */}
             <div className="pt-3 border-t border-slate-800 space-y-2 text-xs">
-              {SUBSCRIPTION_PLANS.pro.features.map((feat, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 text-white">
-                  <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
-                  <span className="text-[11px] leading-snug">{feat}</span>
-                </div>
-              ))}
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block mb-1">
+                Included in Pro:
+              </span>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">75 Video Audits / month (Up to 120 mins)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Everything in Creator Shield included</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug font-bold text-rose-300">✓ 1-Click AI YouTube Legal Counter-Appeal Kit UNLOCKED</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">✓ Side-by-Side 2 Video Trend Compare</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">✓ YouTube Channel Studio Tracker (24h/7d)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-white">
+                <Check className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Priority GPU Cloud Processing</span>
+              </div>
+
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mt-3 mb-1">
+                Not in Pro:
+              </span>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-slate-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Batch Queue 20+ Videos (Requires Master)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-400">
+                <X className="h-3.5 w-3.5 text-slate-500 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">White-Label Client PDFs (Requires Master)</span>
+              </div>
             </div>
           </div>
 
@@ -342,7 +452,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               )}
             </div>
             <p className="text-[11px] text-slate-400 min-h-[32px] leading-relaxed">
-              Unlimited audits, batch queue, team seats & white-label PDFs.
+              Unlimited audits, batch queue, team seats &amp; white-label PDFs.
             </p>
 
             <div className="my-3">
@@ -357,13 +467,35 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
               )}
             </div>
 
+            {/* Included vs Not Included */}
             <div className="pt-3 border-t border-slate-800 space-y-2 text-xs">
-              {SUBSCRIPTION_PLANS.enterprise.features.map((feat, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 text-slate-200">
-                  <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
-                  <span className="text-[11px] leading-snug">{feat}</span>
-                </div>
-              ))}
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block mb-1">
+                Included in Studio Master:
+              </span>
+              <div className="flex items-start gap-1.5 text-slate-200">
+                <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug font-bold text-amber-300">UNLIMITED Video Audits (No Caps)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-200">
+                <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Simultaneous Batch Queue (20+ Videos)</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-200">
+                <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">5 Team Editor Seats &amp; Shared Studio</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-200">
+                <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">White-Label Client PDF Certificates</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-200">
+                <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">Direct YouTube Studio API Channel Sync</span>
+              </div>
+              <div className="flex items-start gap-1.5 text-slate-200">
+                <Check className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-snug">24/7 Dedicated Strike Defense Concierge</span>
+              </div>
             </div>
           </div>
 
@@ -380,6 +512,273 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
         </div>
       </div>
 
+      {/* DETAILED FEATURE COMPARISON MATRIX (KIA HAI VS KIA NAHI) */}
+      <section
+        id="plans-feature-matrix"
+        className="rounded-3xl border border-slate-800 bg-[#0c1220] p-6 sm:p-8 flex flex-col gap-6 shadow-xl"
+        aria-label="Complete Feature Matrix: What is included and what is not included in each plan"
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <span className="text-[10px] font-mono font-bold text-red-500 uppercase tracking-widest block">
+              Transparent Comparison Table
+            </span>
+            <h2 className="font-display text-xl sm:text-2xl font-black text-white mt-0.5">
+              Detailed Feature Matrix: Included vs. Locked (Kia Hai vs. Kia Nahi)
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Read exact plan allowances, video length caps, multi-agent AI verification passes, and safe-cut capabilities.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 shrink-0">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>AI Crawlable &amp; Publicly Accessible</span>
+          </div>
+        </div>
+
+        {/* Semantic HTML Table for Search Engines and AI Crawlers */}
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
+                <th scope="col" className="py-3 px-3 min-w-[220px]">Feature &amp; Capability</th>
+                <th scope="col" className="py-3 px-3 text-center min-w-[120px]">Free Starter ($0)</th>
+                <th scope="col" className="py-3 px-3 text-center min-w-[140px] text-emerald-400 font-bold">Creator Shield ($19)</th>
+                <th scope="col" className="py-3 px-3 text-center min-w-[140px] text-rose-400 font-bold">Creator Pro ($39)</th>
+                <th scope="col" className="py-3 px-3 text-center min-w-[150px] text-amber-400 font-bold">Studio Master ($80)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 font-sans">
+              {/* Category 1: Scans & Limits */}
+              <tr className="bg-slate-900/60">
+                <th colSpan={5} scope="colgroup" className="py-2.5 px-3 font-mono text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                  1. Scan Volume &amp; Duration Limits
+                </th>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Monthly Video Audits</td>
+                <td className="py-3 px-3 text-center text-slate-300 font-mono">5 Videos / mo</td>
+                <td className="py-3 px-3 text-center text-emerald-300 font-mono font-bold">25 Videos / mo</td>
+                <td className="py-3 px-3 text-center text-rose-300 font-mono font-bold">75 Videos / mo</td>
+                <td className="py-3 px-3 text-center text-amber-300 font-mono font-black">UNLIMITED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Max Video Duration Allowed</td>
+                <td className="py-3 px-3 text-center text-slate-400 font-mono">Max 3 Mins (Shorts/Reels)</td>
+                <td className="py-3 px-3 text-center text-slate-200 font-mono">Up to 60 Minutes</td>
+                <td className="py-3 px-3 text-center text-slate-200 font-mono">Up to 120 Minutes</td>
+                <td className="py-3 px-3 text-center text-amber-300 font-mono font-bold">Unlimited (Any Length)</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Simultaneous Batch Bulk Uploads</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">✕ 1 at a time</td>
+                <td className="py-3 px-3 text-center text-slate-300 font-mono">3 queue slots</td>
+                <td className="py-3 px-3 text-center text-slate-300 font-mono">5 queue slots</td>
+                <td className="py-3 px-3 text-center text-amber-300 font-mono font-bold">✓ 20+ Batch Queue</td>
+              </tr>
+
+              {/* Category 2: Multi-Agent AI Pipeline */}
+              <tr className="bg-slate-900/60">
+                <th colSpan={5} scope="colgroup" className="py-2.5 px-3 font-mono text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                  2. AI Neural Verification Pipeline
+                </th>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Temporal Frame-by-Frame Slicing (1 FPS)</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Included</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Included</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Deep Micro-Analysis (Agent 1: Visual &amp; Audio)</td>
+                <td className="py-3 px-3 text-center text-slate-300 font-mono">Basic Scan</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Full Inspection</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Full Inspection</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Full Inspection</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Secondary Adversarial Agent Verification (Agent 2)</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">✕ Not in Free (1-Pass)</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Dual-Agent Pass</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Dual-Agent Pass</td>
+                <td className="py-3 px-3 text-center text-amber-400 font-bold">✓ Multi-Agent Adjudicator</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Zero Video Retention Privacy (Browser Local)</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ 100% Private</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ 100% Private</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ 100% Private</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ 100% Private</td>
+              </tr>
+
+              {/* Category 3: Fixes & Safe-Cuts */}
+              <tr className="bg-slate-900/60">
+                <th colSpan={5} scope="colgroup" className="py-2.5 px-3 font-mono text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                  3. Actionable Safe Cuts &amp; Fixes
+                </th>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Exact Millisecond Safe Cut Timecodes</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED (Alert only)</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED (Exact sec)</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED (Exact sec)</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED (Exact sec)</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Visual Blur Masks &amp; Instructions</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">CapCut Audio Copyright Sample Sniffer</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Downloadable EDL &amp; Premiere Markers</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+
+              {/* Category 4: Creator Tools & Legal Defense */}
+              <tr className="bg-slate-900/60">
+                <th colSpan={5} scope="colgroup" className="py-2.5 px-3 font-mono text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                  4. Legal Defense, Appeals &amp; Team Collaboration
+                </th>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">1-Click AI YouTube Legal Counter-Appeal Kit</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Side-by-Side 2 Video Trend Compare</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">YouTube Channel Studio Tracker (24h/7d metrics)</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-400 font-bold">✓ UNLOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">White-Label Client PDF Certificates</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-rose-500 font-mono">🔒 LOCKED</td>
+                <td className="py-3 px-3 text-center text-amber-400 font-bold">✓ UNLOCKED</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition">
+                <td className="py-3 px-3 font-medium text-slate-200">Team Editor Seats</td>
+                <td className="py-3 px-3 text-center text-slate-400 font-mono">1 Device</td>
+                <td className="py-3 px-3 text-center text-slate-300 font-mono">1 Creator</td>
+                <td className="py-3 px-3 text-center text-slate-300 font-mono">1 Creator</td>
+                <td className="py-3 px-3 text-center text-amber-300 font-mono font-bold">✓ 5 Team Seats</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* HOW THE MULTI-STAGE DUAL-AGENT AI PIPELINE WORKS */}
+      <section
+        id="how-striku-pipeline-works"
+        className="rounded-3xl border border-slate-800 bg-[#0c1220] p-6 sm:p-8 flex flex-col gap-6 shadow-xl"
+        aria-label="How Striku's 3-Stage Dual-Agent AI Video Pipeline Works"
+      >
+        <div className="border-b border-slate-800 pb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono text-[11px] font-bold uppercase tracking-wider mb-2">
+            <Cpu className="h-3 w-3" />
+            <span>Proprietary Multi-Agent Architecture</span>
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-black text-white">
+            How Striku&apos;s Frame-by-Frame Dual-Agent AI Pipeline Works
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Unlike simple metadata tools, Striku splits your video frame-by-frame, performs deep micro-analysis on every visual and audio element with Agent 1, and verifies it with an independent adversarial Agent 2 before generating best-in-class results.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Step 1 */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600/20 text-blue-400 font-mono font-bold text-xs">
+                01
+              </span>
+              <Film className="h-5 w-5 text-blue-400" />
+            </div>
+            <h3 className="font-display font-bold text-sm text-white">
+              1. Frame-by-Frame Temporal Slicing
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Video is decomposed at 1 FPS plus dynamic scene-cut transitions locally inside your browser. Audio waveforms are isolated into discrete acoustic spectrograms. Nothing is missed—even a 1-second background music loop or single violent frame.
+            </p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-600/20 text-purple-400 font-mono font-bold text-xs">
+                02
+              </span>
+              <Layers className="h-5 w-5 text-purple-400" />
+            </div>
+            <h3 className="font-display font-bold text-sm text-white">
+              2. Agent 1: Deep Micro-Analysis
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Specialist AI Agent 1 conducts microscopic inspection of every frame: blade proximity in child safety, stunt shock value, CapCut unlicensed audio samples, hate iconography, and deceptive thumbnail clickbait flags.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-600/20 text-emerald-400 font-mono font-bold text-xs">
+                03
+              </span>
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            </div>
+            <h3 className="font-display font-bold text-sm text-white">
+              3. Agent 2: Adversarial Verification
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              A second independent verification agent re-examines every flagged moment against YouTube&apos;s active 2026 Community Guidelines and Content ID database. It eliminates false positives and cross-examines Fair Use safe harbors to ensure 99.4% precision.
+            </p>
+          </div>
+
+          {/* Step 4 */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-600/20 text-amber-400 font-mono font-bold text-xs">
+                04
+              </span>
+              <Zap className="h-5 w-5 text-amber-400" />
+            </div>
+            <h3 className="font-display font-bold text-sm text-white">
+              4. Precision Safe-Cut Recipe
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Synthesizes exact second-by-second trimming timecodes (e.g., Cut 00:04 - 00:08 in CapCut/Premiere), visual blur radius instructions, and a pre-drafted legal counter-appeal letter before you publish to YouTube.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Global Payment Badges */}
       <div className="rounded-2xl border border-slate-800 bg-[#0d1322] p-4 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400">
         <div className="flex items-center gap-2">
@@ -388,7 +787,7 @@ export const SubscriptionPlanView: React.FC<SubscriptionPlanViewProps> = ({
         </div>
         <div className="flex items-center gap-4 text-[11px] font-mono">
           <span className="text-emerald-400 font-bold">✓ Pakistan Raast / JazzCash / UBL Bank</span>
-          <span className="text-amber-400 font-bold">✓ Binance Pay & USDT TRC20</span>
+          <span className="text-amber-400 font-bold">✓ Binance Pay &amp; USDT TRC20</span>
         </div>
       </div>
 
