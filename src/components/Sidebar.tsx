@@ -30,6 +30,7 @@ import {
   Star,
   MessageSquare,
   Cpu,
+  Compass,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { COLOR_THEMES } from '../services/themeConfig';
@@ -39,6 +40,7 @@ import { isUserSuperAdmin } from '../services/adminService';
 export type NavView =
   | 'overview'
   | 'scanner'
+  | 'explore'
   | 'channels'
   | 'analytics'
   | 'violations'
@@ -144,6 +146,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: FileVideo,
       badge: pendingQueueCount > 0 ? `${pendingQueueCount}` : null,
       badgeColor: 'bg-amber-500 text-white',
+    },
+    {
+      id: 'explore' as NavView,
+      label: 'Explore Hub',
+      icon: Compass,
+      badge: 'NEW',
+      badgeColor: 'bg-indigo-500/15 text-indigo-500 font-bold',
     },
     {
       id: 'channels' as NavView,

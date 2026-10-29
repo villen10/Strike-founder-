@@ -128,6 +128,12 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
   const [faqSearchQuery, setFaqSearchQuery] = useState('');
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>('faq-1');
 
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   // Automatically inject JSON-LD 'Question' entities for AI conversational engines (ChatGPT, Gemini, Perplexity)
   useEffect(() => {
     SEOManager.injectFaqSchemaToHead(FAQ_ITEMS);
@@ -820,20 +826,76 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
               </div>
             </div>
 
-            {/* Entity Info Box */}
+            {/* Entity Info & Office Locations Card (Matching Content Filter AI & MOQ Automation) */}
             <div
-              className={`rounded-2xl border p-5 flex flex-col sm:flex-row items-center justify-between gap-4 ${
-                isLight ? 'border-slate-200 bg-slate-50' : 'border-slate-800 bg-slate-950/80'
+              className={`rounded-3xl border p-6 sm:p-8 flex flex-col gap-6 ${
+                isLight ? 'border-emerald-200 bg-emerald-50/40' : 'border-emerald-900/40 bg-[#061311]'
               }`}
             >
-              <div>
-                <h4 className="font-satoshi text-sm font-bold">Striku Technologies Inc.</h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Official Operator · Headquartered for global creators with authorized Merchant of Record billing.
-                </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-emerald-950/40 pb-5">
+                <div className="flex items-center gap-3">
+                  <img
+                    src="/logo.png"
+                    alt="Striku Logo"
+                    className="h-10 w-10 rounded-2xl object-contain bg-emerald-950/40 border border-emerald-500/30 p-1"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <div>
+                    <h4 className="font-display text-lg font-black text-white uppercase tracking-tight">
+                      STRIKU<span className="text-emerald-400">.CLOUD</span>
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      A product by <strong className="text-emerald-400 font-bold">MOQ Automation</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800/40">
+                  <BadgeCheck className="h-4 w-4" />
+                  <span>Verified Legal Entity &amp; Developer</span>
+                </div>
               </div>
-              <div className="text-xs font-mono text-slate-500">
-                Official Contact: strikucloud@gmail.com
+
+              {/* Office Locations */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-xs text-slate-300">
+                <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
+                  <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
+                    Pakistan Office
+                  </span>
+                  <span className="text-sm font-semibold text-slate-200">Karachi West</span>
+                  <span className="text-slate-400">Karachi, Sindh, Pakistan</span>
+                </div>
+
+                <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
+                  <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
+                    USA Headquarters
+                  </span>
+                  <span className="text-sm font-semibold text-slate-200">5900 Balcones Dr Ste 22699</span>
+                  <span className="text-slate-400">Austin, TX 78731, USA</span>
+                </div>
+
+                <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
+                  <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
+                    Direct Creator Support
+                  </span>
+                  <a
+                    href="tel:+923362103534"
+                    className="text-sm font-mono font-bold text-slate-200 hover:text-emerald-400 transition"
+                  >
+                    +92 336 2103534
+                  </a>
+                  <span className="text-slate-400">WhatsApp &amp; Voice Assistance</span>
+                </div>
+              </div>
+
+              {/* Footer attribution line */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-emerald-950/40 text-xs text-slate-400">
+                <span>AI risk estimate, not an official YouTube ruling.</span>
+                <span>
+                  Designed and Developed by <strong className="text-emerald-400">Faiwebz</strong>
+                </span>
               </div>
             </div>
           </motion.div>
