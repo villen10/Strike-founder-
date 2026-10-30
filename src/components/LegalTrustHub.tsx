@@ -175,53 +175,46 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-12 font-public-sans">
-      {/* Top Hero Banner */}
+      {/* Top Hero Banner (Matching Homepage Aesthetic) */}
       <div
-        className={`relative overflow-hidden rounded-3xl border p-6 sm:p-8 transition shadow-xs ${
-          isLight
-            ? 'border-slate-200 bg-gradient-to-br from-white via-slate-50 to-indigo-50/30'
-            : 'border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40'
-        }`}
+        className="relative overflow-hidden rounded-3xl border border-white/30 p-6 sm:p-10 shadow-2xl text-slate-900 dark:text-white backdrop-blur-2xl"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
       >
+        {/* Subtle radial glow */}
+        <div className="absolute -top-24 -left-24 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 -right-24 w-80 h-80 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-2 font-mono text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              <Scale className="h-4 w-4" />
-              <span>Trust, Compliance & Customer Transparency Hub</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-3">
+              <Scale className="h-3.5 w-3.5 text-blue-400" />
+              <span>TRUST, COMPLIANCE &amp; POLICY HUB</span>
             </div>
-            <h1
-              className={`font-satoshi text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${
-                isLight ? 'text-slate-950' : 'text-white'
-              }`}
-            >
-              Legal Policies, Transparency & FAQ
+            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
+              Legal Policies, Transparency &amp; FAQ
             </h1>
-            <p
-              className={`mt-2 font-public-sans text-xs sm:text-sm leading-relaxed ${
-                isLight ? 'text-slate-600' : 'text-slate-300'
-              }`}
-            >
-              Everything you need to know about our 14-day money-back guarantee, zero video storage security, global billing compliance, and community guidelines safety.
+            <p className="mt-2 font-sans text-xs sm:text-sm leading-relaxed text-slate-300 max-w-xl">
+              14-day money-back guarantee, zero video storage security, global billing compliance, and YouTube moderation safety.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-            <div
-              className={`rounded-2xl border px-3.5 py-2.5 text-xs font-mono ${
-                isLight ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 font-bold">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/40 px-4 py-2.5 text-xs font-mono text-emerald-300">
+              <div className="flex items-center gap-2 font-bold">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Status: 100% Operational</span>
+                <span>100% Operational Status</span>
               </div>
-              <p className="text-[11px] opacity-80 mt-0.5">Average Support SLA &lt; 4 Hours</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">RAM-Only Video Ingestion</p>
             </div>
             {onOpenPricing && (
               <button
                 type="button"
                 onClick={onOpenPricing}
-                className="rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 px-4 py-2.5 font-satoshi text-xs font-black uppercase tracking-wider text-white hover:opacity-95 transition shadow-sm cursor-pointer"
+                className="rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-2.5 font-sans text-xs font-bold text-white transition shadow-lg shadow-blue-600/20 cursor-pointer"
               >
                 View Plans →
               </button>
@@ -230,7 +223,7 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
         </div>
 
         {/* Tab Navigation Pill Bar */}
-        <div className="mt-8 flex items-center gap-1.5 overflow-x-auto border-t pt-4 border-slate-200 dark:border-slate-800/80 scrollbar-none">
+        <div className="mt-8 flex items-center gap-2 overflow-x-auto border-t pt-5 border-slate-800/80 scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -239,15 +232,13 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-sm'
-                    : isLight
-                    ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
+                    : 'bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? (isLight ? 'text-indigo-400 dark:text-indigo-600' : 'text-indigo-400') : 'text-slate-400'}`} />
+                <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -847,7 +838,7 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
                       STRIKU<span className="text-emerald-400">.CLOUD</span>
                     </h4>
                     <p className="text-xs text-slate-400">
-                      A product by <strong className="text-emerald-400 font-bold">MOQ Automation</strong>
+                      A product by <strong className="text-emerald-400 font-bold">FM Automation</strong>
                     </p>
                   </div>
                 </div>
@@ -858,44 +849,49 @@ export const LegalTrustHub: React.FC<LegalTrustHubProps> = ({
                 </div>
               </div>
 
-              {/* Office Locations */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-xs text-slate-300">
+              {/* Office & Direct Contact Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-slate-300">
                 <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
                   <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
-                    Pakistan Office
+                    Location
                   </span>
-                  <span className="text-sm font-semibold text-slate-200">Karachi West</span>
-                  <span className="text-slate-400">Karachi, Sindh, Pakistan</span>
+                  <span className="text-sm font-semibold text-slate-200">Khanewal</span>
+                  <span className="text-slate-400">Khanewal, Punjab, Pakistan</span>
                 </div>
 
                 <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
                   <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
-                    USA Headquarters
-                  </span>
-                  <span className="text-sm font-semibold text-slate-200">5900 Balcones Dr Ste 22699</span>
-                  <span className="text-slate-400">Austin, TX 78731, USA</span>
-                </div>
-
-                <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
-                  <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
-                    Direct Creator Support
+                    WhatsApp Support
                   </span>
                   <a
-                    href="tel:+923362103534"
+                    href="https://wa.me/923197419085"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm font-mono font-bold text-slate-200 hover:text-emerald-400 transition"
                   >
-                    +92 336 2103534
+                    +92 319 7419085
                   </a>
-                  <span className="text-slate-400">WhatsApp &amp; Voice Assistance</span>
+                  <span className="text-slate-400">Direct Chat &amp; Instant Voice</span>
+                </div>
+
+                <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-black/30 border border-emerald-900/20">
+                  <span className="font-bold text-white uppercase font-mono tracking-wider text-[11px] text-emerald-400">
+                    Official Email
+                  </span>
+                  <a
+                    href="mailto:strikucloud@gmail.com"
+                    className="text-sm font-mono font-bold text-slate-200 hover:text-emerald-400 transition truncate"
+                  >
+                    strikucloud@gmail.com
+                  </a>
+                  <span className="text-slate-400">SLA Response &lt; 4 Hours</span>
                 </div>
               </div>
 
               {/* Footer attribution line */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-emerald-950/40 text-xs text-slate-400">
                 <span>AI risk estimate, not an official YouTube ruling.</span>
-                <span>
-                  Designed and Developed by <strong className="text-emerald-400">Faiwebz</strong>
-                </span>
+                <span>Protected by Lemon Squeezy Merchant of Record. Zero Video Retention.</span>
               </div>
             </div>
           </motion.div>

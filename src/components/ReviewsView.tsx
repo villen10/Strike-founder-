@@ -295,12 +295,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Overall Score */}
         <div
-          className={`p-6 rounded-3xl border flex flex-col justify-between ${
-            isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900/80 border-slate-800 shadow-md'
-          }`}
+          className="p-6 rounded-3xl border border-white/30 bg-white/50 dark:bg-black/40 backdrop-blur-xl shadow-lg flex flex-col justify-between"
         >
           <div>
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-500">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Overall Satisfaction
             </span>
             <div className="flex items-baseline gap-3 mt-2">
@@ -317,7 +315,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               </div>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-4 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
             {totalReviews > 0
               ? `Based on ${totalReviews} authentic creator submission${totalReviews > 1 ? 's' : ''}. Ratings update in real-time.`
               : 'No reviews submitted yet. Use the form below to be the first creator to share your experience!'}
@@ -326,15 +324,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
         {/* Rating Breakdown Bar Chart */}
         <div
-          className={`p-6 rounded-3xl border md:col-span-2 flex flex-col justify-between ${
-            isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900/80 border-slate-800 shadow-md'
-          }`}
+          className="p-6 rounded-3xl border border-white/30 bg-white/50 dark:bg-black/40 backdrop-blur-xl shadow-lg md:col-span-2 flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-500">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Rating Distribution
             </span>
-            <span className="text-xs text-slate-400 font-mono">100% Verified Community</span>
+            <span className="text-xs text-slate-500 font-mono">100% Verified Community</span>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -372,9 +368,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
         {/* Left Column: Post a Review Form */}
         <div className="lg:col-span-1 flex flex-col gap-6">
           <div
-            className={`rounded-3xl border p-6 sticky top-20 ${
-              isLight ? 'bg-white border-slate-200 shadow-md' : 'bg-slate-900/90 border-slate-800 shadow-xl'
-            }`}
+            className="rounded-3xl border border-white/30 bg-white/50 dark:bg-black/40 backdrop-blur-xl shadow-lg p-6 sticky top-20"
           >
             <div className="flex items-center gap-2 mb-4">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-500/10 text-red-600">
@@ -570,11 +564,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               return (
                 <div
                   key={rev.id}
-                  className={`rounded-3xl border p-5 sm:p-6 transition flex flex-col gap-4 ${
-                    isLight
-                      ? 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
-                      : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 shadow-md'
-                  }`}
+                  className="rounded-3xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-xl shadow-md p-5 sm:p-6 transition hover:border-white/50 flex flex-col gap-4"
                 >
                   {/* Top Review Header */}
                   <div className="flex items-start justify-between gap-3">

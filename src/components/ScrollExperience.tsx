@@ -357,7 +357,7 @@ export const FloatingScrollHUD: React.FC<FloatingScrollHUDProps> = ({
         <div
           role="region"
           aria-label="Floating Action Dock"
-          className="fixed inset-x-0 bottom-4 sm:bottom-6 z-50 pointer-events-none flex justify-center px-3 sm:px-4"
+          className="fixed inset-x-0 bottom-20 sm:bottom-6 z-40 pointer-events-none flex justify-center px-3 sm:px-4"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Inner Motion Element: Spring pop, scale and fade from bottom without layout shift */}

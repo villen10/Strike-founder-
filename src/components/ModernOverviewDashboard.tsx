@@ -138,9 +138,16 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       />
 
       {/* ======================================================== */}
-      {/* 1. HERO SECTION (Dark gradient, Tagline, Upload + Preview) */}
+      {/* 1. HERO SECTION (Wallpaper BG, Tagline, Upload + Preview) */}
       {/* ======================================================== */}
-      <section className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-[#0b0e1f] via-[#0d122b] to-[#0a0d1a] border border-slate-800/80 shadow-2xl p-5 sm:p-8 lg:p-12 text-white">
+      <section
+        className="relative rounded-3xl overflow-hidden border border-white/30 shadow-2xl p-5 sm:p-8 lg:p-12 text-slate-900 dark:text-white backdrop-blur-2xl"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* Subtle background ambient radial glows */}
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 -right-24 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
@@ -149,40 +156,40 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
           {/* Left Column: Headline, Bullets, Upload Box */}
           <div className="lg:col-span-6 flex flex-col gap-5">
             {/* Tag Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-[10px] sm:text-[11px] font-bold tracking-wider uppercase self-start shadow-sm">
-              <Sparkles className="h-3 w-3 text-blue-400" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-600/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-mono text-[10px] sm:text-[11px] font-bold tracking-wider uppercase self-start shadow-xs backdrop-blur-sm">
+              <Sparkles className="h-3 w-3 text-blue-500" />
               <span>AI POWERED YOUTUBE VIDEO SAFETY CHECKER</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-950 dark:text-white leading-tight">
               Know Your Video Risks{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400">
                 Before You Upload.
               </span>
             </h1>
 
             {/* Subhead */}
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed max-w-xl">
               Striku analyzes your video for copyright, reused content, monetization and policy risks — so you can upload with confidence.
             </p>
 
             {/* Checkmark Bullets */}
-            <div className="flex flex-col gap-2 pt-1 text-xs text-slate-200">
+            <div className="flex flex-col gap-2 pt-1 text-xs text-slate-800 dark:text-slate-200">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/20 text-blue-400">
+                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400">
                   <Check className="h-3 w-3 stroke-[3]" />
                 </div>
                 <span>Detect copyright matches</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/20 text-blue-400">
+                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400">
                   <Check className="h-3 w-3 stroke-[3]" />
                 </div>
                 <span>Find reused content</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/20 text-blue-400">
+                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400">
                   <Check className="h-3 w-3 stroke-[3]" />
                 </div>
                 <span>Check monetization &amp; policy risks</span>
@@ -195,20 +202,20 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={triggerUpload}
-              className={`mt-3 rounded-2xl border-2 border-dashed transition-all p-6 sm:p-7 flex flex-col items-center justify-center text-center cursor-pointer backdrop-blur-sm ${
+              className={`mt-3 rounded-2xl border-2 border-dashed transition-all p-6 sm:p-7 flex flex-col items-center justify-center text-center cursor-pointer backdrop-blur-md ${
                 isDragging
-                  ? 'border-blue-400 bg-blue-500/10 scale-[1.01]'
-                  : 'border-indigo-500/40 bg-slate-900/60 hover:border-indigo-400 hover:bg-slate-900/80'
+                  ? 'border-blue-500 bg-blue-500/20 scale-[1.01]'
+                  : 'border-white/40 bg-white/45 dark:bg-black/40 hover:border-blue-400 hover:bg-white/60 shadow-lg'
               }`}
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-lg shadow-blue-500/30 mb-3">
                 <UploadCloud className="h-6 w-6" />
               </div>
 
-              <span className="font-sans font-bold text-sm text-slate-100">
+              <span className="font-sans font-bold text-sm text-slate-900 dark:text-slate-100">
                 Drag &amp; drop your video here
               </span>
-              <span className="text-[11px] text-slate-400 mt-0.5">
+              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
                 or click to browse (MP4, MOV, AVI up to 2GB)
               </span>
 
@@ -225,10 +232,10 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             </div>
 
             {/* Bottom Formats & Privacy Notice */}
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 px-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-300 px-1">
               <span>Supported: MP4, MOV, AVI, MKV</span>
-              <span className="flex items-center gap-1 text-slate-300">
-                <Lock className="h-3 w-3 text-emerald-400" />
+              <span className="flex items-center gap-1 text-slate-700 dark:text-slate-200 font-semibold">
+                <Lock className="h-3 w-3 text-emerald-500" />
                 <span>Your video is private &amp; secure</span>
               </span>
             </div>
@@ -237,13 +244,13 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
           {/* Right Column: Hero Video Analysis Interactive Mockup Card */}
           <div className="lg:col-span-6 flex flex-col items-center justify-center relative">
             {/* Hand-drawn Doodles & Arrows */}
-            <div className="hidden xl:flex items-center gap-1.5 absolute -top-4 right-4 text-slate-300 text-xs font-mono italic">
+            <div className="hidden xl:flex items-center gap-1.5 absolute -top-4 right-4 text-slate-700 dark:text-slate-300 text-xs font-mono italic">
               <span>Detailed analysis with timestamps</span>
               <span className="text-lg">⤵</span>
             </div>
 
-            {/* Elevated 3D Glass Mockup Window */}
-            <div className="w-full max-w-lg rounded-2xl border border-slate-700/80 bg-[#0e1326]/95 shadow-2xl p-4 sm:p-5 backdrop-blur-md transition hover:border-slate-600">
+            {/* Elevated Glass Mockup Window */}
+            <div className="w-full max-w-lg rounded-2xl border border-white/30 bg-white/45 dark:bg-black/45 shadow-2xl p-4 sm:p-5 backdrop-blur-xl transition hover:border-white/50">
               {/* Window Top Bar */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
                 <div className="flex items-center gap-2">
@@ -411,11 +418,17 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       </section>
 
       {/* ======================================================== */}
-      {/* 2. KEY FEATURES SECTION (White/Light Clean 6-Card Grid) */}
+      {/* 2. KEY FEATURES SECTION (Wallpaper BG + Frosted Glass Cards) */}
       {/* ======================================================== */}
-      <section id="features" className={`rounded-3xl border p-6 sm:p-10 transition ${
-        isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/50 border-slate-800'
-      }`}>
+      <section
+        id="features"
+        className="rounded-3xl border border-white/30 p-6 sm:p-10 transition backdrop-blur-2xl shadow-xl overflow-hidden relative"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="text-center max-w-2xl mx-auto space-y-2 mb-8">
           <span className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
             KEY FEATURES
@@ -427,91 +440,79 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Card 1: Copyright Detection */}
-          <div className={`p-5 rounded-2xl border transition hover:shadow-md ${
-            isLight ? 'bg-slate-50/80 border-slate-200 hover:border-slate-300' : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-          }`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 mb-3.5">
+          <div className="p-5 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400 mb-3.5">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white mb-1.5">
               Copyright Detection
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               Find copyrighted music, clips, images and logos using AI &amp; audio fingerprinting.
             </p>
           </div>
 
           {/* Card 2: Reused Content Check */}
-          <div className={`p-5 rounded-2xl border transition hover:shadow-md ${
-            isLight ? 'bg-slate-50/80 border-slate-200 hover:border-slate-300' : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-          }`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mb-3.5">
+          <div className="p-5 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 mb-3.5">
               <Play className="h-5 w-5 fill-current" />
             </div>
             <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white mb-1.5">
               Reused Content Check
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               Detect recycled or low-originality content with scene-by-scene analysis.
             </p>
           </div>
 
           {/* Card 3: Monetization Analysis */}
-          <div className={`p-5 rounded-2xl border transition hover:shadow-md ${
-            isLight ? 'bg-slate-50/80 border-slate-200 hover:border-slate-300' : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-          }`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-3.5">
+          <div className="p-5 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 mb-3.5">
               <DollarSign className="h-5 w-5" />
             </div>
             <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white mb-1.5">
               Monetization Analysis
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               Spot potential ad-suitability and monetization issues before you upload.
             </p>
           </div>
 
           {/* Card 4: Detailed Reports */}
-          <div className={`p-5 rounded-2xl border transition hover:shadow-md ${
-            isLight ? 'bg-slate-50/80 border-slate-200 hover:border-slate-300' : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-          }`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 mb-3.5">
+          <div className="p-5 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 mb-3.5">
               <FileText className="h-5 w-5" />
             </div>
             <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white mb-1.5">
               Detailed Reports
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               Get timestamps, confidence levels and evidence for every issue.
             </p>
           </div>
 
           {/* Card 5: Actionable Fixes */}
-          <div className={`p-5 rounded-2xl border transition hover:shadow-md ${
-            isLight ? 'bg-slate-50/80 border-slate-200 hover:border-slate-300' : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-          }`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-3.5">
+          <div className="p-5 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 mb-3.5">
               <Lightbulb className="h-5 w-5" />
             </div>
             <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white mb-1.5">
               Actionable Fixes
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               See exactly what to change and how to fix it.
             </p>
           </div>
 
           {/* Card 6: Privacy First */}
-          <div className={`p-5 rounded-2xl border transition hover:shadow-md ${
-            isLight ? 'bg-slate-50/80 border-slate-200 hover:border-slate-300' : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700'
-          }`}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mb-3.5">
+          <div className="p-5 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 mb-3.5">
               <Lock className="h-5 w-5" />
             </div>
             <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white mb-1.5">
               Privacy First
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               Your videos are private, secure and deleted after analysis (unless you save).
             </p>
           </div>
@@ -521,7 +522,15 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       {/* ======================================================== */}
       {/* 3. HOW IT WORKS SECTION ("Just 3 Simple Steps") */}
       {/* ======================================================== */}
-      <section id="how-it-works" className="rounded-3xl border border-slate-800 bg-[#0c0f1e] text-white p-6 sm:p-10 lg:p-12 shadow-2xl relative overflow-hidden">
+      <section
+        id="how-it-works"
+        className="rounded-3xl border border-white/30 text-slate-900 dark:text-white p-6 sm:p-10 lg:p-12 shadow-2xl relative overflow-hidden backdrop-blur-2xl"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           {/* Left Column: Steps */}
           <div className="lg:col-span-5 space-y-6">
@@ -595,9 +604,9 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             </div>
 
             {/* Inner Card */}
-            <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 sm:p-5 shadow-xl space-y-4">
+            <div className="rounded-2xl border border-white/30 bg-white/45 dark:bg-black/45 p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-xl">
               {/* Video metadata row */}
-              <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-3 border-b border-white/20 pb-3">
                 <div className="relative h-12 w-16 rounded-lg overflow-hidden bg-slate-800 shrink-0">
                   <img
                     src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&auto=format&fit=crop&q=80"
@@ -792,9 +801,18 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       {/* ======================================================== */}
       {/* 4. PRICING SECTION ("Simple Plans for Every Creator") */}
       {/* ======================================================== */}
-      <section id="pricing" className={`rounded-3xl border p-6 sm:p-10 transition ${
-        isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-slate-900/40 border-slate-800'
-      }`}>
+      {/* ======================================================== */}
+      {/* 4. PRICING SECTION ("Simple Plans for Every Creator") */}
+      {/* ======================================================== */}
+      <section
+        id="pricing"
+        className="rounded-3xl border border-white/30 p-6 sm:p-10 transition backdrop-blur-2xl shadow-xl relative overflow-hidden"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="text-center max-w-xl mx-auto space-y-1.5 mb-8">
           <span className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
             PRICING
@@ -802,24 +820,22 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
           <h2 className="font-display text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
             Simple Plans for Every Creator
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600 dark:text-slate-300">
             Start free. Upgrade anytime. No hidden fees.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
           {/* Plan 1: Free */}
-          <div className={`p-6 rounded-2xl border flex flex-col justify-between ${
-            isLight ? 'bg-white border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
+          <div className="p-6 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/40 backdrop-blur-xl flex flex-col justify-between shadow-md">
             <div>
               <span className="font-display font-bold text-sm text-slate-900 dark:text-white">Free</span>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className="font-display font-black text-3xl text-slate-950 dark:text-white">$0</span>
-                <span className="text-xs text-slate-500 font-mono">/ month</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">/ month</span>
               </div>
 
-              <ul className="mt-5 space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+              <ul className="mt-5 space-y-2.5 text-xs text-slate-700 dark:text-slate-200">
                 <li className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-emerald-500" />
                   <span>1 video per month</span>
@@ -838,40 +854,36 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             <button
               type="button"
               onClick={triggerUpload}
-              className={`mt-6 w-full py-2.5 rounded-xl text-xs font-bold transition border cursor-pointer ${
-                isLight
-                  ? 'border-blue-600 text-blue-600 hover:bg-blue-50'
-                  : 'border-blue-500/40 text-blue-400 hover:bg-blue-500/10'
-              }`}
+              className="mt-6 w-full py-2.5 rounded-xl text-xs font-bold transition border border-blue-600 bg-blue-600/10 hover:bg-blue-600 text-blue-700 dark:text-blue-300 hover:text-white cursor-pointer"
             >
               Get Started
             </button>
           </div>
 
           {/* Plan 2: Creator (Most Popular) */}
-          <div className="p-6 rounded-2xl border-2 border-blue-600 bg-gradient-to-b from-blue-500/10 via-slate-900/50 to-slate-950/80 relative flex flex-col justify-between shadow-xl">
+          <div className="p-6 rounded-2xl border-2 border-blue-500 bg-white/60 dark:bg-black/55 backdrop-blur-xl relative flex flex-col justify-between shadow-xl ring-2 ring-blue-500/20">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-blue-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider shadow-sm">
               Most Popular
             </span>
 
             <div>
-              <span className="font-display font-bold text-sm text-blue-400">Creator</span>
+              <span className="font-display font-bold text-sm text-blue-600 dark:text-blue-400">Creator</span>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-display font-black text-3xl text-white">$9</span>
-                <span className="text-xs text-slate-400 font-mono">/ month</span>
+                <span className="font-display font-black text-3xl text-slate-950 dark:text-white">$9</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">/ month</span>
               </div>
 
-              <ul className="mt-5 space-y-2.5 text-xs text-slate-200">
+              <ul className="mt-5 space-y-2.5 text-xs text-slate-700 dark:text-slate-200">
                 <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-blue-400" />
+                  <Check className="h-3.5 w-3.5 text-blue-500" />
                   <span>Up to 20 videos/month</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-blue-400" />
+                  <Check className="h-3.5 w-3.5 text-blue-500" />
                   <span>Detailed analysis</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-blue-400" />
+                  <Check className="h-3.5 w-3.5 text-blue-500" />
                   <span>Timestamps &amp; fixes</span>
                 </li>
               </ul>
@@ -887,17 +899,15 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
           </div>
 
           {/* Plan 3: Pro */}
-          <div className={`p-6 rounded-2xl border flex flex-col justify-between ${
-            isLight ? 'bg-white border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}>
+          <div className="p-6 rounded-2xl border border-white/30 bg-white/50 dark:bg-black/40 backdrop-blur-xl flex flex-col justify-between shadow-md">
             <div>
               <span className="font-display font-bold text-sm text-slate-900 dark:text-white">Pro</span>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className="font-display font-black text-3xl text-slate-950 dark:text-white">$29</span>
-                <span className="text-xs text-slate-500 font-mono">/ month</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">/ month</span>
               </div>
 
-              <ul className="mt-5 space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+              <ul className="mt-5 space-y-2.5 text-xs text-slate-700 dark:text-slate-200">
                 <li className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-emerald-500" />
                   <span>Unlimited videos</span>
@@ -925,53 +935,60 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       </section>
 
       {/* ======================================================== */}
-      {/* 5. TRUST / FEATURE HIGHLIGHTS BAR (Dark Minimal Strip) */}
+      {/* 5. TRUST / FEATURE HIGHLIGHTS BAR (Wallpaper BG) */}
       {/* ======================================================== */}
-      <section className="rounded-2xl border border-slate-800 bg-[#0c1022] p-6 text-white shadow-xl">
+      <section
+        className="rounded-2xl border border-white/30 p-6 shadow-xl backdrop-blur-2xl relative overflow-hidden text-slate-900 dark:text-white"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 shrink-0 border border-blue-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 shrink-0 border border-blue-500/20 backdrop-blur-sm">
               <Shield className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="font-display font-bold text-xs text-white">Trusted by Creators</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <h4 className="font-display font-bold text-xs text-slate-950 dark:text-white">Trusted by Creators</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
                 Join thousands of YouTubers who upload safer.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0 border border-emerald-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-500/20 backdrop-blur-sm">
               <Lock className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="font-display font-bold text-xs text-white">Secure &amp; Private</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <h4 className="font-display font-bold text-xs text-slate-950 dark:text-white">Secure &amp; Private</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
                 Your files are encrypted and automatically deleted.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 shrink-0 border border-purple-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 shrink-0 border border-purple-500/20 backdrop-blur-sm">
               <Film className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="font-display font-bold text-xs text-white">Multiple Formats</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <h4 className="font-display font-bold text-xs text-slate-950 dark:text-white">Multiple Formats</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
                 MP4, MOV, AVI, MKV and more.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 shrink-0 border border-amber-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0 border border-amber-500/20 backdrop-blur-sm">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="font-display font-bold text-xs text-white">AI-Powered</h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <h4 className="font-display font-bold text-xs text-slate-950 dark:text-white">AI-Powered</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
                 Advanced analysis with real-world reference data.
               </p>
             </div>
@@ -982,9 +999,15 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       {/* ======================================================== */}
       {/* 6. FAQ SECTION ("Common Questions") */}
       {/* ======================================================== */}
-      <section id="faq" className={`rounded-3xl border p-6 sm:p-10 transition ${
-        isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/50 border-slate-800'
-      }`}>
+      <section
+        id="faq"
+        className="rounded-3xl border border-white/30 p-6 sm:p-10 transition backdrop-blur-2xl shadow-xl relative overflow-hidden"
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Heading & CTA */}
           <div className="lg:col-span-4 space-y-3">
@@ -994,7 +1017,7 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             <h2 className="font-display text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               Common Questions
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               Everything you need to know about Striku.
             </p>
 
@@ -1015,11 +1038,7 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
               return (
                 <div
                   key={idx}
-                  className={`rounded-xl border transition ${
-                    isLight
-                      ? 'border-slate-200 bg-slate-50/70 hover:border-slate-300'
-                      : 'border-slate-800 bg-slate-950/40 hover:border-slate-700'
-                  }`}
+                  className="rounded-xl border border-white/30 bg-white/50 dark:bg-black/35 backdrop-blur-md transition hover:border-white/50"
                 >
                   <button
                     type="button"
@@ -1028,14 +1047,14 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                   >
                     <span>{faq.q}</span>
                     {isOpen ? (
-                      <ChevronUp className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                      <ChevronUp className="h-4 w-4 text-slate-600 dark:text-slate-300 shrink-0 ml-2" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                      <ChevronDown className="h-4 w-4 text-slate-600 dark:text-slate-300 shrink-0 ml-2" />
                     )}
                   </button>
 
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-0 text-xs text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200/60 dark:border-slate-800/60 mt-1">
+                    <div className="px-4 pb-4 pt-0 text-xs text-slate-700 dark:text-slate-300 leading-relaxed border-t border-white/20 mt-1">
                       {faq.a}
                     </div>
                   )}

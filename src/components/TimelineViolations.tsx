@@ -74,9 +74,12 @@ export const TimelineViolations: React.FC<TimelineViolationsProps> = ({
 
   return (
     <div
-      className={`rounded-3xl border p-5 sm:p-6 transition shadow-2xs font-public-sans ${
-        isLight ? 'border-slate-100 bg-white shadow-slate-200/50' : 'border-slate-800 bg-slate-900'
-      }`}
+      style={{
+        backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+      className="rounded-3xl border border-white/30 p-5 sm:p-6 transition shadow-xl backdrop-blur-2xl font-public-sans text-slate-900 dark:text-slate-100"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>

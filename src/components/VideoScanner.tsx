@@ -367,11 +367,12 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Left: Video Player & Timeline Scrubber (7 cols) */}
         <div
-          className={`flex flex-col gap-4 rounded-3xl border p-5 sm:p-6 lg:col-span-7 transition shadow-2xs ${
-            isLight
-              ? 'border-slate-100 bg-white text-slate-900 shadow-slate-200/50'
-              : 'border-slate-800 bg-slate-900 text-slate-100'
-          }`}
+          style={{
+            backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+          className="flex flex-col gap-4 rounded-3xl border border-white/30 p-5 sm:p-6 lg:col-span-7 transition shadow-xl backdrop-blur-2xl text-slate-900 dark:text-slate-100"
         >
           {/* PlayScreen Header: AI Title, Real Filename, & Auto-Delete Policy */}
           <div className="flex flex-col gap-2 border-b pb-3.5 border-slate-100 dark:border-slate-800">
@@ -786,11 +787,12 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
 
         {/* Right: Upload from Browser & Batch Queue (5 cols) */}
         <div
-          className={`flex flex-col justify-between gap-5 rounded-3xl border p-5 sm:p-6 lg:col-span-5 transition shadow-2xs ${
-            isLight
-              ? 'border-slate-100 bg-white text-slate-900 shadow-slate-200/50'
-              : 'border-slate-800 bg-slate-900 text-slate-100'
-          }`}
+          style={{
+            backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+          className="flex flex-col justify-between gap-5 rounded-3xl border border-white/30 p-5 sm:p-6 lg:col-span-5 transition shadow-xl backdrop-blur-2xl text-slate-900 dark:text-slate-100"
         >
           <div className="flex flex-col gap-4">
             {/* Header */}
@@ -803,11 +805,11 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
                 >
                   Add Video from Browser
                 </h3>
-                <p className="font-sans text-xs text-slate-500 mt-0.5">
+                <p className="font-sans text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                   Select video files from your device to audit
                 </p>
               </div>
-              <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 font-sans text-[11px] font-bold text-red-600">
+              <span className="rounded-full bg-red-500/15 px-2.5 py-0.5 font-sans text-[11px] font-bold text-red-600 dark:text-red-400 border border-red-500/30">
                 Local Ingest
               </span>
             </div>
@@ -818,14 +820,10 @@ export const VideoScanner: React.FC<VideoScannerProps> = ({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onClick={() => fileInputRef.current?.click()}
-              className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-200 ${
+              className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-200 backdrop-blur-md ${
                 isDragging
-                  ? isLight
-                    ? 'border-red-500 bg-red-50/80 ring-4 ring-red-500/15 scale-[1.01]'
-                    : 'border-red-500 bg-red-950/40 ring-4 ring-red-500/15 scale-[1.01]'
-                  : isLight
-                  ? 'border-slate-200 bg-slate-50/70 hover:border-red-400 hover:bg-slate-100/70'
-                  : 'border-slate-800 bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/80'
+                  ? 'border-red-500 bg-red-500/20 ring-4 ring-red-500/15 scale-[1.01]'
+                  : 'border-white/40 bg-white/45 dark:bg-black/35 hover:border-red-400 hover:bg-white/60 shadow-md'
               }`}
             >
               <input

@@ -26,6 +26,7 @@ import { ContentHub } from './components/ContentHub';
 import { ReviewsView } from './components/ReviewsView';
 import { AiPlatformSpecsView } from './components/AiPlatformSpecsView';
 import { SaaSFooter } from './components/SaaSFooter';
+import { AnimatedAmbientBackground } from './components/AnimatedAmbientBackground';
 import {
   ScrollProgressBar,
   ScrollToTopButton,
@@ -1051,10 +1052,20 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen w-full max-w-full overflow-x-hidden ${theme.bgClass} ${
+      className={`min-h-screen w-full max-w-full overflow-x-hidden ${
         isLight ? 'text-slate-900' : 'text-slate-100'
-      } flex flex-col justify-between selection:bg-red-500/20 selection:text-red-900 transition-colors duration-200`}
+      } flex flex-col justify-between selection:bg-purple-500/20 selection:text-purple-900 transition-colors duration-200 relative`}
+      style={{
+        backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+      }}
     >
+      {/* Dynamic Animated Ambient Color Glow (Soft Light-Blue & White Aurora / Shimmer Effect) */}
+      <AnimatedAmbientBackground isLight={isLight} />
+
       {/* Scroll-Driven Top Progress Bar Animation */}
       <ScrollProgressBar isLight={isLight} />
 
@@ -1097,9 +1108,20 @@ export default function App() {
             currentUser={currentUser}
             currentTier={subscriptionTier}
             remainingFreeScans={deviceMetrics.remainingScans}
+            currentView={currentView}
+            onNavigate={(view) => {
+              setCurrentView(view);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onScanNewVideo={() => {
+              setCurrentView('scanner');
+              handleTriggerAudit();
+            }}
             onOpenPricing={() => setIsPricingModalOpen(true)}
             onNavigateProfile={() => setCurrentView('profile')}
             onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            onSignIn={handleSignIn}
+            onSignOut={handleSignOut}
           />
 
           {/* Main View Area (Clean view with no cluttered top button strip) */}
@@ -1259,9 +1281,12 @@ export default function App() {
                   className="flex flex-col gap-6"
                 >
                   <div
-                    className={`rounded-2xl border p-4 sm:p-5 ${
-                      isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-slate-800 bg-slate-900/60'
-                    }`}
+                    className="rounded-2xl border border-white/25 p-4 sm:p-5 backdrop-blur-xl shadow-lg relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div>

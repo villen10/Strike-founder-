@@ -9,31 +9,19 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert,
   User,
-  Scan,
-  Zap,
-  Moon,
-  Sun,
-  Palette,
-  LogOut,
-  Sparkles,
-  Search,
   Plus,
   X,
-  Check,
-  Lock,
   Youtube,
-  Scale,
-  Building2,
   CreditCard,
   Star,
   MessageSquare,
-  Cpu,
-  Compass,
+  Scale,
+  Sparkles,
+  Zap,
+  Lock,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
-import { COLOR_THEMES } from '../services/themeConfig';
 import { SubscriptionTier } from '../services/subscriptionManager';
 import { isUserSuperAdmin } from '../services/adminService';
 
@@ -74,10 +62,10 @@ interface SidebarProps {
   violationsCount: number;
   avgComplianceScore: number;
   pendingQueueCount?: number;
-  strictnessMode: 'STANDARD' | 'PARANOID_ZERO_RISK';
-  onToggleStrictness: (mode: 'STANDARD' | 'PARANOID_ZERO_RISK') => void;
-  currentTheme: ColorThemeId;
-  onSelectTheme: (theme: ColorThemeId) => void;
+  strictnessMode?: 'STANDARD' | 'PARANOID_ZERO_RISK';
+  onToggleStrictness?: (mode: 'STANDARD' | 'PARANOID_ZERO_RISK') => void;
+  currentTheme?: ColorThemeId;
+  onSelectTheme?: (theme: ColorThemeId) => void;
   currentUser?: SidebarUser | null;
   onSignIn?: () => void;
   onRegister?: () => void;
@@ -96,35 +84,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   isOpenMobile = false,
   onCloseMobile,
-  theme,
   violationsCount,
   avgComplianceScore,
   pendingQueueCount = 0,
-  strictnessMode,
-  onToggleStrictness,
-  currentTheme,
-  onSelectTheme,
   currentUser,
-  onSignIn,
-  onRegister,
-  onSignOut,
   onScanNewVideo,
-  onOpenCompare,
   currentTier = 'free',
   remainingFreeScans = 5,
   onOpenPricing,
 }) => {
-  const isLight = theme.isLight;
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
-
-  const toggleLightDark = () => {
-    if (isLight) {
-      onSelectTheme('CRIMSON_SLATE');
-    } else {
-      onSelectTheme('YOUTUBE_STUDIO_LIGHT');
-    }
-  };
+  const isSuperAdmin = isUserSuperAdmin(currentUser?.email);
 
   const handleItemClick = (id: NavView) => {
     onSelectView(id);
@@ -133,118 +102,83 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const overviewItems = [
+  const mainNavItems = [
     {
       id: 'overview' as NavView,
-      label: 'Dashboard',
+      label: 'Home Dashboard',
       icon: LayoutDashboard,
-      badge: null,
     },
     {
       id: 'scanner' as NavView,
       label: 'Video Scanner',
       icon: FileVideo,
       badge: pendingQueueCount > 0 ? `${pendingQueueCount}` : null,
-      badgeColor: 'bg-amber-500 text-white',
-    },
-    {
-      id: 'explore' as NavView,
-      label: 'Explore Hub',
-      icon: Compass,
-      badge: 'NEW',
-      badgeColor: 'bg-indigo-500/15 text-indigo-500 font-bold',
+      badgeColor: 'bg-emerald-500 text-slate-950 font-bold',
     },
     {
       id: 'channels' as NavView,
       label: 'Channel Tracker',
       icon: Youtube,
-      badge: '24h/7d',
-      badgeColor: 'bg-red-600 text-white',
     },
-    {
-      id: 'analytics' as NavView,
-      label: 'Channel Health',
-      icon: Activity,
-      badge: `${avgComplianceScore}%`,
-      badgeColor: isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-950 text-emerald-300',
-    },
-  ];
-
-  const connectionItems = [
     {
       id: 'violations' as NavView,
       label: 'Policy Flags & Cuts',
       icon: AlertTriangle,
       badge: violationsCount > 0 ? `${violationsCount}` : null,
-      badgeColor: 'bg-red-600 text-white',
+      badgeColor: 'bg-red-500 text-white font-bold',
     },
     {
       id: 'appeal' as NavView,
       label: 'Strike Appeal Kit',
       icon: FileText,
-      badge: null,
+    },
+    {
+      id: 'analytics' as NavView,
+      label: 'Channel Health',
+      icon: Activity,
     },
   ];
 
-  const isSuperAdmin = isUserSuperAdmin(currentUser?.email);
-
-  const moreItems = [
-    {
-      id: 'subscription' as NavView,
-      label: 'Subscription Plans',
-      icon: CreditCard,
-      badge:
-        currentTier === 'enterprise'
-          ? 'AGENCY $80'
-          : currentTier === 'pro'
-          ? 'PRO'
-          : `${remainingFreeScans}/5 FREE`,
-      badgeColor:
-        currentTier === 'enterprise'
-          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-          : currentTier === 'pro'
-          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-          : 'bg-slate-800 text-slate-300',
-    },
+  const communityNavItems = [
     {
       id: 'knowledge' as NavView,
-      label: 'Policy Encyclopedia',
+      label: 'Policy Guide',
       icon: BookOpen,
-      badge: null,
-    },
-    {
-      id: 'content-hub' as NavView,
-      label: 'SEO Content & Guides',
-      icon: Sparkles,
-      badge: 'SEO',
-      badgeColor: 'bg-red-500/15 text-red-500 border border-red-500/30 font-bold',
     },
     {
       id: 'reviews' as NavView,
       label: 'Creator Reviews',
       icon: Star,
-      badge: 'COMMUNITY',
-      badgeColor: 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold',
+      badge: '4.9★',
+      badgeColor: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
     },
     {
       id: 'my-reviews' as NavView,
       label: 'My Reviews',
       icon: MessageSquare,
-      badge: null,
     },
+  ];
+
+  const accountNavItems = [
     {
-      id: 'ai-specs' as NavView,
-      label: 'AI & Platform Specs',
-      icon: Cpu,
-      badge: 'SPECS',
-      badgeColor: 'bg-blue-500/15 text-blue-500 border border-blue-500/30 font-bold',
+      id: 'subscription' as NavView,
+      label: 'Pricing & Plans',
+      icon: CreditCard,
+      badge:
+        currentTier === 'enterprise'
+          ? 'AGENCY'
+          : currentTier === 'pro'
+          ? 'PRO'
+          : `${remainingFreeScans}/5 Free`,
+      badgeColor:
+        currentTier === 'pro'
+          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+          : 'bg-slate-800 text-slate-300',
     },
     {
       id: 'legal' as NavView,
-      label: 'FAQ & Trust Hub',
+      label: 'Trust & FAQ Hub',
       icon: Scale,
-      badge: 'REFUND · FAQ',
-      badgeColor: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
     },
     {
       id: 'profile' as NavView,
@@ -257,37 +191,84 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ? [
           {
             id: 'admin' as NavView,
-            label: 'Admin Mission Control',
+            label: 'Mission Control',
             icon: ShieldCheck,
             badge: 'SUPERADMIN',
-            badgeColor: 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-xs',
+            badgeColor: 'bg-red-600 text-white font-bold',
           },
         ]
       : []),
   ];
 
+  const renderNavGroup = (title: string, items: typeof mainNavItems, isDrawer: boolean) => (
+    <div className="flex flex-col gap-1">
+      {(!isCollapsed || isDrawer) && (
+        <span className="px-3 pt-2 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          {title}
+        </span>
+      )}
+      {items.map((item) => {
+        const isActive = currentView === item.id;
+        const Icon = item.icon;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => handleItemClick(item.id)}
+            className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer text-left ${
+              isActive
+                ? 'bg-[#10b981]/15 text-[#10b981] font-bold border border-[#10b981]/30 shadow-xs'
+                : 'text-slate-300 hover:text-white hover:bg-emerald-950/40'
+            }`}
+            title={item.label}
+          >
+            <Icon
+              className={`h-4 w-4 shrink-0 transition ${
+                isActive ? 'text-[#10b981]' : 'text-slate-400'
+              }`}
+            />
+
+            {(!isCollapsed || isDrawer) && (
+              <span className="flex-1 truncate">{item.label}</span>
+            )}
+
+            {(!isCollapsed || isDrawer) && item.badge && (
+              <span
+                className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-bold ${
+                  item.badgeColor || 'bg-slate-800 text-slate-300'
+                }`}
+              >
+                {item.badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   const sidebarContent = (isDrawer = false) => (
-    <div className="flex flex-col h-full overflow-y-auto scrollbar-thin">
-      {/* Top Header & Logo */}
-      <div>
-        <div
-          className={`flex items-center justify-between px-3 sm:px-4 py-3.5 border-b sticky top-0 z-20 backdrop-blur-md ${
-            isLight ? 'border-slate-200/80 bg-white/95' : 'border-slate-800/80 bg-slate-950/95'
-          }`}
-        >
+    <div className="flex flex-col h-full overflow-y-auto scrollbar-none justify-between">
+      {/* Top Section */}
+      <div className="flex flex-col gap-3">
+        {/* Top Header / Close / Collapse */}
+        <div className="flex items-center justify-between px-3.5 py-3 border-b border-emerald-950/60">
           {isDrawer ? (
             <>
-              <span className="font-mono text-xs uppercase tracking-wider text-slate-500 font-bold">
-                Menu
-              </span>
+              <div className="flex items-center gap-2">
+                <img
+                  src="/logo.png"
+                  alt="Striku"
+                  className="h-6 w-6 rounded-lg object-contain bg-emerald-950/60 p-0.5 border border-emerald-500/30"
+                />
+                <span className="font-display font-black text-sm uppercase text-white tracking-tight">
+                  STRIKU<span className="text-[#10b981]">.CLOUD</span>
+                </span>
+              </div>
               <button
+                type="button"
                 onClick={onCloseMobile}
-                className={`flex h-8 w-8 items-center justify-center rounded-xl border transition cursor-pointer ${
-                  isLight
-                    ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                    : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400'
-                }`}
-                title="Close navigation"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/30 text-slate-300 hover:text-white transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -295,18 +276,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <>
               {!isCollapsed && (
-                <span className="font-mono text-xs uppercase tracking-wider text-slate-500 font-bold pl-1">
-                  Workspace
-                </span>
+                <div className="flex items-center gap-2 pl-1">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                    Workspace
+                  </span>
+                </div>
               )}
               <button
+                type="button"
                 onClick={onToggleCollapse}
-                className={`flex h-7 w-7 items-center justify-center rounded-lg border transition cursor-pointer ${
+                className={`flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-950/40 text-slate-400 hover:text-white transition cursor-pointer ${
                   isCollapsed ? 'mx-auto' : ''
-                } ${
-                  isLight
-                    ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                    : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400'
                 }`}
                 title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
@@ -320,34 +300,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Quick Search Box */}
-        {(!isCollapsed || isDrawer) && (
-          <div className="px-3 pt-3 pb-1">
-            <div
-              className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition ${
-                isLight
-                  ? 'border-slate-200 bg-slate-50/80 text-slate-800 focus-within:bg-white focus-within:border-red-500'
-                  : 'border-slate-800 bg-slate-900/80 text-slate-200 focus-within:bg-slate-900 focus-within:border-rose-500'
-              }`}
-            >
-              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="Quick search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent border-none outline-none font-sans text-xs placeholder:text-slate-400"
-              />
-              <span className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold border border-slate-300 dark:border-slate-700 text-slate-400">
-                /
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Primary Action: Audit New Video / Log */}
+        {/* Primary Call to Action: Check Video */}
         {(!isCollapsed || isDrawer) ? (
-          <div className="px-3 py-2">
+          <div className="px-3">
             <button
               type="button"
               onClick={() => {
@@ -357,15 +312,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   handleItemClick('scanner');
                 }
               }}
-              className="w-full flex items-center justify-between rounded-xl bg-[#c2f268] hover:bg-[#b0e258] text-slate-950 font-sans text-xs font-bold py-2.5 px-3 shadow-xs transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-sans text-xs font-bold py-2.5 px-3 shadow-md transition cursor-pointer"
             >
-              <div className="flex items-center gap-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-950 text-[#c2f268]">
-                  <Plus className="h-3.5 w-3.5 stroke-[3]" />
-                </div>
-                <span>Audit New Video</span>
-              </div>
-              <Scan className="h-4 w-4 text-slate-800" />
+              <Plus className="h-4 w-4 stroke-[3]" />
+              <span>Check Video Now</span>
             </button>
           </div>
         ) : (
@@ -376,270 +326,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 if (onScanNewVideo) onScanNewVideo();
                 else handleItemClick('scanner');
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c2f268] text-slate-950 shadow-xs hover:scale-105 transition cursor-pointer"
-              title="Audit New Video"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-slate-950 shadow-md hover:scale-105 transition cursor-pointer"
+              title="Check Video Now"
             >
-              <Plus className="h-5 w-5 stroke-[3]" />
+              <Plus className="h-4 w-4 stroke-[3]" />
             </button>
           </div>
         )}
 
-        {/* Grouped Navigation List */}
-        <nav className="px-3 py-2 flex flex-col gap-4">
-          {/* Section 1: OVERVIEW */}
-          <div>
-            {(!isCollapsed || isDrawer) && (
-              <div className="px-2 pb-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                Overview
-              </div>
-            )}
-            <div className="flex flex-col gap-1">
-              {overviewItems.map((item) => {
-                const isActive = currentView === item.id;
-                const Icon = item.icon;
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleItemClick(item.id)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
-                      isActive
-                        ? isLight
-                          ? 'bg-slate-200/80 text-slate-950 font-bold shadow-2xs'
-                          : 'bg-slate-800 text-white font-bold shadow-2xs'
-                        : isLight
-                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon
-                      className={`h-4 w-4 shrink-0 transition-colors ${
-                        isActive
-                          ? isLight
-                            ? 'text-slate-950'
-                            : 'text-white'
-                          : isLight
-                          ? 'text-slate-500 group-hover:text-slate-900'
-                          : 'text-slate-400 group-hover:text-slate-200'
-                      }`}
-                    />
-
-                    {(!isCollapsed || isDrawer) && (
-                      <div className="flex-1 text-left truncate flex flex-col">
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                    )}
-
-                    {(!isCollapsed || isDrawer) && item.badge && (
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
-                          item.badgeColor ||
-                          (isLight ? 'bg-slate-200 text-slate-800' : 'bg-slate-800 text-slate-300')
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section 2: CONNECTIONS */}
-          <div>
-            {(!isCollapsed || isDrawer) && (
-              <div className="px-2 pb-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                Connections
-              </div>
-            )}
-            <div className="flex flex-col gap-1">
-              {connectionItems.map((item) => {
-                const isActive = currentView === item.id;
-                const Icon = item.icon;
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleItemClick(item.id)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
-                      isActive
-                        ? isLight
-                          ? 'bg-slate-200/80 text-slate-950 font-bold shadow-2xs'
-                          : 'bg-slate-800 text-white font-bold shadow-2xs'
-                        : isLight
-                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon
-                      className={`h-4 w-4 shrink-0 transition-colors ${
-                        isActive
-                          ? isLight
-                            ? 'text-slate-950'
-                            : 'text-white'
-                          : isLight
-                          ? 'text-slate-500 group-hover:text-slate-900'
-                          : 'text-slate-400 group-hover:text-slate-200'
-                      }`}
-                    />
-
-                    {(!isCollapsed || isDrawer) && (
-                      <div className="flex-1 text-left truncate flex flex-col">
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                    )}
-
-                    {(!isCollapsed || isDrawer) && item.badge && (
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
-                          item.badgeColor ||
-                          (isLight ? 'bg-slate-200 text-slate-800' : 'bg-slate-800 text-slate-300')
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-
-              {onOpenCompare && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onOpenCompare();
-                    if (isOpenMobile && onCloseMobile) onCloseMobile();
-                  }}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
-                    isLight
-                      ? 'text-indigo-700 hover:bg-indigo-50/80 hover:text-indigo-900'
-                      : 'text-indigo-300 hover:bg-indigo-950/50 hover:text-indigo-100'
-                  }`}
-                  title="Compare 2 Videos Side-by-Side"
-                >
-                  <Scale className="h-4 w-4 shrink-0 text-indigo-500" />
-                  {(!isCollapsed || isDrawer) && (
-                    <div className="flex-1 text-left truncate flex items-center justify-between">
-                      <span className="truncate">Compare 2 Videos</span>
-                      <span className="rounded-full px-2 py-0.5 font-mono text-[9px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                        Side-by-Side
-                      </span>
-                    </div>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Section 3: MORE */}
-          <div>
-            {(!isCollapsed || isDrawer) && (
-              <div className="px-2 pb-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                More
-              </div>
-            )}
-            <div className="flex flex-col gap-1">
-              {moreItems.map((item) => {
-                const isActive = currentView === item.id;
-                const Icon = item.icon;
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleItemClick(item.id)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-body text-xs font-semibold transition relative group cursor-pointer ${
-                      isActive
-                        ? isLight
-                          ? 'bg-slate-200/80 text-slate-950 font-bold shadow-2xs'
-                          : 'bg-slate-800 text-white font-bold shadow-2xs'
-                        : isLight
-                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon
-                      className={`h-4 w-4 shrink-0 transition-colors ${
-                        isActive
-                          ? isLight
-                            ? 'text-slate-950'
-                            : 'text-white'
-                          : isLight
-                          ? 'text-slate-500 group-hover:text-slate-900'
-                          : 'text-slate-400 group-hover:text-slate-200'
-                      }`}
-                    />
-
-                    {(!isCollapsed || isDrawer) && (
-                      <div className="flex-1 text-left truncate flex flex-col">
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                    )}
-
-                    {(!isCollapsed || isDrawer) && item.badge && (
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
-                          item.badgeColor ||
-                          (isLight ? 'bg-slate-200 text-slate-800' : 'bg-slate-800 text-slate-300')
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        {/* Navigation Sections */}
+        <nav className="px-3 flex flex-col gap-3">
+          {renderNavGroup('Navigation', mainNavItems, isDrawer)}
+          {renderNavGroup('Community & Rules', communityNavItems, isDrawer)}
+          {renderNavGroup('Account & Trust', accountNavItems, isDrawer)}
         </nav>
       </div>
 
-      {/* BOTTOM SECTION: PRO Upgrade Card + Preferences + User Footer */}
-      <div
-        className={`p-3 mt-4 border-t flex flex-col gap-3 shrink-0 ${
-          isLight
-            ? 'border-slate-200/80 bg-slate-50/90 text-slate-800'
-            : 'border-slate-800/80 bg-slate-950 text-slate-200'
-        }`}
-      >
-        {/* Gorgeous Subscription Upgrade Card */}
-        {(!isCollapsed || isDrawer) && (
-          <div
-            className={`rounded-2xl border p-3.5 flex flex-col gap-2.5 relative overflow-hidden ${
-              currentTier === 'enterprise'
-                ? 'border-amber-500/40 bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-950 text-amber-200 shadow-sm'
-                : currentTier === 'pro'
-                ? 'border-rose-500/40 bg-gradient-to-br from-rose-950/60 via-slate-900 to-slate-950 text-rose-200 shadow-sm'
-                : isLight
-                ? 'border-rose-100 bg-gradient-to-br from-rose-50/80 via-red-50/50 to-amber-50/40 text-slate-900 shadow-2xs'
-                : 'border-rose-950/80 bg-gradient-to-br from-rose-950/50 via-slate-900 to-slate-950 text-slate-200 shadow-sm'
-            }`}
-          >
+      {/* Bottom Section: Clean Plan Status Card */}
+      {(!isCollapsed || isDrawer) && (
+        <div className="p-3 border-t border-emerald-950/60 flex flex-col gap-2 mt-4">
+          <div className="rounded-2xl border border-emerald-900/40 bg-black/40 p-3.5 flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-xl text-white shadow-xs ${
-                    currentTier === 'enterprise'
-                      ? 'bg-amber-600'
-                      : 'bg-gradient-to-tr from-red-600 to-rose-600'
-                  }`}
-                >
-                  {currentTier === 'enterprise' ? (
-                    <Building2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  )}
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/20 text-[#10b981]">
+                  <Sparkles className="h-3.5 w-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                    Plan status:
+                  <span className="font-mono text-[9px] text-slate-400 uppercase font-bold">
+                    Current Plan
                   </span>
-                  <span className="font-display text-xs font-black">
+                  <span className="font-display text-xs font-black text-white">
                     {currentTier === 'enterprise'
-                      ? 'Agency Studio ($80/mo)'
+                      ? 'Agency ($80/mo)'
                       : currentTier === 'pro'
                       ? 'Creator Pro ($29/mo)'
                       : `Free (${remainingFreeScans}/5 Scans)`}
@@ -648,236 +366,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            <p className="font-sans text-[11px] text-slate-400 leading-relaxed">
-              {currentTier === 'enterprise'
-                ? 'Full MCN team access, AI legal appeals & 24/7 strike defense concierge.'
-                : currentTier === 'pro'
-                ? 'Unlimited scans, 3-Pass multi-agent neural consensus & safe cuts active.'
-                : 'Free tier includes 5 scans/month. Upgrade to unlock unlimited scans and EDL exports.'}
-            </p>
-
             <button
               type="button"
-              onClick={onOpenPricing || (() => handleItemClick('profile'))}
-              className={`w-full flex items-center justify-center gap-1.5 rounded-xl font-sans text-xs font-bold py-2 px-3 shadow-xs transition cursor-pointer ${
-                currentTier === 'enterprise'
-                  ? 'border border-amber-500/50 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
-                  : currentTier === 'pro'
-                  ? 'border border-rose-500/50 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
-                  : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white'
-              }`}
+              onClick={onOpenPricing || (() => handleItemClick('subscription'))}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 font-sans text-xs font-bold py-2 px-3 transition cursor-pointer"
             >
-              {currentTier === 'enterprise' ? (
-                <span>Manage Agency Plan</span>
-              ) : currentTier === 'pro' ? (
-                <span>Manage Creator Pro</span>
-              ) : (
-                <>
-                  <Zap className="h-3.5 w-3.5 fill-current" />
-                  <span>Upgrade to Pro ($29)</span>
-                </>
-              )}
+              <Zap className="h-3 w-3 text-[#10b981]" />
+              <span>
+                {currentTier === 'free' ? 'Upgrade to Pro ($29)' : 'Manage Subscription'}
+              </span>
             </button>
           </div>
-        )}
 
-        {/* Preferences / Dark Mode & Theme Toggle */}
-        {(!isCollapsed || isDrawer) && (
-          <div className="flex items-center justify-between gap-1.5 pt-1">
-            <button
-              type="button"
-              onClick={toggleLightDark}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl border text-xs font-semibold transition cursor-pointer ${
-                isLight
-                  ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
-                  : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
-              }`}
-            >
-              {isLight ? (
-                <>
-                  <Moon className="h-3.5 w-3.5 text-slate-600" />
-                  <span className="text-[11px]">Dark mode</span>
-                </>
-              ) : (
-                <>
-                  <Sun className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-[11px]">Light mode</span>
-                </>
-              )}
-            </button>
-
-            {/* Theme Picker Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsThemePickerOpen(!isThemePickerOpen)}
-                className={`flex h-8 w-8 items-center justify-center rounded-xl border text-xs font-semibold transition cursor-pointer ${
-                  isLight
-                    ? 'border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
-                    : 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
-                }`}
-                title="Themes"
-              >
-                <Palette className="h-3.5 w-3.5 text-indigo-500" />
-              </button>
-
-              {isThemePickerOpen && (
-                <div
-                  className={`absolute bottom-10 left-0 sm:left-auto sm:right-0 w-48 rounded-2xl border p-2 shadow-2xl z-50 backdrop-blur-md ${
-                    isLight ? 'border-slate-200 bg-white text-slate-900' : 'border-slate-800 bg-slate-900 text-slate-100'
-                  }`}
-                >
-                  <div className="px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                    Accent Color
-                  </div>
-                  {Object.values(COLOR_THEMES).map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => {
-                        onSelectTheme(t.id);
-                        setIsThemePickerOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-xl px-2 py-1.5 text-left text-xs transition cursor-pointer ${
-                        currentTheme === t.id
-                          ? isLight
-                            ? 'bg-slate-100 text-slate-950 font-bold'
-                            : 'bg-slate-800 text-white font-bold'
-                          : isLight
-                          ? 'text-slate-600 hover:bg-slate-50'
-                          : 'text-slate-300 hover:bg-slate-800/60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={`h-2.5 w-2.5 rounded-full ${t.accentBg}`} />
-                        <span className="text-[11px] truncate">{t.nameEn}</span>
-                      </div>
-                      {currentTheme === t.id && (
-                        <Check className={`h-3 w-3 ${theme.accentText}`} />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-mono pt-1">
+            <Lock className="h-3 w-3 text-[#10b981]" />
+            <span>Zero Video Storage Privacy</span>
           </div>
-        )}
-
-        {/* User Footer */}
-        {(!isCollapsed || isDrawer) ? (
-          currentUser ? (
-            <div
-              className={`rounded-2xl border p-2.5 flex items-center justify-between gap-2 ${
-                isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900'
-              }`}
-            >
-              <div
-                onClick={() => handleItemClick('profile')}
-                className="flex items-center gap-2.5 overflow-hidden cursor-pointer flex-1"
-                title="View Creator Profile"
-              >
-                {currentUser.photoURL ? (
-                  <img
-                    src={currentUser.photoURL}
-                    alt={currentUser.displayName || 'User'}
-                    className="h-8 w-8 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-xs shrink-0">
-                    {(currentUser.displayName || currentUser.email || 'C')[0].toUpperCase()}
-                  </div>
-                )}
-                <div className="flex flex-col truncate">
-                  <span className="font-sans font-bold text-xs truncate text-slate-900 dark:text-white">
-                    {currentUser.displayName || 'Brooklyn'}
-                  </span>
-                  <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
-                    Pro trial
-                  </span>
-                </div>
-              </div>
-
-              {onSignOut && (
-                <button
-                  type="button"
-                  onClick={onSignOut}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
-                  title="Sign Out"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          ) : (
-            <div
-              className={`rounded-2xl border p-2.5 flex items-center justify-between gap-2 ${
-                isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900'
-              }`}
-            >
-              <div
-                onClick={() => handleItemClick('profile')}
-                className="flex items-center gap-2.5 overflow-hidden cursor-pointer flex-1"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-white font-bold text-xs shrink-0">
-                  <User className="h-4 w-4" />
-                </div>
-                <div className="flex flex-col truncate">
-                  <span className="font-sans font-bold text-xs truncate text-slate-900 dark:text-white">
-                    Guest Creator
-                  </span>
-                  <span className="font-mono text-[10px] text-amber-500">
-                    Sign in required
-                  </span>
-                </div>
-              </div>
-
-              {onSignIn && (
-                <button
-                  type="button"
-                  onClick={onSignIn}
-                  className="px-2.5 py-1 rounded-xl bg-indigo-600 text-white font-sans text-xs font-bold hover:bg-indigo-700 transition cursor-pointer"
-                >
-                  Sign In
-                </button>
-              )}
-            </div>
-          )
-        ) : (
-          <div className="flex justify-center">
-            <button
-              onClick={() => handleItemClick('profile')}
-              className="h-8 w-8 rounded-full flex items-center justify-center bg-indigo-600 text-white font-bold text-xs cursor-pointer"
-              title="Creator Profile"
-            >
-              {currentUser ? (currentUser.displayName || 'C')[0].toUpperCase() : <User className="h-4 w-4" />}
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 
   return (
     <>
-      {/* Desktop Sidebar (Anchored top:0, left:0) */}
+      {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r h-screen sticky top-0 left-0 z-30 ${
-          isLight ? 'border-slate-200/80 bg-slate-50/50' : 'border-slate-800/80 bg-slate-950'
-        } ${isCollapsed ? 'w-20' : 'w-72'}`}
+        className={`hidden md:flex flex-col shrink-0 border-r border-white/20 text-slate-100 backdrop-blur-xl transition-all duration-300 select-none ${
+          isCollapsed ? 'w-16' : 'w-64'
+        }`}
+        style={{
+          backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'left center',
+        }}
       >
         {sidebarContent(false)}
       </aside>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (When Opened on Mobile) */}
       {isOpenMobile && (
         <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={onCloseMobile}
           />
+
+          {/* Drawer Panel */}
           <div
-            className={`relative flex w-80 max-w-[85vw] h-full flex-col shadow-2xl transition-transform duration-300 ${
-              isLight ? 'bg-white text-slate-900' : 'bg-slate-950 text-slate-100'
-            }`}
+            className="relative flex w-72 max-w-[85vw] flex-col border-r border-white/20 text-slate-100 shadow-2xl z-10 backdrop-blur-2xl"
+            style={{
+              backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
           >
             {sidebarContent(true)}
           </div>
@@ -887,54 +429,84 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-interface MobileBottomNavProps {
+export interface MobileBottomNavProps {
   currentView: NavView;
   onSelectView: (view: NavView) => void;
-  theme: ColorTheme;
-  violationsCount: number;
+  theme?: ColorTheme;
+  violationsCount?: number;
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   currentView,
   onSelectView,
-  theme,
-  violationsCount,
+  violationsCount = 0,
 }) => {
-  const isLight = theme.isLight;
   const items = [
     { id: 'overview' as NavView, label: 'Home', icon: LayoutDashboard },
     { id: 'scanner' as NavView, label: 'Scanner', icon: FileVideo },
     { id: 'channels' as NavView, label: 'Tracker', icon: Youtube },
-    { id: 'analytics' as NavView, label: 'Health', icon: Activity },
-    { id: 'violations' as NavView, label: 'Flags', icon: AlertTriangle, badge: violationsCount > 0 ? violationsCount : null },
+    { id: 'knowledge' as NavView, label: 'Policies', icon: BookOpen },
+    {
+      id: 'violations' as NavView,
+      label: 'Flags',
+      icon: AlertTriangle,
+      badge: violationsCount > 0 ? violationsCount : null,
+    },
     { id: 'profile' as NavView, label: 'Profile', icon: User },
   ];
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around border-t px-2 py-2 pb-safe backdrop-blur-md shadow-lg ${
-      isLight ? 'border-slate-200 bg-white/95 text-slate-900' : 'border-slate-800 bg-slate-950/95 text-slate-100'
-    }`}>
+    <nav
+      aria-label="Mobile Navigation Bar"
+      className="fixed bottom-3.5 left-1/2 -translate-x-1/2 z-50 flex md:hidden items-center justify-between gap-1 sm:gap-2 px-3 py-2 rounded-full backdrop-blur-2xl bg-black/40 border border-white/30 shadow-[0_16px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(56,189,248,0.22)] max-w-[95vw] w-fit"
+      style={{
+        backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       {items.map((item) => {
         const isActive = currentView === item.id;
         const Icon = item.icon;
         return (
           <button
             key={item.id}
-            onClick={() => onSelectView(item.id)}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl transition relative cursor-pointer ${
-              isActive ? 'text-red-600 dark:text-rose-400 font-bold' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+            type="button"
+            onClick={() => {
+              onSelectView(item.id);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="relative flex flex-col items-center justify-center px-1.5 sm:px-2 py-0.5 group cursor-pointer transition-all duration-300"
+            title={item.label}
+            aria-label={item.label}
           >
-            <Icon className="h-5 w-5" />
-            <span className="text-[10px] mt-0.5">{item.label}</span>
+            <div
+              className={`flex items-center justify-center transition-all duration-300 ${
+                isActive
+                  ? 'w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(56,189,248,0.75),0_4px_14px_rgba(0,0,0,0.45)] scale-105 -translate-y-1'
+                  : 'w-10 h-10 rounded-full text-slate-300/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />
+            </div>
+
+            <span
+              className={`text-[9px] font-medium tracking-tight transition-colors duration-200 -mt-0.5 ${
+                isActive ? 'text-sky-300 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              {item.label}
+            </span>
+
             {item.badge && (
-              <span className="absolute top-1 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white">
+              <span className="absolute -top-1 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-md ring-2 ring-slate-950">
                 {item.badge}
               </span>
             )}
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 };
+

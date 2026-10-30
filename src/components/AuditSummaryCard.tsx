@@ -59,11 +59,12 @@ Live Audit Link: https://www.striku.cloud/?report=${encodeURIComponent(report.id
 
   return (
     <div
-      className={`flex flex-col gap-5 rounded-2xl border p-4 sm:p-6 transition shadow-xs ${
-        isLight
-          ? 'border-slate-200/90 bg-white text-slate-900'
-          : 'border-slate-800/90 bg-slate-900/60 backdrop-blur-sm text-slate-100'
-      }`}
+      style={{
+        backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+      className="flex flex-col gap-5 rounded-2xl border border-white/30 p-4 sm:p-6 transition shadow-xl backdrop-blur-2xl text-slate-900 dark:text-slate-100"
     >
       {/* Top Banner: Verdict & Safety Grade */}
       <div
