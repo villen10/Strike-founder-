@@ -144,11 +144,11 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Logo & Brand Name (navigates to overview / Home) */}
+          {/* Logo (navigates to overview / Home) */}
           <button
             type="button"
             onClick={() => onNavigate && onNavigate('overview')}
-            className="flex items-center gap-2.5 group cursor-pointer text-left"
+            className="flex items-center gap-3 group cursor-pointer text-left"
             title="Go to Home"
           >
             {!logoError ? (
@@ -156,19 +156,16 @@ export const Header: React.FC<HeaderProps> = ({
                 src="/logo.png"
                 alt="Striku Logo"
                 onError={() => setLogoError(true)}
-                className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl object-contain bg-black/40 border border-white/25 p-1 group-hover:border-emerald-400 transition"
+                className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl object-contain bg-black/40 border border-white/25 p-1.5 group-hover:border-sky-400 transition shadow-md"
               />
             ) : (
-              <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-black/40 border border-white/25 text-[#10b981] group-hover:border-emerald-400 transition">
-                <ShieldCheck className="h-5 w-5" />
+              <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-black/40 border border-white/25 text-sky-400 group-hover:border-sky-400 transition shadow-md">
+                <ShieldCheck className="h-6 w-6" />
               </div>
             )}
 
             <div className="flex flex-col">
-              <span className="font-display font-black text-sm sm:text-base tracking-tight text-white uppercase group-hover:text-emerald-300 transition drop-shadow-sm">
-                STRIKU<span className="text-[#10b981]">.CLOUD</span>
-              </span>
-              <span className="hidden sm:inline font-mono text-[9px] uppercase tracking-wider text-slate-200 drop-shadow-xs -mt-1">
+              <span className="hidden sm:inline font-sans text-[10px] uppercase tracking-wider text-slate-200 drop-shadow-xs font-bold">
                 YouTube Pre-Check
               </span>
             </div>
@@ -273,187 +270,14 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-400">0-Data Retention</span>
           </div>
 
-          {/* Notifications Dropdown Container */}
-          <div className="relative" ref={notificationRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setIsNotificationOpen(!isNotificationOpen);
-                setUnreadCount(0);
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-950/40 hover:bg-emerald-900/50 text-slate-300 hover:text-white transition cursor-pointer relative"
-              title="System Notifications"
-            >
-              <Bell className="h-4 w-4" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-[#10b981] ring-2 ring-[#061311]" />
-              )}
-            </button>
-
-            {/* Notification Dropdown Menu */}
-            {isNotificationOpen && (
-              <div
-                className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-emerald-900/60 bg-[#061311] text-slate-200 shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2"
-                style={{
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(16, 185, 129, 0.04) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(16, 185, 129, 0.04) 1px, transparent 1px)
-                  `,
-                  backgroundSize: '24px 24px',
-                }}
-              >
-                <div className="flex items-center justify-between pb-3 border-b border-emerald-950/80 mb-3">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-[#10b981]" />
-                    <span className="font-display font-bold text-xs uppercase tracking-wider text-white">
-                      Notifications &amp; Status
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsNotificationOpen(false)}
-                    className="text-slate-400 hover:text-white transition cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="flex flex-col gap-2.5 max-h-72 overflow-y-auto pr-1">
-                  {notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className="p-2.5 rounded-xl bg-black/40 border border-emerald-950/80 hover:border-emerald-800/40 transition"
-                    >
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-bold text-white flex items-center gap-1.5">
-                          {n.isNew && <span className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />}
-                          {n.title}
-                        </span>
-                        <span className="font-mono text-[10px] text-slate-500">{n.time}</span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">{n.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-3 pt-2 border-t border-emerald-950/80 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> System 100% Operational
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onNavigate) onNavigate('legal');
-                      setIsNotificationOpen(false);
-                    }}
-                    className="text-slate-300 hover:text-[#10b981] transition cursor-pointer"
-                  >
-                    Trust Hub →
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* Operational Shield Status Chip */}
+          <div
+            className="hidden lg:flex items-center gap-1.5 rounded-full px-3 py-1 border border-emerald-900/60 bg-emerald-950/40 text-emerald-300 text-xs font-semibold"
+            title="Pre-upload scans processed in private RAM. Never stored."
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-400">0-Data Retention</span>
           </div>
-
-          {/* User Profile / Auth Container */}
-          {currentUser ? (
-            <div className="relative" ref={userMenuRef}>
-              <button
-                type="button"
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-1.5 p-1 rounded-full border border-emerald-500/30 hover:border-emerald-400 transition cursor-pointer bg-emerald-950/40"
-                title="Account menu"
-              >
-                {currentUser.photoURL ? (
-                  <img
-                    src={currentUser.photoURL}
-                    alt={currentUser.displayName || 'User'}
-                    className="h-7 w-7 rounded-full object-cover ring-1 ring-emerald-500"
-                  />
-                ) : (
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-slate-950 font-bold text-xs">
-                    {(currentUser.displayName || currentUser.email || 'C')[0].toUpperCase()}
-                  </div>
-                )}
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400 mr-1" />
-              </button>
-
-              {/* User Dropdown */}
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-emerald-900/60 bg-[#061311] text-slate-200 shadow-2xl p-2 z-50">
-                  <div className="px-3 py-2 border-b border-emerald-950/80 mb-1">
-                    <p className="font-bold text-xs text-white truncate">
-                      {currentUser.displayName || 'Creator'}
-                    </p>
-                    <p className="font-mono text-[10px] text-slate-400 truncate">
-                      {currentUser.email}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onNavigateProfile) onNavigateProfile();
-                      setIsUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-emerald-950/60 hover:text-[#10b981] transition cursor-pointer text-left"
-                  >
-                    <User className="h-3.5 w-3.5" />
-                    <span>Creator Profile</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onNavigate) onNavigate('my-reviews');
-                      setIsUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-emerald-950/60 hover:text-[#10b981] transition cursor-pointer text-left"
-                  >
-                    <Star className="h-3.5 w-3.5" />
-                    <span>My Reviews</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onOpenPricing) onOpenPricing();
-                      setIsUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl hover:bg-emerald-950/60 hover:text-[#10b981] transition cursor-pointer text-left"
-                  >
-                    <CreditCard className="h-3.5 w-3.5" />
-                    <span>Subscription Plans</span>
-                  </button>
-
-                  {onSignOut && (
-                    <div className="pt-1 mt-1 border-t border-emerald-950/80">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onSignOut();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl text-rose-400 hover:bg-rose-950/40 transition cursor-pointer text-left"
-                      >
-                        <LogOut className="h-3.5 w-3.5" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onSignIn}
-              className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-900/60 hover:border-emerald-400 text-white px-3 py-1.5 text-xs font-semibold transition cursor-pointer"
-            >
-              <User className="h-3.5 w-3.5 text-[#10b981]" />
-              <span>Sign In</span>
-            </button>
-          )}
         </div>
       </div>
     </header>

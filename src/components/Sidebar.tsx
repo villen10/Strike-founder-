@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import {
-  LayoutDashboard,
-  FileVideo,
-  Activity,
-  AlertTriangle,
-  FileText,
-  BookOpen,
+  Compass,
+  Clapperboard,
+  Tv,
+  ShieldAlert,
+  FileCode,
+  LineChart,
+  BookMarked,
+  MessageCircle,
+  Crown,
+  UserCircle,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  User,
   Plus,
   X,
-  Youtube,
-  CreditCard,
-  Star,
-  MessageSquare,
   Scale,
   Sparkles,
   Zap,
@@ -106,36 +105,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'overview' as NavView,
       label: 'Home Dashboard',
-      icon: LayoutDashboard,
+      icon: Compass,
     },
     {
       id: 'scanner' as NavView,
       label: 'Video Scanner',
-      icon: FileVideo,
+      icon: Clapperboard,
       badge: pendingQueueCount > 0 ? `${pendingQueueCount}` : null,
       badgeColor: 'bg-emerald-500 text-slate-950 font-bold',
     },
     {
       id: 'channels' as NavView,
       label: 'Channel Tracker',
-      icon: Youtube,
+      icon: Tv,
     },
     {
       id: 'violations' as NavView,
       label: 'Policy Flags & Cuts',
-      icon: AlertTriangle,
+      icon: ShieldAlert,
       badge: violationsCount > 0 ? `${violationsCount}` : null,
       badgeColor: 'bg-red-500 text-white font-bold',
     },
     {
       id: 'appeal' as NavView,
       label: 'Strike Appeal Kit',
-      icon: FileText,
+      icon: FileCode,
     },
     {
       id: 'analytics' as NavView,
       label: 'Channel Health',
-      icon: Activity,
+      icon: LineChart,
     },
   ];
 
@@ -143,19 +142,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'knowledge' as NavView,
       label: 'Policy Guide',
-      icon: BookOpen,
+      icon: BookMarked,
     },
     {
       id: 'reviews' as NavView,
       label: 'Creator Reviews',
-      icon: Star,
+      icon: Sparkles,
       badge: '4.9★',
       badgeColor: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
     },
     {
       id: 'my-reviews' as NavView,
       label: 'My Reviews',
-      icon: MessageSquare,
+      icon: MessageCircle,
     },
   ];
 
@@ -163,7 +162,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'subscription' as NavView,
       label: 'Pricing & Plans',
-      icon: CreditCard,
+      icon: Crown,
       badge:
         currentTier === 'enterprise'
           ? 'AGENCY'
@@ -183,7 +182,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'profile' as NavView,
       label: 'Creator Profile',
-      icon: User,
+      icon: UserCircle,
       badge: currentUser ? (isSuperAdmin ? 'ADMIN' : 'PRO') : null,
       badgeColor: isSuperAdmin ? 'bg-red-600 text-white font-bold' : 'bg-emerald-500 text-slate-950 font-bold',
     },
@@ -203,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const renderNavGroup = (title: string, items: typeof mainNavItems, isDrawer: boolean) => (
     <div className="flex flex-col gap-1">
       {(!isCollapsed || isDrawer) && (
-        <span className="px-3 pt-2 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <span className="px-3 pt-2 pb-1 font-sans text-[10px] font-bold uppercase tracking-wider text-slate-800">
           {title}
         </span>
       )}
@@ -215,27 +214,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             key={item.id}
             type="button"
             onClick={() => handleItemClick(item.id)}
-            className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer text-left ${
+            className={`w-full flex items-center gap-3.5 px-3 py-2 text-xs font-semibold transition-all duration-300 cursor-pointer text-left rounded-xl ${
               isActive
-                ? 'bg-[#10b981]/15 text-[#10b981] font-bold border border-[#10b981]/30 shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-emerald-950/40'
+                ? 'bg-blue-600/15 text-blue-700 font-bold'
+                : 'bg-transparent text-slate-950 hover:text-blue-600 hover:bg-black/5'
             }`}
             title={item.label}
           >
-            <Icon
-              className={`h-4 w-4 shrink-0 transition ${
-                isActive ? 'text-[#10b981]' : 'text-slate-400'
-              }`}
-            />
+            <Icon className={`h-4 w-4 shrink-0 transition ${isActive ? 'text-blue-600 stroke-[2.4]' : 'text-slate-800 stroke-[1.8]'}`} />
 
             {(!isCollapsed || isDrawer) && (
-              <span className="flex-1 truncate">{item.label}</span>
+              <span className={`flex-1 font-sans truncate transition-colors ${isActive ? 'text-blue-700 font-bold text-xs' : 'text-slate-950 hover:text-black font-bold text-xs'}`}>
+                {item.label}
+              </span>
             )}
 
             {(!isCollapsed || isDrawer) && item.badge && (
               <span
-                className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-bold ${
-                  item.badgeColor || 'bg-slate-800 text-slate-300'
+                className={`rounded-full px-2.5 py-0.5 font-sans text-[9px] font-bold ${
+                  item.badgeColor || 'bg-slate-200 text-slate-900'
                 }`}
               >
                 {item.badge}
@@ -252,23 +249,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Top Section */}
       <div className="flex flex-col gap-3">
         {/* Top Header / Close / Collapse */}
-        <div className="flex items-center justify-between px-3.5 py-3 border-b border-emerald-950/60">
+        <div className="flex items-center justify-between px-3.5 py-3 border-b border-sky-900/40">
           {isDrawer ? (
             <>
               <div className="flex items-center gap-2">
                 <img
                   src="/logo.png"
                   alt="Striku"
-                  className="h-6 w-6 rounded-lg object-contain bg-emerald-950/60 p-0.5 border border-emerald-500/30"
+                  className="h-11 w-11 rounded-2xl object-contain bg-white/60 p-1 border border-sky-500/30 shadow-md"
                 />
-                <span className="font-display font-black text-sm uppercase text-white tracking-tight">
-                  STRIKU<span className="text-[#10b981]">.CLOUD</span>
-                </span>
               </div>
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/30 text-slate-300 hover:text-white transition cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-950/50 hover:bg-sky-900/60 border border-sky-500/30 text-slate-300 hover:text-white transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -277,7 +271,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <>
               {!isCollapsed && (
                 <div className="flex items-center gap-2 pl-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                  <span className="font-sans text-[10px] uppercase tracking-wider text-sky-400 font-bold">
                     Workspace
                   </span>
                 </div>
@@ -285,7 +279,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 type="button"
                 onClick={onToggleCollapse}
-                className={`flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-950/40 text-slate-400 hover:text-white transition cursor-pointer ${
+                className={`flex h-7 w-7 items-center justify-center rounded-lg border border-sky-500/20 bg-sky-950/40 text-sky-400 hover:text-white transition cursor-pointer ${
                   isCollapsed ? 'mx-auto' : ''
                 }`}
                 title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -302,7 +296,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Primary Call to Action: Check Video */}
         {(!isCollapsed || isDrawer) ? (
-          <div className="px-3">
+          <div className="px-3 pt-2">
             <button
               type="button"
               onClick={() => {
@@ -312,7 +306,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   handleItemClick('scanner');
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-sans text-xs font-bold py-2.5 px-3 shadow-md transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-sans text-xs font-bold py-2.5 px-3 shadow-[0_0_20px_rgba(56,189,248,0.35)] transition cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[3]" />
               <span>Check Video Now</span>
@@ -326,7 +320,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 if (onScanNewVideo) onScanNewVideo();
                 else handleItemClick('scanner');
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-slate-950 shadow-md hover:scale-105 transition cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-sky-500 text-white shadow-[0_0_15px_rgba(56,189,248,0.5)] hover:scale-105 transition cursor-pointer"
               title="Check Video Now"
             >
               <Plus className="h-4 w-4 stroke-[3]" />
@@ -335,7 +329,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Navigation Sections */}
-        <nav className="px-3 flex flex-col gap-3">
+        <nav className="px-3 flex flex-col gap-3 pt-2">
           {renderNavGroup('Navigation', mainNavItems, isDrawer)}
           {renderNavGroup('Community & Rules', communityNavItems, isDrawer)}
           {renderNavGroup('Account & Trust', accountNavItems, isDrawer)}
@@ -344,18 +338,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom Section: Clean Plan Status Card */}
       {(!isCollapsed || isDrawer) && (
-        <div className="p-3 border-t border-emerald-950/60 flex flex-col gap-2 mt-4">
-          <div className="rounded-2xl border border-emerald-900/40 bg-black/40 p-3.5 flex flex-col gap-2">
+        <div className="p-3 border-t border-sky-900/40 flex flex-col gap-2 mt-4">
+          <div className="rounded-2xl border border-sky-500/30 bg-sky-950/40 backdrop-blur-md p-3.5 flex flex-col gap-2 shadow-[0_0_15px_rgba(56,189,248,0.15)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/20 text-[#10b981]">
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
                   <Sparkles className="h-3.5 w-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-[9px] text-slate-400 uppercase font-bold">
+                  <span className="font-sans text-[9px] text-sky-300 uppercase font-bold tracking-wider">
                     Current Plan
                   </span>
-                  <span className="font-display text-xs font-black text-white">
+                  <span className="font-sans text-xs font-extrabold text-white">
                     {currentTier === 'enterprise'
                       ? 'Agency ($80/mo)'
                       : currentTier === 'pro'
@@ -369,17 +363,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={onOpenPricing || (() => handleItemClick('subscription'))}
-              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 font-sans text-xs font-bold py-2 px-3 transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600/60 border border-sky-400/40 text-sky-200 font-sans text-xs font-bold py-2 px-3 transition cursor-pointer shadow-xs"
             >
-              <Zap className="h-3 w-3 text-[#10b981]" />
+              <Zap className="h-3 w-3 text-sky-400" />
               <span>
                 {currentTier === 'free' ? 'Upgrade to Pro ($29)' : 'Manage Subscription'}
               </span>
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-mono pt-1">
-            <Lock className="h-3 w-3 text-[#10b981]" />
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-sky-300 font-sans pt-1">
+            <Lock className="h-3 w-3 text-sky-400" />
             <span>Zero Video Storage Privacy</span>
           </div>
         </div>
@@ -429,84 +423,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-export interface MobileBottomNavProps {
-  currentView: NavView;
-  onSelectView: (view: NavView) => void;
-  theme?: ColorTheme;
-  violationsCount?: number;
-}
 
-export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
-  currentView,
-  onSelectView,
-  violationsCount = 0,
-}) => {
-  const items = [
-    { id: 'overview' as NavView, label: 'Home', icon: LayoutDashboard },
-    { id: 'scanner' as NavView, label: 'Scanner', icon: FileVideo },
-    { id: 'channels' as NavView, label: 'Tracker', icon: Youtube },
-    { id: 'knowledge' as NavView, label: 'Policies', icon: BookOpen },
-    {
-      id: 'violations' as NavView,
-      label: 'Flags',
-      icon: AlertTriangle,
-      badge: violationsCount > 0 ? violationsCount : null,
-    },
-    { id: 'profile' as NavView, label: 'Profile', icon: User },
-  ];
 
-  return (
-    <nav
-      aria-label="Mobile Navigation Bar"
-      className="fixed bottom-3.5 left-1/2 -translate-x-1/2 z-50 flex md:hidden items-center justify-between gap-1 sm:gap-2 px-3 py-2 rounded-full backdrop-blur-2xl bg-black/40 border border-white/30 shadow-[0_16px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(56,189,248,0.22)] max-w-[95vw] w-fit"
-      style={{
-        backgroundImage: `url('/assets/aistudio/5d0b6ed188fecc12368c09462d76be44_9d7acdc2.jpg')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {items.map((item) => {
-        const isActive = currentView === item.id;
-        const Icon = item.icon;
-        return (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => {
-              onSelectView(item.id);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="relative flex flex-col items-center justify-center px-1.5 sm:px-2 py-0.5 group cursor-pointer transition-all duration-300"
-            title={item.label}
-            aria-label={item.label}
-          >
-            <div
-              className={`flex items-center justify-center transition-all duration-300 ${
-                isActive
-                  ? 'w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(56,189,248,0.75),0_4px_14px_rgba(0,0,0,0.45)] scale-105 -translate-y-1'
-                  : 'w-10 h-10 rounded-full text-slate-300/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />
-            </div>
-
-            <span
-              className={`text-[9px] font-medium tracking-tight transition-colors duration-200 -mt-0.5 ${
-                isActive ? 'text-sky-300 font-bold' : 'text-slate-400 group-hover:text-slate-200'
-              }`}
-            >
-              {item.label}
-            </span>
-
-            {item.badge && (
-              <span className="absolute -top-1 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-md ring-2 ring-slate-950">
-                {item.badge}
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </nav>
-  );
-};
 

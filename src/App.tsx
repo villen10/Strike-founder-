@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Header } from './components/Header';
-import { Sidebar, MobileBottomNav, NavView } from './components/Sidebar';
+import { Sidebar, NavView } from './components/Sidebar';
 import { VideoScanner } from './components/VideoScanner';
 import { AuditSummaryCard } from './components/AuditSummaryCard';
 import { AuditResultsDashboard } from './components/AuditResultsDashboard';
@@ -1808,14 +1808,6 @@ export default function App() {
           />
         </div>
       </div>
-
-      {/* Mobile Bottom Navigation Bar (Thumb-Friendly on Phones) */}
-      <MobileBottomNav
-        currentView={currentView}
-        onSelectView={setCurrentView}
-        theme={theme}
-        violationsCount={report?.timelineViolations.length || 0}
-      />
 
       {/* Pop-up Modals */}
       {report && (
