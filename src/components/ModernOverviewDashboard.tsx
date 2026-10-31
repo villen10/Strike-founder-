@@ -25,11 +25,17 @@ import {
 import { AuditReport, SampleVideoOption } from '../types/audit';
 import { AppUserProfile } from './ProfileView';
 import { HistoricalUploadRecord } from './ChannelHealthTrend';
+import { ExtractedFrame, formatTime } from '../services/frameExtractor';
 
 export interface ModernOverviewDashboardProps {
   currentUser: AppUserProfile | null;
   history?: HistoricalUploadRecord[];
   report?: AuditReport | null;
+  currentVideoUrl?: string | null;
+  videoTitle?: string;
+  videoDurationSec?: number;
+  extractedFrames?: ExtractedFrame[];
+  isScanning?: boolean;
   onSelectSample: (sample: SampleVideoOption) => void;
   samples: SampleVideoOption[];
   onNavigateScanner: () => void;
@@ -47,6 +53,11 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
   currentUser,
   history = [],
   report,
+  currentVideoUrl,
+  videoTitle,
+  videoDurationSec = 0,
+  extractedFrames = [],
+  isScanning = false,
   onSelectSample,
   samples,
   onNavigateScanner,
@@ -102,6 +113,9 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
       onNavigateScanner();
     }
   };
+
+  const hasUserVideo = Boolean(report || currentVideoUrl || (extractedFrames && extractedFrames.length > 0));
+  const latestThumbnail = (extractedFrames && extractedFrames.length > 0) ? extractedFrames[0].dataUrl : null;
 
   const faqs = [
     {
@@ -253,44 +267,95 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             <div className="w-full max-w-lg rounded-2xl border border-white/30 bg-white/45 dark:bg-black/45 shadow-2xl p-4 sm:p-5 backdrop-blur-xl transition hover:border-white/50">
               {/* Window Top Bar */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-[10px]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-[10px]">
                     S
                   </div>
                   <span className="font-display font-bold text-xs text-slate-100">Striku</span>
                   <span className="text-slate-600">/</span>
-                  <span className="font-mono text-[11px] text-slate-400">Video Analysis</span>
+                  <span className="font-mono text-[11px] text-slate-400 truncate max-w-[140px]" title={hasUserVideo ? (videoTitle || 'Active Video') : 'Empty'}>
+                    {hasUserVideo ? (videoTitle || 'Active Video') : 'Video Analysis'}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-slate-700" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-slate-700" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-bold uppercase ${
+                    hasUserVideo
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}>
+                    {hasUserVideo ? 'Active' : 'Empty'}
+                  </span>
                 </div>
               </div>
 
               {/* Main Preview Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center">
-                {/* Video Thumbnail Box (Span 7) */}
-                <div className="sm:col-span-7 relative rounded-xl overflow-hidden aspect-video bg-slate-900 border border-slate-800 group">
-                  <img
-                    src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80"
-                    alt="Sample video analysis"
-                    className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                {hasUserVideo ? (
+                  /* User has uploaded a video -> show latest video's thumbnail */
+                  <div className="sm:col-span-7 relative rounded-xl overflow-hidden aspect-video bg-slate-900 border border-slate-800 group">
+                    {latestThumbnail ? (
+                      <img
+                        src={latestThumbnail}
+                        alt={videoTitle || 'Latest analyzed video'}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    ) : currentVideoUrl ? (
+                      <video
+                        src={currentVideoUrl}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 text-slate-300 p-2 text-center">
+                        <Film className="h-6 w-6 text-blue-400 mb-1" />
+                        <span className="font-sans text-xs font-bold truncate max-w-full px-2">
+                          {videoTitle || 'Uploaded Video'}
+                        </span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        type="button"
+                        onClick={onNavigateScanner}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-lg hover:scale-110 transition cursor-pointer"
+                        title="Inspect in full video scanner"
+                      >
+                        <Play className="h-4 w-4 fill-slate-900 ml-0.5" />
+                      </button>
+                    </div>
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/70 font-mono text-[9px] text-white backdrop-blur-xs">
+                      {videoDurationSec > 0 ? formatTime(videoDurationSec) : 'Active Video'}
+                    </div>
+                  </div>
+                ) : (
+                  /* Empty State Box (Clearly labeled "Empty" as requested) */
+                  <div
+                    onClick={triggerUpload}
+                    className="sm:col-span-7 relative rounded-xl overflow-hidden aspect-video border-2 border-dashed border-slate-700 bg-slate-950/90 flex flex-col items-center justify-center p-4 text-center cursor-pointer transition hover:border-blue-500 hover:bg-slate-900 group"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition mb-2">
+                      <Film className="h-5 w-5" />
+                    </div>
+                    <span className="font-display font-black text-sm text-white tracking-wide uppercase">
+                      Empty
+                    </span>
+                    <span className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                      No video added for analysis yet
+                    </span>
                     <button
                       type="button"
-                      onClick={loadDefaultDemo}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-lg hover:scale-110 transition cursor-pointer"
-                      title="Inspect interactive video demo"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerUpload();
+                      }}
+                      className="mt-2.5 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono text-[10px] font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                     >
-                      <Play className="h-4 w-4 fill-slate-900 ml-0.5" />
+                      <UploadCloud className="h-3 w-3" />
+                      <span>Upload Video</span>
                     </button>
                   </div>
-                  <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 font-mono text-[9px] text-white">
-                    02:34
-                  </div>
-                </div>
+                )}
 
                 {/* Score Gauge Circle (Span 5) */}
                 <div className="sm:col-span-5 flex flex-col items-center justify-center p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
@@ -303,18 +368,28 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                         fill="none"
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       />
-                      <path
-                        className="text-emerald-500"
-                        strokeDasharray="78, 100"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
+                      {hasUserVideo && report && (
+                        <path
+                          className={
+                            report.overallRiskScore <= 20
+                              ? 'text-emerald-500'
+                              : report.overallRiskScore <= 50
+                              ? 'text-amber-500'
+                              : 'text-rose-500'
+                          }
+                          strokeDasharray={`${Math.max(0, 100 - report.overallRiskScore)}, 100`}
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      )}
                     </svg>
                     <div className="absolute flex flex-col items-center justify-center">
-                      <span className="font-display font-black text-lg text-white">78</span>
+                      <span className="font-display font-black text-lg text-white">
+                        {hasUserVideo && report ? Math.max(0, 100 - report.overallRiskScore) : '--'}
+                      </span>
                       <span className="font-mono text-[8px] text-slate-400 -mt-1">/100</span>
                     </div>
                   </div>
@@ -322,8 +397,28 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
                   <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 mt-1">
                     Overall Safety Score
                   </span>
-                  <span className="mt-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-mono text-[10px] font-bold">
-                    Mostly Safe
+                  <span
+                    className={`mt-1 px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+                      hasUserVideo && report
+                        ? report.safetyGrade === 'SAFE_TO_UPLOAD'
+                          ? 'bg-emerald-500/15 text-emerald-400'
+                          : report.safetyGrade === 'MONETIZATION_AT_RISK'
+                          ? 'bg-amber-500/15 text-amber-400'
+                          : 'bg-rose-500/15 text-rose-400'
+                        : hasUserVideo && isScanning
+                        ? 'bg-blue-500/15 text-blue-400 animate-pulse'
+                        : 'bg-slate-800 text-slate-400'
+                    }`}
+                  >
+                    {hasUserVideo && report
+                      ? report.safetyGrade === 'SAFE_TO_UPLOAD'
+                        ? 'Safe to Upload'
+                        : report.safetyGrade === 'MONETIZATION_AT_RISK'
+                        ? 'At Risk'
+                        : 'Strike Risk'
+                      : hasUserVideo && isScanning
+                      ? 'Analyzing...'
+                      : 'Empty'}
                   </span>
                 </div>
               </div>
@@ -332,26 +427,32 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
               <div className="grid grid-cols-3 gap-2 mt-3.5">
                 <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col">
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                    <span className={`h-1.5 w-1.5 rounded-full ${hasUserVideo && report ? 'bg-rose-500' : 'bg-slate-600'}`} />
                     <span className="truncate">Copyright</span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-rose-400 mt-0.5">12%</span>
+                  <span className={`font-mono font-bold text-sm mt-0.5 ${hasUserVideo && report ? 'text-rose-400' : 'text-slate-500'}`}>
+                    {hasUserVideo && report ? `${report.strikeProbabilityPct}%` : '--'}
+                  </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col">
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    <span className={`h-1.5 w-1.5 rounded-full ${hasUserVideo && report ? 'bg-amber-500' : 'bg-slate-600'}`} />
                     <span className="truncate">Reused</span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-amber-400 mt-0.5">5%</span>
+                  <span className={`font-mono font-bold text-sm mt-0.5 ${hasUserVideo && report ? 'text-amber-400' : 'text-slate-500'}`}>
+                    {hasUserVideo && report ? `${Math.round(report.overallRiskScore * 0.4)}%` : '--'}
+                  </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col">
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <span className={`h-1.5 w-1.5 rounded-full ${hasUserVideo && report ? 'bg-blue-500' : 'bg-slate-600'}`} />
                     <span className="truncate">Monetization</span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-blue-400 mt-0.5">18%</span>
+                  <span className={`font-mono font-bold text-sm mt-0.5 ${hasUserVideo && report ? 'text-blue-400' : 'text-slate-500'}`}>
+                    {hasUserVideo && report ? `${report.demonetizationProbabilityPct}%` : '--'}
+                  </span>
                 </div>
               </div>
 
@@ -359,52 +460,49 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
               <div className="mt-3.5 pt-3 border-t border-slate-800 space-y-2">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
                   <span className="font-bold">Detected Issues</span>
-                  <span className="text-[10px]">2 flags found</span>
+                  <span className="text-[10px]">
+                    {hasUserVideo && report ? `${report.timelineViolations?.length || 0} flags found` : 'Empty'}
+                  </span>
                 </div>
 
-                {/* Issue 1 */}
-                <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 text-xs">
-                  <div className="flex items-center gap-2 truncate">
-                    <Music className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                    <span className="truncate text-[11px] text-slate-200">
-                      Background music match found
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/15 text-amber-400">
-                      Medium
-                    </span>
-                    <button
-                      type="button"
-                      onClick={loadDefaultDemo}
-                      className="text-[10px] font-bold text-blue-400 hover:underline cursor-pointer"
+                {hasUserVideo && report && report.timelineViolations && report.timelineViolations.length > 0 ? (
+                  report.timelineViolations.slice(0, 2).map((v, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 text-xs"
                     >
-                      View Details
-                    </button>
+                      <div className="flex items-center gap-2 truncate">
+                        <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <span className="truncate text-[11px] text-slate-200">
+                          {v.title || v.categoryLabel}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/15 text-amber-400">
+                          {v.severity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={onNavigateScanner}
+                          className="text-[10px] font-bold text-blue-400 hover:underline cursor-pointer"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : hasUserVideo && isScanning ? (
+                  <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/60 text-center text-xs text-blue-300 animate-pulse">
+                    Scanning keyframes and analyzing compliance policies...
                   </div>
-                </div>
-
-                {/* Issue 2 */}
-                <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 text-xs">
-                  <div className="flex items-center gap-2 truncate">
-                    <Film className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-                    <span className="truncate text-[11px] text-slate-200">
-                      Similar video segment detected
-                    </span>
+                ) : (
+                  <div
+                    onClick={triggerUpload}
+                    className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/60 text-center text-xs text-slate-400 cursor-pointer hover:border-slate-700 transition"
+                  >
+                    <span>{hasUserVideo ? 'No policy issues detected.' : 'Box is empty. Add a video to run deep inspection.'}</span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400">
-                      Low
-                    </span>
-                    <button
-                      type="button"
-                      onClick={loadDefaultDemo}
-                      className="text-[10px] font-bold text-blue-400 hover:underline cursor-pointer"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -592,208 +690,211 @@ export const ModernOverviewDashboard: React.FC<ModernOverviewDashboardProps> = (
             </button>
           </div>
 
-          {/* Right Column: Sample Report (Demo) Card */}
+          {/* Right Column: Sample Report Card / Empty State */}
           <div className="lg:col-span-7">
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="font-mono text-xs text-slate-400 font-bold uppercase tracking-wider">
-                Sample Report (Demo)
+                {hasUserVideo && report ? 'Your Video Analysis Report' : 'Video Analysis Report'}
               </span>
-              <span className="text-[11px] font-mono text-emerald-400 font-bold">
-                Live Interactive Preview
+              <span className={`text-[11px] font-mono font-bold ${hasUserVideo && report ? 'text-emerald-400' : 'text-slate-400'}`}>
+                {hasUserVideo && report ? 'Live Report Active' : 'Empty'}
               </span>
             </div>
 
             {/* Inner Card */}
-            <div className="rounded-2xl border border-white/30 bg-white/45 dark:bg-black/45 p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-xl">
-              {/* Video metadata row */}
-              <div className="flex items-center gap-3 border-b border-white/20 pb-3">
-                <div className="relative h-12 w-16 rounded-lg overflow-hidden bg-slate-800 shrink-0">
-                  <img
-                    src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&auto=format&fit=crop&q=80"
-                    alt="Adventure Vlog"
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <Play className="h-3 w-3 fill-white text-white" />
+            {hasUserVideo && report ? (
+              <div className="rounded-2xl border border-white/30 bg-white/45 dark:bg-black/45 p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-xl">
+                {/* Video metadata row */}
+                <div className="flex items-center gap-3 border-b border-white/20 pb-3">
+                  <div className="relative h-12 w-16 rounded-lg overflow-hidden bg-slate-800 shrink-0">
+                    {latestThumbnail ? (
+                      <img
+                        src={latestThumbnail}
+                        alt={videoTitle || 'Analyzed video'}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-slate-900 text-slate-400">
+                        <Film className="h-4 w-4" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                      <Play className="h-3 w-3 fill-white text-white" />
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-display font-bold text-xs sm:text-sm text-white truncate">
-                    Adventure_vlog.mp4
-                  </h4>
-                  <span className="font-mono text-[10px] text-slate-400">
-                    1920 x 1080 • 2:34 • 120 MB
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={loadDefaultDemo}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-mono text-[10px] font-bold transition cursor-pointer"
-                >
-                  Inspect Full
-                </button>
-              </div>
-
-              {/* Tabs */}
-              <div className="flex items-center gap-2 border-b border-slate-800/80 pb-2 text-xs">
-                {(['overview', 'details', 'timestamps', 'fixes'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setActiveDemoTab(tab)}
-                    className={`capitalize px-2.5 py-1 rounded-lg font-mono text-[11px] transition cursor-pointer ${
-                      activeDemoTab === tab
-                        ? 'bg-blue-600 text-white font-bold'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab 1: Overview */}
-              {activeDemoTab === 'overview' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Left: Risk Overview Bars */}
-                  <div className="space-y-2.5">
-                    <span className="font-mono text-[10px] uppercase font-bold text-slate-400">
-                      Risk Overview
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-display font-bold text-xs sm:text-sm text-white truncate">
+                      {videoTitle || 'Analyzed Video'}
+                    </h4>
+                    <span className="font-mono text-[10px] text-slate-400">
+                      {videoDurationSec > 0 ? formatTime(videoDurationSec) : 'Analyzed'} • Score: {Math.max(0, 100 - report.overallRiskScore)}/100
                     </span>
-
-                    {/* Bar 1 */}
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] mb-1">
-                        <span className="flex items-center gap-1.5 text-slate-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                          <span>Copyright Risk</span>
-                        </span>
-                        <span className="font-mono font-bold text-rose-400">12%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-rose-500 rounded-full w-[12%]" />
-                      </div>
-                    </div>
-
-                    {/* Bar 2 */}
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] mb-1">
-                        <span className="flex items-center gap-1.5 text-slate-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          <span>Reused Content</span>
-                        </span>
-                        <span className="font-mono font-bold text-amber-400">5%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500 rounded-full w-[5%]" />
-                      </div>
-                    </div>
-
-                    {/* Bar 3 */}
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] mb-1">
-                        <span className="flex items-center gap-1.5 text-slate-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                          <span>Monetization Risk</span>
-                        </span>
-                        <span className="font-mono font-bold text-blue-400">18%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full w-[18%]" />
-                      </div>
-                    </div>
-
-                    {/* Bar 4 */}
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] mb-1">
-                        <span className="flex items-center gap-1.5 text-slate-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-                          <span>Policy Issues</span>
-                        </span>
-                        <span className="font-mono font-bold text-teal-400">7%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-teal-500 rounded-full w-[7%]" />
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Right: Top Issues */}
-                  <div className="space-y-2">
-                    <span className="font-mono text-[10px] uppercase font-bold text-slate-400">
-                      Top Issues
-                    </span>
-
-                    <div className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <Music className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                        <div className="truncate">
-                          <div className="text-[11px] text-white truncate">Background music match</div>
-                          <span className="font-mono text-[9px] text-slate-400">0:45 – 1:12</span>
-                        </div>
-                      </div>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-400">
-                        Medium
-                      </span>
-                    </div>
-
-                    <div className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <Film className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-                        <div className="truncate">
-                          <div className="text-[11px] text-white truncate">Similar clip detected</div>
-                          <span className="font-mono text-[9px] text-slate-400">2:10 – 2:45</span>
-                        </div>
-                      </div>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-400">
-                        Low
-                      </span>
-                    </div>
-
-                    <div className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <Tag className="h-3.5 w-3.5 text-purple-400 shrink-0" />
-                        <div className="truncate">
-                          <div className="text-[11px] text-white truncate">Logo detected</div>
-                          <span className="font-mono text-[9px] text-slate-400">4:32 – 4:48</span>
-                        </div>
-                      </div>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-400">
-                        Low
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Other demo tabs */}
-              {activeDemoTab !== 'overview' && (
-                <div className="py-4 text-center text-xs text-slate-400 font-mono">
-                  <span>Interactive demonstration view: switch tabs or click </span>
                   <button
                     type="button"
-                    onClick={loadDefaultDemo}
-                    className="text-blue-400 hover:underline font-bold"
+                    onClick={onNavigateScanner}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-mono text-[10px] font-bold transition cursor-pointer"
                   >
-                    View Full Report →
+                    Inspect Full
                   </button>
                 </div>
-              )}
 
-              {/* View Full Report Link */}
-              <div className="pt-2 border-t border-slate-800 text-right">
+                {/* Tabs */}
+                <div className="flex items-center gap-2 border-b border-slate-800/80 pb-2 text-xs">
+                  {(['overview', 'details', 'timestamps', 'fixes'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setActiveDemoTab(tab)}
+                      className={`capitalize px-2.5 py-1 rounded-lg font-mono text-[11px] transition cursor-pointer ${
+                        activeDemoTab === tab
+                          ? 'bg-blue-600 text-white font-bold'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab 1: Overview */}
+                {activeDemoTab === 'overview' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left: Risk Overview Bars */}
+                    <div className="space-y-2.5">
+                      <span className="font-mono text-[10px] uppercase font-bold text-slate-400">
+                        Risk Overview
+                      </span>
+
+                      {/* Bar 1 */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-slate-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                            <span>Copyright Risk</span>
+                          </span>
+                          <span className="font-mono font-bold text-rose-400">
+                            {report.strikeProbabilityPct}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-rose-500 rounded-full"
+                            style={{ width: `${Math.min(100, report.strikeProbabilityPct)}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Bar 2 */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-slate-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                            <span>Reused Content</span>
+                          </span>
+                          <span className="font-mono font-bold text-amber-400">
+                            {Math.round(report.overallRiskScore * 0.4)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-amber-500 rounded-full"
+                            style={{ width: `${Math.min(100, Math.round(report.overallRiskScore * 0.4))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Bar 3 */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-slate-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                            <span>Monetization Risk</span>
+                          </span>
+                          <span className="font-mono font-bold text-blue-400">
+                            {report.demonetizationProbabilityPct}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full"
+                            style={{ width: `${Math.min(100, report.demonetizationProbabilityPct)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Top Issues */}
+                    <div className="space-y-2">
+                      <span className="font-mono text-[10px] uppercase font-bold text-slate-400">
+                        Top Issues
+                      </span>
+
+                      {report.timelineViolations && report.timelineViolations.length > 0 ? (
+                        report.timelineViolations.slice(0, 3).map((v, idx) => (
+                          <div
+                            key={idx}
+                            className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-2 text-xs"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                              <div className="truncate">
+                                <div className="text-[11px] text-white truncate">{v.title || v.categoryLabel}</div>
+                                <span className="font-mono text-[9px] text-slate-400">
+                                  {v.timestampStart} – {v.timestampEnd}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-400">
+                              {v.severity}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800/80 text-center text-xs text-emerald-400 font-mono">
+                          ✓ No strike violations detected in this upload.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* View Full Report Link */}
+                <div className="pt-2 border-t border-slate-800 text-right">
+                  <button
+                    type="button"
+                    onClick={onNavigateScanner}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition cursor-pointer"
+                  >
+                    <span>Inspect Full Report in Scanner</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Clean Empty State Card - No fake video */
+              <div className="rounded-2xl border border-white/30 bg-white/45 dark:bg-black/45 p-8 sm:p-10 shadow-xl text-center backdrop-blur-xl flex flex-col items-center justify-center">
+                <div className="h-12 w-12 rounded-2xl bg-slate-800/80 text-slate-400 flex items-center justify-center mb-3">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <h4 className="font-display font-black text-base text-white uppercase tracking-wider">
+                  Empty
+                </h4>
+                <p className="text-xs text-slate-300 mt-1.5 max-w-sm leading-relaxed">
+                  No video analysis report generated yet. When you upload a video for analysis, its thumbnail, duration, safety score, and safe-cut timestamps will appear here.
+                </p>
                 <button
                   type="button"
-                  onClick={loadDefaultDemo}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition cursor-pointer"
+                  onClick={triggerUpload}
+                  className="mt-4 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-md"
                 >
-                  <span>View Full Report</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <UploadCloud className="h-4 w-4" />
+                  <span>Upload Video to Analyze</span>
                 </button>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

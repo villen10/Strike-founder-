@@ -42,7 +42,6 @@ import {
   ScrollHintPrompt,
   ScrollTextReveal,
   ScrollButtonReveal,
-  FloatingScrollHUD,
 } from './components/ScrollExperience';
 import {
   SubscriptionTier,
@@ -390,7 +389,7 @@ export default function App() {
   };
 
   // Active video & audit states - Clean empty state for new users/visitors
-  const [videoTitle, setVideoTitle] = useState('Ready for video upload');
+  const [videoTitle, setVideoTitle] = useState('');
   const [videoDurationSec, setVideoDurationSec] = useState(0);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
   const [extractedFrames, setExtractedFrames] = useState<ExtractedFrame[]>([]);
@@ -1284,6 +1283,11 @@ export default function App() {
                     currentUser={currentUser}
                     history={uploadHistory}
                     report={report}
+                    currentVideoUrl={currentVideoUrl}
+                    videoTitle={videoTitle}
+                    videoDurationSec={videoDurationSec}
+                    extractedFrames={extractedFrames}
+                    isScanning={isScanning}
                     onSelectSample={handleSelectSample}
                     samples={SAMPLE_VIDEOS}
                     onNavigateScanner={() => setCurrentView('scanner')}
@@ -1988,20 +1992,6 @@ export default function App() {
           setCurrentSubscriptionTier(tier);
           setDeviceMetrics(getDeviceScanMetrics());
         }}
-      />
-
-      {/* Dynamic Floating Action Dock: Bottom-up animated font & buttons that fade in/out on scroll */}
-      <FloatingScrollHUD
-        isLight={isLight}
-        videoTitle={videoTitle}
-        safetyGrade={report?.safetyGrade}
-        isAuditActive={!!report}
-        onScanClick={() => {
-          setCurrentView('scanner');
-          handleTriggerAudit();
-        }}
-        onCutSheetClick={() => setIsCutGuideOpen(true)}
-        onCompareClick={() => setIsCompareModalOpen(true)}
       />
 
       {/* Floating Scroll to Top Interactive Button */}
