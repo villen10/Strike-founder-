@@ -42,6 +42,14 @@ import {
   onAuthStateChanged,
   User,
 } from '../services/firebase';
+import {
+  ChannelTrackerSkeleton,
+  ChannelHeaderSkeleton,
+  MetricCardsSkeleton,
+  VideoListSkeleton,
+  ChannelPillsSkeleton,
+  ChannelModalSkeleton,
+} from './ChannelTrackerSkeleton';
 
 interface ChannelTrackerDashboardProps {
   theme: ColorTheme;
@@ -358,8 +366,32 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
         </div>
       )}
 
-      {activeChannel ? (
+      {isLoading && !activeChannel ? (
+        <ChannelTrackerSkeleton
+          isLight={isLight}
+          statusText="Connecting to YouTube Data API v3 & analyzing channel metrics..."
+        />
+      ) : activeChannel ? (
         <>
+          {/* Live Syncing Feedback Banner when refreshing */}
+          {isRefreshing && (
+            <div
+              className={`px-4 py-3 rounded-2xl border flex items-center justify-between gap-3 animate-pulse ${
+                isLight
+                  ? 'bg-red-50/80 border-red-200 text-red-700'
+                  : 'bg-red-950/40 border-red-900/60 text-red-300'
+              }`}
+            >
+              <div className="flex items-center gap-2.5 text-xs font-semibold">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                <span>Connecting to YouTube Data API: Fetching live views, subscriber count, and 24h metrics...</span>
+              </div>
+              <span className="font-mono text-[10px] uppercase font-bold tracking-wider opacity-75 hidden sm:inline">
+                Live Syncing...
+              </span>
+            </div>
+          )}
+
           {/* Active Channel Header Showcase with REAL Channel Banner */}
           <div
             className={`rounded-3xl border overflow-hidden transition-all ${
@@ -455,7 +487,10 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
           </div>
 
           {/* 4 Crisp Creator Metric Cards (Clean UI / UX) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {isRefreshing ? (
+            <MetricCardsSkeleton isLight={isLight} />
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* Card 1: 24h Views */}
             <div
               className={`p-4 rounded-2xl border transition-all ${
@@ -547,14 +582,18 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
                 {activeChannel.subscribers}
               </div>
             </div>
-          </div>
+            </div>
+          )}
 
           {/* Videos Section Container */}
-          <div
-            className={`rounded-3xl border overflow-hidden transition-all ${
-              isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
-            }`}
-          >
+          {isRefreshing ? (
+            <VideoListSkeleton isLight={isLight} count={4} />
+          ) : (
+            <div
+              className={`rounded-3xl border overflow-hidden transition-all ${
+                isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'
+              }`}
+            >
             {/* Filter and Search Bar */}
             <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -822,6 +861,7 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
               </div>
             )}
           </div>
+          )}
         </>
       ) : (
         /* Empty State: No Channel Added - Direct URL / Handle Input */
@@ -947,6 +987,13 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
                 </span>
               </div>
 
+              {/* Skeleton loader while fetching YouTube Data API channel details */}
+              {isLoading && (
+                <div className="animate-fadeIn">
+                  <ChannelModalSkeleton isLight={isLight} />
+                </div>
+              )}
+
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
@@ -1017,3 +1064,12 @@ export const ChannelTrackerDashboard: React.FC<ChannelTrackerDashboardProps> = (
     </div>
   );
 };
+
+export {
+  ChannelTrackerSkeleton,
+  ChannelHeaderSkeleton,
+  MetricCardsSkeleton,
+  VideoListSkeleton,
+  ChannelPillsSkeleton,
+  ChannelModalSkeleton,
+} from './ChannelTrackerSkeleton';

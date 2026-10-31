@@ -28,6 +28,14 @@ import { AiPlatformSpecsView } from './components/AiPlatformSpecsView';
 import { SaaSFooter } from './components/SaaSFooter';
 import { AnimatedAmbientBackground } from './components/AnimatedAmbientBackground';
 import {
+  AboutUsPage,
+  ContactUsPage,
+  RefundPolicyPage,
+  FaqPage,
+  PrivacyPolicyPage,
+  TermsOfServicePage,
+} from './components/CleanPolicyPages';
+import {
   ScrollProgressBar,
   ScrollToTopButton,
   ScrollReveal,
@@ -182,6 +190,12 @@ export default function App() {
       case 'profile': return 'creator-profile';
       case 'subscription': return 'pricing-plans';
       case 'admin': return 'super-admin-control';
+      case 'about': return 'about-us';
+      case 'contact': return 'contact-us';
+      case 'refund': return 'refund-policy';
+      case 'faq': return 'faq';
+      case 'privacy': return 'privacy-policy';
+      case 'terms': return 'terms-of-service';
       case 'legal': return 'legal-faq';
       default: return view;
     }
@@ -242,14 +256,27 @@ export default function App() {
         setCurrentView('profile');
       } else if (hash === 'super-admin-control' || hash === 'admin') {
         setCurrentView('admin');
+      } else if (hash === 'about' || hash === 'about-us') {
+        setCurrentView('about');
+      } else if (hash === 'contact' || hash === 'contact-us') {
+        setCurrentView('contact');
+      } else if (hash === 'refund' || hash === 'refund-policy') {
+        setCurrentView('refund');
+      } else if (hash === 'faq' || hash === 'f&q' || hash === 'f-and-q') {
+        setCurrentView('faq');
+      } else if (hash === 'privacy' || hash === 'privacy-policy') {
+        setCurrentView('privacy');
+      } else if (hash === 'terms' || hash === 'terms-of-service') {
+        setCurrentView('terms');
       } else if (hash === 'overview') {
         setCurrentView('overview');
       } else if (hash.startsWith('legal')) {
-        setCurrentView('legal');
-        if (hash === 'legal-privacy') setActiveLegalTab('privacy');
-        else if (hash === 'legal-terms') setActiveLegalTab('terms');
-        else if (hash === 'legal-refund') setActiveLegalTab('refund');
-        else setActiveLegalTab('faq');
+        if (hash === 'legal-privacy') setCurrentView('privacy');
+        else if (hash === 'legal-terms') setCurrentView('terms');
+        else if (hash === 'legal-refund') setCurrentView('refund');
+        else if (hash === 'legal-about') setCurrentView('about');
+        else if (hash === 'legal-contact') setCurrentView('contact');
+        else setCurrentView('faq');
       }
     };
 
@@ -393,6 +420,12 @@ export default function App() {
         subscription: 'Striku Pro Shield - YouTube Pre-Upload Protection Plans | Striku',
         legal: 'Legal Trust & Terms | Striku',
         admin: 'Mission Control Admin | Striku',
+        about: 'About Us - Mission, Story & Technology | Striku',
+        contact: 'Contact Us - 24/7 Creator Support Desk | Striku',
+        refund: 'Refund Policy - 14-Day Money-Back Guarantee | Striku',
+        faq: 'Frequently Asked Questions (FAQ) - Strike Detection & Privacy | Striku',
+        privacy: 'Privacy Policy - Zero Video Retention Guarantee | Striku',
+        terms: 'Terms of Service - Platform Agreement | Striku',
       };
       if (titles[currentView]) {
         document.title = titles[currentView];
@@ -1771,7 +1804,59 @@ export default function App() {
                 </motion.div>
               )}
 
-              {/* View 9: TRUST & LEGAL POLICIES HUB (FAQ, Refund Guarantee, Privacy, Terms, About, Contact) */}
+              {/* View: ABOUT US PAGE */}
+              {currentView === 'about' && (
+                <AboutUsPage
+                  onNavigate={setCurrentView}
+                  isLight={isLight}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
+                />
+              )}
+
+              {/* View: CONTACT US PAGE */}
+              {currentView === 'contact' && (
+                <ContactUsPage
+                  onNavigate={setCurrentView}
+                  isLight={isLight}
+                  currentUserEmail={currentUser?.email}
+                />
+              )}
+
+              {/* View: REFUND POLICY PAGE */}
+              {currentView === 'refund' && (
+                <RefundPolicyPage
+                  onNavigate={setCurrentView}
+                  isLight={isLight}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
+                />
+              )}
+
+              {/* View: FREQUENTLY ASKED QUESTIONS (FAQ) PAGE */}
+              {currentView === 'faq' && (
+                <FaqPage
+                  onNavigate={setCurrentView}
+                  isLight={isLight}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
+                />
+              )}
+
+              {/* View: PRIVACY POLICY PAGE */}
+              {currentView === 'privacy' && (
+                <PrivacyPolicyPage
+                  onNavigate={setCurrentView}
+                  isLight={isLight}
+                />
+              )}
+
+              {/* View: TERMS OF SERVICE PAGE */}
+              {currentView === 'terms' && (
+                <TermsOfServicePage
+                  onNavigate={setCurrentView}
+                  isLight={isLight}
+                />
+              )}
+
+              {/* Fallback View: TRUST & LEGAL POLICIES HUB */}
               {currentView === 'legal' && (
                 <motion.div
                   key="view-legal"

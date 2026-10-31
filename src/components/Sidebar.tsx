@@ -19,6 +19,11 @@ import {
   Sparkles,
   Zap,
   Lock,
+  HelpCircle,
+  Mail,
+  Info,
+  DollarSign,
+  FileText,
 } from 'lucide-react';
 import { ColorTheme, ColorThemeId } from '../types/audit';
 import { SubscriptionTier } from '../services/subscriptionManager';
@@ -40,7 +45,13 @@ export type NavView =
   | 'profile'
   | 'subscription'
   | 'admin'
-  | 'legal';
+  | 'legal'
+  | 'about'
+  | 'contact'
+  | 'refund'
+  | 'faq'
+  | 'privacy'
+  | 'terms';
 
 export interface SidebarUser {
   uid: string;
@@ -155,6 +166,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'my-reviews' as NavView,
       label: 'My Reviews',
       icon: MessageCircle,
+    },
+  ];
+
+  const policyNavItems = [
+    {
+      id: 'about' as NavView,
+      label: 'About Us',
+      icon: Info,
+    },
+    {
+      id: 'contact' as NavView,
+      label: 'Contact Us',
+      icon: Mail,
+    },
+    {
+      id: 'refund' as NavView,
+      label: 'Refund Policy',
+      icon: DollarSign,
+    },
+    {
+      id: 'faq' as NavView,
+      label: 'FAQ',
+      icon: HelpCircle,
+    },
+    {
+      id: 'privacy' as NavView,
+      label: 'Privacy Policy',
+      icon: Lock,
+    },
+    {
+      id: 'terms' as NavView,
+      label: 'Terms of Service',
+      icon: FileText,
     },
   ];
 
@@ -332,7 +376,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="px-3 flex flex-col gap-3 pt-2">
           {renderNavGroup('Navigation', mainNavItems, isDrawer)}
           {renderNavGroup('Community & Rules', communityNavItems, isDrawer)}
-          {renderNavGroup('Account & Trust', accountNavItems, isDrawer)}
+          {renderNavGroup('Policies & Support', policyNavItems, isDrawer)}
+          {renderNavGroup('Account & Access', accountNavItems, isDrawer)}
         </nav>
       </div>
 

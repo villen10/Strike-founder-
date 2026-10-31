@@ -216,7 +216,7 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
               <h3 className={`font-mono text-xs font-bold uppercase tracking-widest ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}>
-                LEGAL
+                LEGAL &amp; POLICIES
               </h3>
               <ul className={`flex flex-col gap-2.5 text-sm ${
                 isLight ? 'text-slate-700' : 'text-slate-300'
@@ -224,7 +224,43 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
                 <li>
                   <button
                     type="button"
-                    onClick={() => onNavigate('legal', 'privacy')}
+                    onClick={() => onNavigate('about')}
+                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left font-semibold"
+                  >
+                    About Us
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('contact')}
+                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
+                  >
+                    Contact Us
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('refund')}
+                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
+                  >
+                    Refund &amp; Cancellation Policy
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('faq')}
+                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
+                  >
+                    Frequently Asked Questions (FAQ)
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('privacy')}
                     className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
                   >
                     Privacy Policy
@@ -233,39 +269,10 @@ export const SaaSFooter: React.FC<SaaSFooterProps> = ({
                 <li>
                   <button
                     type="button"
-                    onClick={() => onNavigate('legal', 'terms')}
+                    onClick={() => onNavigate('terms')}
                     className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
                   >
                     Terms of Service
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('legal', 'refund')}
-                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
-                  >
-                    Refund &amp; Cancellation
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('legal', 'about')}
-                    className={`hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left font-semibold ${
-                      isLight ? 'text-slate-900' : 'text-white'
-                    }`}
-                  >
-                    About Us
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('legal', 'contact')}
-                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer text-left"
-                  >
-                    Contact
                   </button>
                 </li>
               </ul>
